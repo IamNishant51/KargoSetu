@@ -48,6 +48,7 @@ Comprehensive technical specifications, design documents, and API contracts are 
 | **06** | [Database Schemas](Docs/06_Database_Schemas.md) | PostgreSQL Data Definition Language (DDL) and spatial indexes. |
 | **07** | [API Specification](Docs/07_API_Specification.md) | JSON request/response contracts for core REST endpoints. |
 | **08** | [System Architecture](Docs/08_System_Architecture_Diagrams.md) | Mermaid flowcharts, sequence diagrams, and decision trees. |
+| **09** | [Hackathon Execution Plan](Docs/09_Hackathon_Execution_Plan.md) | ESG implementation, alerting, weather fallbacks, and interactive demo strategy. |
 
 ---
 
