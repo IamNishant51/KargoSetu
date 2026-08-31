@@ -3,13 +3,17 @@
 @tailwind utilities;
 
 :root {
-  --background: #080e1e;
+  --background: #030d1a;
   --foreground: #ffffff;
 }
 
 body {
   color: var(--foreground);
-  background: var(--background);
+  background-color: var(--background);
+  background-image: 
+    radial-gradient(ellipse 80% 80% at 50% -20%, rgba(7, 39, 73, 0.5), transparent),
+    radial-gradient(ellipse 60% 60% at 100% 100%, rgba(0, 229, 255, 0.05), transparent);
+  background-attachment: fixed;
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
   overflow-x: hidden;
 }

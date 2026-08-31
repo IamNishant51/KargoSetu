@@ -7,6 +7,12 @@ module.exports = {
   theme: {
     extend: {
       colors: {
+        brand: {
+          DEFAULT: '#072749',
+          dark: '#030d1a',
+          light: '#0b396b',
+          accent: '#00E5FF'
+        },
         nautical: {
           dark: "#080E1E",
           card: "#101A30",
