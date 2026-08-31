@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="assets/KargoSetu-LOGO.png" alt="KargoSetu Logo" width="350" />
+</p>
+
 # KargoSetu
 
 [![Project Status: Active](https://www.repostatus.org/badges/latest/active.svg)](#)
