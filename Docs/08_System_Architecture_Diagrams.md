@@ -6,38 +6,43 @@ This document contains Mermaid diagrams visualizing the end-to-end architecture,
 
 ```mermaid
 graph TD
-    %% User Interfaces
-    Client[Web Client: Next.js 15 / Zustand / ECharts]
-    
-    %% API Gateway / Routing
-    Gateway[FastAPI REST Gateway]
-    
-    %% Microservices / Modules
-    Solver[Deterministic Constraint Solver]
-    ML[ML Forecasting Engine: XGBoost]
-    
-    %% Databases & External
-    Postgres[(PostgreSQL + PostGIS)]
-    Redis[(Redis Cache / Celery)]
-    External[External APIs: yfinance, World Bank]
-    
-    %% Connections
-    Client <-->|REST / JSON| Gateway
-    Gateway <--> Solver
-    Gateway <--> ML
-    Solver <--> Postgres
-    ML <--> Redis
-    ML <--> Postgres
-    ML <-->|Fetch Market Data| External
-    
-    classDef frontend fill:#080E1E,stroke:#00E5FF,stroke-width:2px,color:#fff;
-    classDef backend fill:#101A30,stroke:#10B981,stroke-width:2px,color:#fff;
-    classDef db fill:#26385C,stroke:#F59E0B,stroke-width:2px,color:#fff;
-    
-    class Client frontend;
-    class Gateway,Solver,ML backend;
-    class Postgres,Redis db;
+    subgraph Client Layer Next.js 15
+        UI[Executive Command Center]
+        Sim[What-If Market Shock Slider]
+        Map[MapLibre GL / OpenSeaMap GIS]
+    end
+
+    subgraph API Gateway FastAPI
+        Router[API Router & Data Cache]
+    end
+
+    subgraph Core Engines
+        Solver[Constraint Solver & Maritime Hydrodynamics]
+        MLEngine[XGBoost Quantile Predictor P10/P50/P90]
+        ESG[IMO Scope 3 Carbon Calculator]
+    end
+
+    subgraph 100% Free Data Pipeline
+        YF[yfinance BDRY]
+        OM[Open-Meteo Marine API]
+        WPI[NGA World Port Index GeoJSON]
+        SR[Searoute Offline Engine]
+    end
+
+    UI <--> Router
+    Sim <--> Router
+    Map <--> Router
+
+    Router <--> Solver
+    Router <--> MLEngine
+    Router <--> ESG
+
+    MLEngine <--> YF
+    Solver <--> OM
+    Solver <--> WPI
+    Solver <--> SR
 ```
+
 
 ## 8.2 Sequence Diagram: Charter Requisition Workflow
 
@@ -87,22 +92,20 @@ flowchart LR
     style H fill:#080E1E,stroke:#F59E0B,color:#fff
 ```
 
-## 8.4 Decision Tree: Port Constraint Solver
+## 8.4 Constraint Solver Algorithm Flowchart
 
 ```mermaid
 flowchart TD
-    Start([New Cargo Requisition]) --> DraftCheck{Is Arrival Draft <= Port Max - UKC?}
-    
-    DraftCheck -->|Yes| DimensionCheck{LOA & Beam <= Berth Max?}
-    DraftCheck -->|No| TidalCheck{Does High Tide provide clearance?}
-    
-    TidalCheck -->|Yes| ScheduleTide[Schedule Entry during Tidal Window]
-    TidalCheck -->|No| SplitCargo[Initiate Cargo Splitting Algorithm]
-    
-    DimensionCheck -->|Yes| Assign[Assign Direct Vessel Fixture]
-    DimensionCheck -->|No| SplitCargo
-    
-    SplitCargo --> Transshipment{Is Transshipment cheaper than splitting?}
-    Transshipment -->|Yes| AssignLighterage[Assign Offshore Lighterage / Sandheads]
-    Transshipment -->|No| AssignMultiple[Assign Multiple Smaller Vessels]
+    A[Cargo Request: Volume, Commodity, Port, Laycan] --> B{Fetch Port Bathymetry & Density}
+    B --> C[Calculate Water Sinkage & Hydrodynamic Squat]
+    C --> D[Compute Dynamic UKC Clearance]
+    D --> E{Is UKC >= 1.0m Safety Margin?}
+    E -->|Yes| F[Check Berth LOA & Beam Limits]
+    F -->|Pass| G[Approve Direct Single Vessel Fixture]
+    E -->|No / Rejected| H[Initiate Cargo Splitting Engine]
+    F -->|Fail| H
+    H --> I[Calculate Optimal Vessel Combo e.g. 3x Supramax]
+    I --> J[Evaluate ESG Carbon & Demurrage Risk]
+    J --> K[Return Recommendations & Strategy Envelope]
+    G --> K
 ```

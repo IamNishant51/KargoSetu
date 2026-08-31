@@ -1,6 +1,6 @@
 # MODULE 3: FRONTEND ARCHITECTURE & IMPLEMENTATION
 
-**Tech Stack:** Next.js 15 (App Router), TypeScript, Tailwind CSS, Shadcn UI, Zustand, TanStack Query v5, Apache ECharts.
+**Tech Stack:** Next.js 15 (App Router), TypeScript, Tailwind CSS, Shadcn UI, Zustand, TanStack Query v5, Apache ECharts, MapLibre GL JS.
 
 ## 3.1 `RequisitionForm.tsx` (Zod Validation)
 ```tsx
@@ -110,5 +110,51 @@ export function ForecastPriceChart({ data }: { data: any[] }) {
   };
 
   return <ReactECharts option={options} style={{ height: 400 }} theme="dark" />;
+}
+```
+
+## 3.4 GIS Mapping Implementation (MapLibre GL JS)
+**Zero Cost Mandate:** We strictly avoid paid Mapbox tokens by using open-source MapLibre combined with free CARTO Dark raster tiles.
+
+```tsx
+"use client";
+import { useEffect, useRef } from 'react';
+import maplibregl from 'maplibre-gl';
+import 'maplibre-gl/dist/maplibre-gl.css';
+
+export function PortFairwayMap() {
+  const mapContainer = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!mapContainer.current) return;
+    
+    const map = new maplibregl.Map({
+      container: mapContainer.current,
+      style: {
+        version: 8,
+        sources: {
+          'carto-dark': {
+            type: 'raster',
+            tiles: ['https://basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'],
+            tileSize: 256,
+            attribution: '&copy; <a href="https://carto.com/">CARTO</a>'
+          }
+        },
+        layers: [{
+          id: 'carto-dark-layer',
+          type: 'raster',
+          source: 'carto-dark',
+          minzoom: 0,
+          maxzoom: 19
+        }]
+      },
+      center: [88.06, 22.02], // Haldia Port Coordinates
+      zoom: 10
+    });
+    
+    return () => map.remove();
+  }, []);
+
+  return <div ref={mapContainer} style={{ width: '100%', height: '500px' }} />;
 }
 ```
