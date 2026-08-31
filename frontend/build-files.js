@@ -1,4 +1,18 @@
-import type { Metadata } from "next";
+const fs = require('fs');
+const path = require('path');
+
+const ROOT = 'C:/Users/nisha/Desktop/KargoSetu/frontend';
+
+// Each string must have every opening tag properly closed with >.
+// Bad: <span className="bg-leaf</span>
+// Good: <span className="bg-leaf" />
+
+const FILES = {};
+
+// =============================================================
+// app/layout.tsx
+// =============================================================
+FILES['app/layout.tsx'] = `import type { Metadata } from "next";
 import Image from "next/image";
 import "./globals.css";
 
@@ -16,8 +30,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <div className="flex items-center gap-3">
               <span className="flex items-center gap-2 text-white font-semibold">
                 <span className="relative flex h-2 w-2">
-                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-leaf opacity-60"></span>
-                  <span className="relative inline-flex h-2 w-2 rounded-full bg-leaf"></span>
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-leaf opacity-60</span>
+                  <span className="relative inline-flex h-2 w-2 rounded-full bg-leaf</span>
                </span>
                 Ministry of Steel - SAIL
              </span>
@@ -42,9 +56,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <div className="mx-auto flex h-[72px] max-w-[1440px] items-center justify-between px-6">
             <div className="flex items-center gap-3.5">
               <div className="relative">
-                <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-saffron via-sea to-leaf opacity-20 blur-md"></div>
-                <div className="relative flex h-14 w-14 items-center justify-center rounded-xl bg-white ring-1 ring-slate-200 shadow-sm">
-                  <Image src="/logo.png" alt="KargoSetu" width={52} height={52} priority className="object-contain drop-shadow-sm" quality={100} />
+                <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-saffron via-sea to-leaf opacity-20 blur-md</div>
+                <div className="relative flex h-11 w-11 items-center justify-center rounded-xl bg-white ring-1 ring-slate-200 shadow-sm">
+                  <Image src="/logo.png" alt="KargoSetu" width={36} height={36} priority className="object-contain" />
                </div>
              </div>
               <div className="flex flex-col justify-center">
@@ -59,7 +73,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <div className="flex items-center gap-3">
               <div className="hidden lg:flex items-center gap-2.5 rounded-lg border border-slate-200 bg-white px-3.5 py-2">
                 <div className="flex items-center gap-1.5">
-                  <span className="h-1.5 w-1.5 rounded-full bg-leaf"></span>
+                  <span className="h-1.5 w-1.5 rounded-full bg-leaf</span>
                   <span className="font-mono text-[10px] uppercase tracking-wider text-slate-500">CoA Savings</span>
                </div>
                 <div className="flex items-baseline gap-1">
@@ -68,7 +82,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                </div>
              </div>
 
-              <div className="hidden sm:block h-8 w-px bg-slate-200"></div>
+              <div className="hidden sm:block h-8 w-px bg-slate-200</div>
 
               <div className="flex items-center gap-2.5">
                 <div className="hidden sm:flex flex-col items-end">
@@ -83,7 +97,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
          </div>
        </header>
 
-        <main className="mx-auto max-w-[1440px] px-6 py-8">{children}</main>
+        <main className="mx-auto max-w-[1440px] px-6 py-8">{children</main>
 
         <footer className="border-t border-slate-200 bg-white">
           <div className="mx-auto flex max-w-[1440px] flex-col items-center justify-between gap-3 px-6 py-5 sm:flex-row">
@@ -92,7 +106,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
            </p>
             <div className="flex items-center gap-4 text-[11px] text-slate-500">
               <span className="flex items-center gap-1.5">
-                <span className="h-1.5 w-1.5 rounded-full bg-leaf"></span>
+                <span className="h-1.5 w-1.5 rounded-full bg-leaf</span>
                 All systems operational
              </span>
               <span>·</span>
@@ -103,4 +117,28 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
      </body>
    </html>
   );
+}
+`;
+
+// Write all
+let totalWritten = 0;
+for (const [relPath, content] of Object.entries(FILES)) {
+  const abs = path.join(ROOT, relPath);
+  fs.mkdirSync(path.dirname(abs), { recursive: true });
+  fs.writeFileSync(abs, content, 'utf8');
+  totalWritten += content.length;
+  console.log(`Wrote ${relPath} (${content.length} bytes)`);
+}
+console.log(`\nTotal: ${totalWritten} bytes across ${Object.keys(FILES).length} files`);
+
+// Verify
+for (const relPath of Object.keys(FILES)) {
+  const abs = path.join(ROOT, relPath);
+  const content = fs.readFileSync(abs, 'utf8');
+  // Check for broken patterns: className="X</tag>
+  const broken = content.match(/className="[^"]*"<\/[a-z]+>/g) || [];
+  if (broken.length > 0) {
+    console.log(`WARN ${relPath}: ${broken.length} broken JSX patterns`);
+    broken.slice(0, 3).forEach((b) => console.log('  ', b));
+  }
 }
