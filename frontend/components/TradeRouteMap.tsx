@@ -129,8 +129,8 @@ export default function TradeRouteMap() {
               <div className="text-[10px] font-semibold uppercase tracking-wider text-slate-500">
                 {selectedRoute.sailingDays} days
        </div>
-              <div className="hidden h-px w-32 bg-slate-200 lg:block</div>
-           " />
+              <div className="hidden h-px w-32 bg-slate-200 lg:block"></div>
+            </div>
 
             {/* Destination */}
             <div className="flex flex-col items-start gap-2 rounded-lg border border-slate-200 bg-white p-4 shadow-sm lg:items-end lg:text-right">

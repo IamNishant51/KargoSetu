@@ -70,7 +70,7 @@ export default function ExecutiveDashboard() {
           </p>
         </div>
           <div className="flex items-center gap-2 self-start lg:self-center">
-            <Badge variant="leaf" className="px-3 py-1.5">
+            <Badge variant="success" className="px-3 py-1.5">
               <span className="h-1.5 w-1.5 rounded-full bg-leaf animate-pulse-dot" />
               Models Live
           </Badge>
@@ -114,7 +114,7 @@ export default function ExecutiveDashboard() {
               label="BDRY Freight Index"
               value="$18.42"
               delta="+2.4%"
-              deltaTone="leaf"
+              deltaTone="success"
               icon={<Activity className="h-4 w-4" />}
               accent="sea"
               caption="Source · yfinance BDRY ETF"
@@ -123,7 +123,7 @@ export default function ExecutiveDashboard() {
               label="SAIL Annual CoA Savings"
               value="₹ 35.28 Cr"
               delta="14.2% discount"
-              deltaTone="leaf"
+              deltaTone="success"
               icon={<DollarSign className="h-4 w-4" />}
               accent="leaf"
               caption="$4.2M saved vs. spot"
@@ -141,7 +141,7 @@ export default function ExecutiveDashboard() {
               label="Risk Multiplier"
               value={`${shockFactor.toFixed(2)}×`}
               delta="P90 spread"
-              deltaTone={shockFactor > 1.2 ? "warning" : "leaf"}
+              deltaTone={shockFactor > 1.2 ? "warning" : "success"}
               icon={<ShieldAlert className="h-4 w-4" />}
               accent={shockFactor > 1.2 ? "warning" : "sea"}
               caption="Geopolitical stress factor"
@@ -213,7 +213,7 @@ interface KpiCardProps {
   label: string;
   value: string;
   delta: string;
-  deltaTone: "leaf" | "sea" | "warning" | "destructive";
+  deltaTone: "success" | "sea" | "warning" | "destructive";
   icon: React.ReactNode;
   accent: "saffron" | "sea" | "leaf" | "warning";
   caption: string;
@@ -262,7 +262,7 @@ function KpiCard({
           <p className="mt-1.5 font-display text-2xl font-bold tracking-tight text-navy-900">
             {value}
         </p>
-          <p className="mt-1 text-[11px] text-slate-500">{caption</p>
+          <p className="mt-1 text-[11px] text-slate-500">{caption}</p>
       </div>
     </CardContent>
   </Card>

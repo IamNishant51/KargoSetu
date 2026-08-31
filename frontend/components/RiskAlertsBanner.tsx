@@ -90,7 +90,7 @@ export default function RiskAlertsBanner() {
             </CardDescription>
          </div>
        </div>
-          <Badge variant="leaf" className="px-3 py-1.5 self-start">
+          <Badge variant="success" className="px-3 py-1.5 self-start">
             <span className="h-1.5 w-1.5 rounded-full bg-leaf animate-pulse-dot" />
             {alerts.length} active alerts
        </Badge>

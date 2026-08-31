@@ -146,7 +146,7 @@ export default function ConstraintSolverCard() {
         </div>
           {evaluation && (
             <Badge
-              variant={evaluation.feasible ? "leaf" : "warning"}
+              variant={evaluation.feasible ? "success" : "warning"}
               className="self-start px-3 py-1.5"
             >
               {evaluation.feasible ? (
@@ -375,7 +375,7 @@ function ResultCard({ title, icon, accent, rows, footer }: ResultCardProps) {
       <div className="space-y-2.5">
         {rows.map((row, i) => (
           <div key={i} className="flex items-baseline justify-between gap-3">
-            <span className="text-xs text-slate-600">{row.label</span>
+            <span className="text-xs text-slate-600">{row.label}</span>
             <span
               className={`text-right text-sm ${
                 row.highlight ? "font-semibold text-navy-900" : "text-slate-700"
@@ -387,7 +387,7 @@ function ResultCard({ title, icon, accent, rows, footer }: ResultCardProps) {
         ))}
   </div>
 
-      {footer && <div className="mt-4 pt-3 border-t border-slate-100">{footer</div>}
+      {footer && <div className="mt-4 pt-3 border-t border-slate-100">{footer}</div>}
 </div>
   );
 }

@@ -159,7 +159,7 @@ export default function IdleFleetManager() {
         </h3>
         </div>
         </div>
-                <Badge variant="leaf">82% recovered</Badge>
+                <Badge variant="success">82% recovered</Badge>
       </div>
 
             <p className="mt-4 text-sm leading-relaxed text-slate-600">
@@ -203,7 +203,7 @@ export default function IdleFleetManager() {
         </h3>
         </div>
         </div>
-                <Badge variant="leaf">94% recovered</Badge>
+                <Badge variant="success">94% recovered</Badge>
       </div>
 
             <p className="mt-4 text-sm leading-relaxed text-slate-600">

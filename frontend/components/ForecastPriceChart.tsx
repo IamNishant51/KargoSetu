@@ -52,7 +52,7 @@ export default function ForecastPriceChart({ shockFactor }: ForecastPriceChartPr
           "box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.1), 0 8px 10px -6px rgba(15, 23, 42, 0.05); border-radius: 10px;",
         formatter: (params: any[]) => {
           let res = `<div style="font-family: Inter; font-size: 12px;">`;
-          res += `<div style="font-weight: 600; color: #0E2841; margin-bottom: 8px;">${params[0]?.name</div>`;
+          res += `<div style="font-weight: 600; color: #0E2841; margin-bottom: 8px;">${params[0]?.name}</div>`;
           params.forEach((p) => {
             const color =
               p.seriesName === "P50 Forecast"
@@ -61,12 +61,12 @@ export default function ForecastPriceChart({ shockFactor }: ForecastPriceChartPr
                 ? "#DC2626"
                 : "#138808";
             res += `<div style="display: flex; align-items: center; gap: 6px; margin-top: 4px;">`;
-            res += `<span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: ${color};</span>`;
-            res += `<span style="color: #64748B; font-size: 11px;">${p.seriesName</span>`;
-            res += `<span style="margin-left: auto; font-weight: 600; color: #0E2841;">$${p.value</span>`;
+            res += `<span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: ${color};"></span>`;
+            res += `<span style="color: #64748B; font-size: 11px;">${p.seriesName}</span>`;
+            res += `<span style="margin-left: auto; font-weight: 600; color: #0E2841;">$${p.value}</span>`;
             res += `</div>`;
           });
-          return res +</div>";
+          return res + "</div>";
         },
       },
       legend: {

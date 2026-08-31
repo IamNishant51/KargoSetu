@@ -26,7 +26,7 @@ export default function MarketShockSlider() {
     }
     return {
       label: "Baseline Market",
-      variant: "leaf" as const,
+      variant: "success" as const,
       icon: <TrendingDown className="h-3 w-3" />,
     };
   };

@@ -298,7 +298,7 @@ function StrategyCard({
                 ) : (
                   <CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0 text-leaf-600" />
                 )}
-                <span className="text-slate-600">{item</span>
+                <span className="text-slate-600">{item}</span>
              </li>
             ))}
          </ul>
