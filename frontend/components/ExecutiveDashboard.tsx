@@ -24,60 +24,92 @@ export default function ExecutiveDashboard() {
       
       {/* KPI Header Cards - Bento Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white/[0.02] p-6 rounded-3xl border border-white/5 backdrop-blur-3xl shadow-2xl flex flex-col justify-between hover:bg-white/[0.04] transition-colors group">
-          <div className="flex justify-between items-start mb-4">
-            <div className="p-2 bg-white/5 rounded-xl border border-white/10 group-hover:scale-110 transition-transform">
-              <Activity className="w-5 h-5 text-[#00E5FF]" />
+        {/* KPI 1 */}
+        <div className="bg-white p-5 rounded-md border border-slate-200 shadow-sm flex flex-col justify-between">
+          <div className="flex justify-between items-start mb-3">
+            <div className="p-1.5 bg-slate-100 rounded text-brand">
+              <Activity className="w-4 h-4" />
             </div>
-            <span className="text-[#10B981] text-xs font-mono font-semibold px-2 py-1 bg-[#10B981]/10 rounded-full">+2.4% today</span>
+            <span className="text-green-700 text-xs font-mono font-semibold px-2 py-0.5 bg-green-50 rounded border border-green-200">+2.4%</span>
           </div>
           <div>
-            <h3 className="text-white/40 text-xs font-semibold uppercase tracking-wider mb-1">Current BDRY Index</h3>
-            <p className="text-3xl font-mono font-bold text-white">$18.42</p>
+            <h3 className="text-slate-500 text-xs font-semibold uppercase tracking-wider mb-1">Current BDRY Index</h3>
+            <p className="text-2xl font-mono font-bold text-slate-900">$18.42</p>
           </div>
         </div>
 
-        <div className="bg-white/[0.02] p-6 rounded-3xl border border-white/5 backdrop-blur-3xl shadow-2xl flex flex-col justify-between hover:bg-white/[0.04] transition-colors group">
-          <div className="flex justify-between items-start mb-4">
-            <div className="p-2 bg-white/5 rounded-xl border border-white/10 group-hover:scale-110 transition-transform">
-              <DollarSign className="w-5 h-5 text-[#00E5FF]" />
+        {/* KPI 2 */}
+        <div className="bg-white p-5 rounded-md border border-slate-200 shadow-sm flex flex-col justify-between">
+          <div className="flex justify-between items-start mb-3">
+            <div className="p-1.5 bg-slate-100 rounded text-brand">
+              <DollarSign className="w-4 h-4" />
             </div>
-            <span className="text-white/40 text-xs font-mono px-2 py-1 bg-white/5 rounded-full">100% Elimination</span>
+            <span className="text-slate-600 text-xs font-mono font-semibold px-2 py-0.5 bg-slate-100 rounded border border-slate-200">100% Mitigated</span>
           </div>
           <div>
-            <h3 className="text-white/40 text-xs font-semibold uppercase tracking-wider mb-1">Demurrage Avoided</h3>
-            <p className="text-3xl font-mono font-bold text-[#00E5FF]">$4.25M</p>
+            <h3 className="text-slate-500 text-xs font-semibold uppercase tracking-wider mb-1">Demurrage Avoided</h3>
+            <p className="text-2xl font-mono font-bold text-brand">$4.25M</p>
           </div>
         </div>
 
-        <div className="bg-white/[0.02] p-6 rounded-3xl border border-white/5 backdrop-blur-3xl shadow-2xl flex flex-col justify-between hover:bg-white/[0.04] transition-colors group">
-          <div className="flex justify-between items-start mb-4">
-            <div className="p-2 bg-white/5 rounded-xl border border-white/10 group-hover:scale-110 transition-transform">
-              <TrendingUp className="w-5 h-5 text-[#10B981]" />
+        {/* KPI 3 */}
+        <div className="bg-white p-5 rounded-md border border-slate-200 shadow-sm flex flex-col justify-between">
+          <div className="flex justify-between items-start mb-3">
+            <div className="p-1.5 bg-slate-100 rounded text-brand">
+              <TrendingUp className="w-4 h-4" />
             </div>
-            <span className="text-white/40 text-xs font-mono px-2 py-1 bg-white/5 rounded-full">88% Confidence</span>
+            <span className="text-green-700 text-xs font-mono font-semibold px-2 py-0.5 bg-green-50 rounded border border-green-200">88% Confidence</span>
           </div>
           <div>
-            <h3 className="text-white/40 text-xs font-semibold uppercase tracking-wider mb-1">Optimal Booking</h3>
-            <p className="text-3xl font-mono font-bold text-[#10B981]">Sep 10-18</p>
+            <h3 className="text-slate-500 text-xs font-semibold uppercase tracking-wider mb-1">Optimal Booking</h3>
+            <p className="text-2xl font-mono font-bold text-green-700">Sep 10-18</p>
           </div>
         </div>
 
-        <div className="bg-white/[0.02] p-6 rounded-3xl border border-white/5 backdrop-blur-3xl shadow-2xl flex flex-col justify-between hover:bg-white/[0.04] transition-colors group relative overflow-hidden">
-          <div className="absolute -right-10 -top-10 w-32 h-32 bg-[#F59E0B]/20 blur-3xl rounded-full pointer-events-none"></div>
-          <div className="flex justify-between items-start mb-4 relative z-10">
-            <div className="p-2 bg-[#F59E0B]/10 rounded-xl border border-[#F59E0B]/20 group-hover:scale-110 transition-transform">
-              <ShieldAlert className="w-5 h-5 text-[#F59E0B]" />
+        {/* KPI 4 */}
+        <div className="bg-white p-5 rounded-md border border-slate-200 shadow-sm flex flex-col justify-between">
+          <div className="flex justify-between items-start mb-3">
+            <div className="p-1.5 bg-amber-50 rounded text-amber-600 border border-amber-100">
+              <ShieldAlert className="w-4 h-4" />
             </div>
-            <span className="text-[#F59E0B] text-xs font-mono font-semibold px-2 py-1 bg-[#F59E0B]/10 rounded-full border border-[#F59E0B]/20">P90 Expansion</span>
+            <span className="text-amber-700 text-xs font-mono font-semibold px-2 py-0.5 bg-amber-50 rounded border border-amber-200">P90 Expansion</span>
           </div>
-          <div className="relative z-10">
-            <h3 className="text-white/40 text-xs font-semibold uppercase tracking-wider mb-1">Shock Multiplier</h3>
-            <p className="text-3xl font-mono font-bold text-white">{shockFactor.toFixed(2)}x</p>
+          <div>
+            <h3 className="text-slate-500 text-xs font-semibold uppercase tracking-wider mb-1">Risk Multiplier</h3>
+            <p className="text-2xl font-mono font-bold text-slate-900">{shockFactor.toFixed(2)}x</p>
           </div>
         </div>
       </div>
 
+      {/* Main Charts & Controls Section */}
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+        
+        {/* ECharts 90-Day Forecast */}
+        <div className="xl:col-span-2 bg-white p-6 rounded-md border border-slate-200 shadow-sm flex flex-col">
+          <div className="flex justify-between items-center mb-6 pb-4 border-b border-slate-100">
+            <div>
+              <h2 className="text-lg font-bold text-slate-900">90-Day Freight Projection</h2>
+              <p className="text-xs text-slate-500 mt-1">Multi-horizon forecast bounds based on macro indicators.</p>
+            </div>
+            <span className="text-xs font-mono text-brand bg-slate-50 px-3 py-1.5 rounded border border-slate-200 font-semibold">
+              Model: Quantile XGBoost
+            </span>
+          </div>
+          <div className="flex-grow">
+            <ForecastPriceChart shockFactor={shockFactor} />
+          </div>
+        </div>
+        
+        {/* Simulator Control */}
+        <div className="xl:col-span-1 bg-white p-6 rounded-md border border-slate-200 shadow-sm flex flex-col justify-start">
+          <h2 className="text-lg font-bold mb-1 text-slate-900 flex items-center gap-2">
+            Scenario Stress Testing
+          </h2>
+          <p className="text-xs text-slate-500 mb-6 pb-4 border-b border-slate-100">Adjust the geopolitical disruption slider to visualize P90 risk.</p>
+          <MarketShockSlider />
+        </div>
+
+      </div>
       {/* Main Charts & Controls Section */}
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
         

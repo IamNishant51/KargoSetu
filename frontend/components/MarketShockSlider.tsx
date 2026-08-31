@@ -7,12 +7,12 @@ export default function MarketShockSlider() {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center text-sm font-semibold tracking-wide">
-        <span className="text-white/40">Normal (1.0x)</span>
-        <span className="text-[#EF4444] shadow-[#EF4444]/20 drop-shadow-md">Severe Crisis (2.0x)</span>
+      <div className="flex justify-between items-center text-xs font-bold tracking-wide uppercase">
+        <span className="text-slate-500">Baseline (1.0x)</span>
+        <span className="text-red-600">Severe Crisis (2.0x)</span>
       </div>
       
-      <div className="relative pt-2 pb-4">
+      <div className="relative pt-1 pb-2">
         <input 
           type="range" 
           min="1.0" 
@@ -20,16 +20,18 @@ export default function MarketShockSlider() {
           step="0.05"
           value={marketShockFactor}
           onChange={(e) => setShockFactor(parseFloat(e.target.value))}
-          className="w-full h-2 bg-white/10 rounded-lg appearance-none cursor-pointer accent-[#00E5FF] hover:accent-white transition-all shadow-[0_0_10px_rgba(0,229,255,0.3)]"
+          className="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-brand focus:outline-none focus:ring-2 focus:ring-brand/30"
         />
       </div>
       
-      <div className="p-5 bg-white/5 border border-white/10 rounded-2xl text-sm shadow-inner backdrop-blur-md">
-        <p className="text-white/90">
-          <strong className="text-white/40 uppercase tracking-wider text-xs mr-2">Current Scenario:</strong> 
-          {marketShockFactor > 1.5 ? <span className="text-[#EF4444] font-bold drop-shadow-md">Geopolitical Disruption</span> : (marketShockFactor > 1.2 ? <span className="text-[#F59E0B] font-bold drop-shadow-md">High Volatility</span> : <span className="text-[#10B981] font-bold drop-shadow-md">Baseline Market</span>)}
+      <div className="p-4 bg-slate-50 border border-slate-200 rounded text-sm">
+        <p className="text-slate-800 flex items-center justify-between">
+          <span className="text-slate-500 uppercase tracking-wider text-xs font-semibold">Current Scenario</span> 
+          {marketShockFactor > 1.5 ? <span className="text-red-600 font-bold bg-red-50 px-2 py-0.5 rounded border border-red-100 text-xs">Geopolitical Disruption</span> : (marketShockFactor > 1.2 ? <span className="text-amber-600 font-bold bg-amber-50 px-2 py-0.5 rounded border border-amber-100 text-xs">High Volatility</span> : <span className="text-green-700 font-bold bg-green-50 px-2 py-0.5 rounded border border-green-100 text-xs">Baseline Market</span>)}
         </p>
-        <p className="mt-3 text-xs text-white/40 leading-relaxed">Drag the slider to inject chaos. The Quantile XGBoost Engine will instantly recalculate the P90 confidence bounds in real-time.</p>
+        <p className="mt-3 text-xs text-slate-500 leading-relaxed">
+          Adjusting this slider injects synthetic volatility into the forecasting engine, instantly expanding the P90 confidence bounds in real-time.
+        </p>
       </div>
     </div>
   );

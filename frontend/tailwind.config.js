@@ -9,19 +9,16 @@ module.exports = {
       colors: {
         brand: {
           DEFAULT: '#072749',
-          dark: '#030d1a',
-          light: '#0b396b',
-          accent: '#00E5FF'
+          dark: '#031121',
+          light: '#0c417a',
         },
-        nautical: {
-          dark: "#080E1E",
-          card: "#101A30",
-          border: "#26385C",
-          accent: "#00E5FF",
-          success: "#10B981",
-          warning: "#F59E0B",
-          danger: "#EF4444",
-        },
+        gov: {
+          bg: '#f8fafc',
+          surface: '#ffffff',
+          border: '#e2e8f0',
+          text: '#0f172a',
+          label: '#64748b',
+        }
       },
       fontFamily: {
         sans: ["Inter", "sans-serif"],

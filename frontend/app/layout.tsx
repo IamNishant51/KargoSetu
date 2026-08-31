@@ -14,24 +14,38 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className="font-sans antialiased selection:bg-[#00E5FF] selection:text-[#030d1a]">
-        
-        {/* Floating Glass Header */}
-        <nav className="fixed top-0 left-0 right-0 z-50 px-6 py-4">
-          <div className="max-w-7xl mx-auto bg-white/[0.02] backdrop-blur-2xl border border-white/10 rounded-2xl px-6 py-3 shadow-2xl flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <Image src="/logo.png" alt="KargoSetu Logo" width={42} height={42} className="rounded-xl shadow-lg" priority />
-              <span className="font-bold text-xl tracking-tight text-white/90">KargoSetu</span>
+    <body className="font-sans antialiased text-gov-text bg-gov-bg">
+
+      {/* Government/Enterprise Utility Header */}
+      <div className="bg-brand-dark text-white text-[11px] font-medium py-1.5 px-6 flex justify-between items-center tracking-wide">
+        <div className="max-w-7xl mx-auto w-full flex justify-between">
+          <span>Ministry of Steel, Government of India | Official Portal</span>
+          <span className="opacity-80">Secure Enterprise Network</span>
+        </div>
+      </div>
+
+      {/* Main Solid Brand Navigation */}
+      <nav className="bg-brand border-b border-brand-dark shadow-sm px-6 py-3">
+        <div className="max-w-7xl mx-auto flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <div className="bg-white p-1 rounded-sm shadow-sm">
+              <Image src="/logo.png" alt="KargoSetu Logo" width={40} height={40} priority />
             </div>
-            <div className="flex items-center gap-4 text-sm font-medium text-white/50">
-              <span className="hover:text-white transition-colors cursor-pointer">Command Center</span>
-              <span className="hover:text-white transition-colors cursor-pointer">Live Simulator</span>
-              <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-brand-accent to-brand ml-4 border border-white/20"></div>
+            <div className="flex flex-col">
+              <span className="font-bold text-xl tracking-tight text-white leading-tight">KargoSetu</span>
+              <span className="text-white/70 text-xs font-medium">Predictive Logistics & Chartering</span>
             </div>
           </div>
-        </nav>
+          <div className="flex items-center gap-6 text-sm font-medium text-white/90">
+            <span className="hover:text-white transition-colors cursor-pointer border-b-2 border-white pb-1">Command Center</span>
+            <span className="hover:text-white transition-colors cursor-pointer opacity-80 pb-1">Live Simulator</span>
+            <span className="hover:text-white transition-colors cursor-pointer opacity-80 pb-1">Reports</span>
+            <div className="w-8 h-8 rounded-full bg-white/20 ml-2 border border-white/30 flex items-center justify-center text-xs">GM</div>
+          </div>
+        </div>
+      </nav>
 
-        <main className="min-h-screen pt-32 pb-16 px-6">
+      <main className="min-h-screen pt-8 pb-16 px-6">
           <div className="max-w-7xl mx-auto">
             {children}
           </div>

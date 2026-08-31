@@ -21,72 +21,72 @@ export default function ConstraintSolverCard() {
   const splitCount = Math.ceil(volume / supramaxCapacity);
 
   return (
-    <div className="bg-white/[0.02] p-8 rounded-3xl border border-white/5 backdrop-blur-3xl shadow-2xl space-y-6 relative overflow-hidden">
-      <div className="absolute -left-20 -bottom-20 w-64 h-64 bg-[#00E5FF]/5 blur-[100px] rounded-full pointer-events-none"></div>
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-white/5 pb-4 relative z-10">
-        <h2 className="text-2xl font-bold text-white flex items-center gap-3 tracking-tight">
-          <div className="p-2 bg-white/5 rounded-xl border border-white/10 shadow-lg">
-            <Anchor className="text-[#00E5FF] w-5 h-5" />
-          </div>
-          Port Constraint Evaluator
-        </h2>
-        <span className={`mt-4 sm:mt-0 px-4 py-1.5 rounded-full text-xs font-mono font-bold shadow-lg ${isFeasible ? 'bg-[#10B981]/10 text-[#10B981] border border-[#10B981]/30 shadow-[#10B981]/10' : 'bg-[#EF4444]/10 text-[#EF4444] border border-[#EF4444]/30 shadow-[#EF4444]/10'}`}>
-          {isFeasible ? 'BERTHING CLEARED' : 'DRAFT REJECTED (SPLIT REQUIRED)'}
+    <div className="bg-white p-6 rounded-md border border-slate-200 shadow-sm space-y-6">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-slate-200 pb-4">
+        <div>
+          <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+            <Anchor className="text-brand w-5 h-5" />
+            Port Constraint Evaluator
+          </h2>
+          <p className="text-xs text-slate-500 mt-1">Deterministic physics engine for draft and clearance checks.</p>
+        </div>
+        <span className={`mt-4 sm:mt-0 px-3 py-1 rounded text-xs font-mono font-bold border ${isFeasible ? 'bg-green-50 text-green-700 border-green-200' : 'bg-red-50 text-red-700 border-red-200'}`}>
+          {isFeasible ? 'STATUS: BERTHING CLEARED' : 'STATUS: DRAFT REJECTED'}
         </span>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-6 text-sm relative z-10">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm bg-slate-50 p-4 rounded border border-slate-100">
         <div className="space-y-1.5">
-          <label className="text-white/40 text-xs font-semibold uppercase tracking-wider block">Target Port</label>
-          <select value={port} onChange={(e) => setPort(e.target.value)} className="w-full bg-white/5 text-white border border-white/10 p-3 rounded-xl focus:outline-none focus:border-[#00E5FF]/50 transition-colors shadow-inner backdrop-blur-md">
-            <option value="Haldia" className="bg-[#030d1a]">Haldia (Riverine)</option>
-            <option value="Paradip" className="bg-[#030d1a]">Paradip (Deep Water)</option>
-            <option value="Vizag" className="bg-[#030d1a]">Vizag (Outer Harbor)</option>
+          <label className="text-slate-600 text-xs font-semibold uppercase tracking-wider block">Target Port</label>
+          <select value={port} onChange={(e) => setPort(e.target.value)} className="w-full bg-white text-slate-900 border border-slate-300 px-3 py-2 rounded focus:outline-none focus:ring-1 focus:ring-brand focus:border-brand text-sm">
+            <option value="Haldia">Haldia (Riverine)</option>
+            <option value="Paradip">Paradip (Deep Water)</option>
+            <option value="Vizag">Vizag (Outer Harbor)</option>
           </select>
         </div>
 
         <div className="space-y-1.5">
-          <label className="text-white/40 text-xs font-semibold uppercase tracking-wider block">Volume (MT)</label>
-          <input type="number" value={volume} onChange={(e) => setVolume(Number(e.target.value))} className="w-full bg-white/5 text-white border border-white/10 p-3 rounded-xl focus:outline-none focus:border-[#00E5FF]/50 transition-colors shadow-inner backdrop-blur-md" />
+          <label className="text-slate-600 text-xs font-semibold uppercase tracking-wider block">Volume (MT)</label>
+          <input type="number" value={volume} onChange={(e) => setVolume(Number(e.target.value))} className="w-full bg-white text-slate-900 border border-slate-300 px-3 py-2 rounded focus:outline-none focus:ring-1 focus:ring-brand focus:border-brand text-sm" />
         </div>
 
         <div className="space-y-1.5">
-          <label className="text-white/40 text-xs font-semibold uppercase tracking-wider block">Chart Depth (m)</label>
-          <input type="number" step="0.1" value={depth} onChange={(e) => setDepth(Number(e.target.value))} className="w-full bg-white/5 text-white border border-white/10 p-3 rounded-xl focus:outline-none focus:border-[#00E5FF]/50 transition-colors shadow-inner backdrop-blur-md" />
+          <label className="text-slate-600 text-xs font-semibold uppercase tracking-wider block">Chart Depth (m)</label>
+          <input type="number" step="0.1" value={depth} onChange={(e) => setDepth(Number(e.target.value))} className="w-full bg-white text-slate-900 border border-slate-300 px-3 py-2 rounded focus:outline-none focus:ring-1 focus:ring-brand focus:border-brand text-sm" />
         </div>
 
         <div className="space-y-1.5">
-          <label className="text-white/40 text-xs font-semibold uppercase tracking-wider block">Tidal Height (m)</label>
-          <input type="number" step="0.1" value={tide} onChange={(e) => setTide(Number(e.target.value))} className="w-full bg-white/5 text-white border border-white/10 p-3 rounded-xl focus:outline-none focus:border-[#00E5FF]/50 transition-colors shadow-inner backdrop-blur-md" />
+          <label className="text-slate-600 text-xs font-semibold uppercase tracking-wider block">Tidal Height (m)</label>
+          <input type="number" step="0.1" value={tide} onChange={(e) => setTide(Number(e.target.value))} className="w-full bg-white text-slate-900 border border-slate-300 px-3 py-2 rounded focus:outline-none focus:ring-1 focus:ring-brand focus:border-brand text-sm" />
         </div>
       </div>
 
       {/* Physics Breakdown */}
-      <div className="bg-white/5 p-6 rounded-2xl border border-white/10 grid grid-cols-1 md:grid-cols-3 gap-6 text-xs font-mono relative z-10 shadow-inner">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-sm font-mono pt-2">
         <div className="space-y-1">
-          <span className="text-white/40 block font-semibold tracking-wider">Capesize Arrival Draft</span>
-          <span className="text-white text-2xl font-bold tracking-tight">{totalArrivalDraft.toFixed(2)}m</span>
-          <span className="text-white/30 block pt-1">(Laden: 18.0m + Sinkage: +{deltaDraft.toFixed(2)}m + Squat: +{squat.toFixed(2)}m)</span>
+          <span className="text-slate-500 block font-semibold text-xs tracking-wider uppercase">Vessel Arrival Draft</span>
+          <span className="text-slate-900 text-xl font-bold tracking-tight block">{totalArrivalDraft.toFixed(2)}m</span>
+          <span className="text-slate-500 text-[11px] block pt-1">Laden: 18.0m + Sink: {deltaDraft.toFixed(2)}m + Squat: {squat.toFixed(2)}m</span>
         </div>
 
-        <div className="space-y-1 border-t md:border-t-0 md:border-l border-white/10 pt-4 md:pt-0 md:pl-6">
-          <span className="text-white/40 block font-semibold tracking-wider">Max Permissible Draft</span>
-          <span className="text-[#00E5FF] text-2xl font-bold tracking-tight shadow-[#00E5FF]/20 drop-shadow-md">{maxPermissible.toFixed(2)}m</span>
-          <span className="text-white/30 block pt-1">(Depth: {depth}m + Tide: {tide}m - UKC: 1.0m)</span>
+        <div className="space-y-1 md:border-l border-slate-200 pt-4 md:pt-0 md:pl-6">
+          <span className="text-slate-500 block font-semibold text-xs tracking-wider uppercase">Max Permissible</span>
+          <span className="text-brand text-xl font-bold tracking-tight block">{maxPermissible.toFixed(2)}m</span>
+          <span className="text-slate-500 text-[11px] block pt-1">Depth: {depth}m + Tide: {tide}m - UKC: 1.0m</span>
         </div>
 
-        <div className="space-y-1 border-t md:border-t-0 md:border-l border-white/10 pt-4 md:pt-0 md:pl-6">
-          <span className="text-white/40 block font-semibold tracking-wider">Recommended Action</span>
+        <div className="space-y-1 md:border-l border-slate-200 pt-4 md:pt-0 md:pl-6">
+          <span className="text-slate-500 block font-semibold text-xs tracking-wider uppercase">Recommendation</span>
           {isFeasible ? (
-            <span className="text-[#10B981] text-lg font-bold flex items-center gap-2 mt-1 drop-shadow-md">
-              <ShieldCheck className="w-5 h-5" /> Direct Berthing
+            <span className="text-green-700 text-base font-bold flex items-center gap-1.5 mt-1">
+              <ShieldCheck className="w-4 h-4" /> Direct Berthing
             </span>
           ) : (
-            <span className="text-[#F59E0B] text-lg font-bold flex items-center gap-2 mt-1 drop-shadow-md">
-              <Layers className="w-5 h-5" /> Split into {splitCount}x Supramax
+            <span className="text-red-700 text-base font-bold flex items-center gap-1.5 mt-1">
+              <Layers className="w-4 h-4" /> Split to {splitCount}x Supramax
             </span>
           )}
-          <span className="text-white/30 block pt-1">Eliminates $25,000/day Demurrage Risk</span>
+          <span className="text-slate-500 text-[11px] block pt-1">Prevents $25,000/day Demurrage</span>
         </div>
       </div>
     </div>
