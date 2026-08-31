@@ -1,3 +1,16 @@
+# Node & Next.js
+frontend/node_modules/
+frontend/.next/
+frontend/out/
 
-# AI Agent Context
-agents.md
+# Python & Pycache
+backend/__pycache__/
+backend/services/__pycache__/
+*.pyc
+.venv/
+
+# System & IDE
+.DS_Store
+*.log
+.vscode/
+.idea/
