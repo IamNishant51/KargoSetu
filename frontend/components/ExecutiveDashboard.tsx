@@ -60,7 +60,7 @@ export default function ExecutiveDashboard() {
               <span className="relative inline-block">
                 <span className="relative z-10">predictive</span>
                 <span className="absolute inset-x-0 bottom-1 h-2 bg-saffron/30" />
-             " />{" "}
+              </span>{" "}
               chartering.
           </h1>
             <p className="mt-2 max-w-2xl text-sm text-slate-600">
