@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Image from "next/image";
+import Link from "next/link";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -43,13 +44,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <div className="flex items-center gap-3.5">
               <div className="relative">
                 <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-saffron via-sea to-leaf opacity-20 blur-md"></div>
-                <div className="relative flex h-14 w-14 items-center justify-center rounded-xl bg-white ring-1 ring-slate-200 shadow-sm">
+                <Link href="/" className="relative flex h-14 w-14 items-center justify-center rounded-xl bg-white ring-1 ring-slate-200 shadow-sm hover:scale-105 transition-transform">
                   <Image src="/logo.png" alt="KargoSetu" width={52} height={52} priority className="object-contain drop-shadow-sm" quality={100} />
-               </div>
+               </Link>
              </div>
               <div className="flex flex-col justify-center">
                 <div className="flex items-baseline gap-2">
-                  <span className="text-[19px] font-bold tracking-tight text-navy-900">KargoSetu</span>
+                  <Link href="/"><span className="text-[19px] font-bold tracking-tight text-navy-900 hover:text-sea-700 transition-colors">KargoSetu</span></Link>
                   <span className="hidden sm:inline-block text-[10px] font-mono uppercase tracking-wider text-slate-500">INTELLIGENT FREIGHT</span>
                </div>
                 <span className="text-[11px] font-medium text-slate-500">Predictive Freight Forecasting & Vessel Chartering</span>
@@ -82,8 +83,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
            </div>
          </div>
        </header>
-
-        <main className="mx-auto max-w-[1440px] px-6 py-8">{children}</main>
+        <main className="w-full">{children}</main>
 
         <footer className="border-t border-slate-200 bg-white">
           <div className="mx-auto flex max-w-[1440px] flex-col items-center justify-between gap-3 px-6 py-5 sm:flex-row">
