@@ -36,7 +36,7 @@ export default function RootLayout({
           
           {/* Brand & Logo */}
           <div className="flex items-center gap-3">
-            <Image src="/logo.png" alt="KargoSetu Logo" width={36} height={36} priority className="object-contain" />
+            <Image src="/logo.png" alt="KargoSetu Logo" width={56} height={56} priority className="object-contain drop-shadow-sm" quality={100} />
             <div className="flex flex-col justify-center">
               <span className="font-bold text-xl tracking-tight text-brand leading-none">KargoSetu</span>
               <span className="text-slate-500 text-[10px] font-bold uppercase tracking-widest mt-1">Predictive Chartering</span>
