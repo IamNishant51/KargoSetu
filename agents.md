@@ -67,6 +67,16 @@ The backend relies on `@tensorflow/tfjs-node`, which compiles native C++ binding
 *Note: All APIs must remain 100% free and open-source per hackathon rules.*
 </where-to-deploy>
 
+<ci-cd-mandate>
+### Strict CI/CD Pipeline Rules for AI Agents
+To ensure the GitHub Actions CI/CD pipeline NEVER fails, you MUST strictly adhere to the following rules before executing any `git push`:
+
+1. **Dependency Synchronization:** If you add or modify a dependency in `package.json` (frontend or backend), you MUST run `npm install` in that specific directory to regenerate the `package-lock.json` file. If `package-lock.json` is missing or out of sync, the `npm ci` command in the pipeline will fatally crash.
+2. **No Untracked Files:** Before committing, always run `git status`. Ensure that no crucial project files (like scaffold directories, lockfiles, or configuration files) are left untracked. The CI runner clones a fresh repository and will crash if it cannot find the expected files.
+3. **Local Pre-commit Validation:** If you make significant logic changes, verify the build locally (e.g., `npm run lint` or `npm list`) before pushing. Do not push code that breaks standard Node.js checks.
+4. **Node Version Consistency:** Be aware that the CI pipeline is configured to use Node.js 24.x. Avoid introducing packages or syntax strictly dependent on deprecated or highly experimental Node versions.
+</ci-cd-mandate>
+
 <developer-experience-mandate>
 ### Maintain the Developer Guide
 We have a file named `DEVELOPER_GUIDE.md` designed specifically for junior developers and human team members. It explains what every file does in plain, non-jargon English.
