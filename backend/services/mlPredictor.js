@@ -21,13 +21,15 @@ let latestMultivariateSequence = [];
 let currentPrice = 0;
 let historicalVolatility = 0;
 const OUTLOOK_DAYS = 90;
-const LOOKBACK_DAYS = 30; // Increased lookback for better temporal context
+const LOOKBACK_DAYS = 60; // Increased lookback to 60 days for deeper temporal context
 
 // Feature normalization bounds
 let bounds = {
     bdry: { min: 0, max: 1 },
     sp500: { min: 0, max: 1 },
-    oil: { min: 0, max: 1 }
+    oil: { min: 0, max: 1 },
+    sma14: { min: 0, max: 1 },
+    rsi14: { min: 0, max: 1 }
 };
 
 
@@ -37,7 +39,7 @@ let bounds = {
 async function fetchRealData() {
     console.log("Fetching real multivariate historical data (BDRY, ^GSPC, CL=F)...");
     const period1 = new Date();
-    period1.setFullYear(period1.getFullYear() - 3); // 3 years for more robust training
+    period1.setFullYear(period1.getFullYear() - 5); // 5 years for balanced training speed
     
     const [bdryRaw, sp500Raw, oilRaw] = await Promise.all([
         yahooFinance.chart('BDRY', { period1, interval: '1d' }),
@@ -60,31 +62,82 @@ async function fetchRealData() {
 }
 
 /**
+ * Technical Indicators (DSA Optimized using Float32Array)
+ */
+function calculateRSI(prices, period = 14) {
+    const rsi = new Float32Array(prices.length);
+    let gain = 0, loss = 0;
+    for (let i = 1; i <= period; i++) {
+        const diff = prices[i] - prices[i - 1];
+        if (diff > 0) gain += diff;
+        else loss -= diff;
+    }
+    let avgGain = gain / period;
+    let avgLoss = loss / period;
+    rsi[period] = avgLoss === 0 ? 100 : 100 - (100 / (1 + (avgGain / avgLoss)));
+
+    for (let i = period + 1; i < prices.length; i++) {
+        const diff = prices[i] - prices[i - 1];
+        avgGain = ((avgGain * (period - 1)) + (diff > 0 ? diff : 0)) / period;
+        avgLoss = ((avgLoss * (period - 1)) + (diff < 0 ? -diff : 0)) / period;
+        rsi[i] = avgLoss === 0 ? 100 : 100 - (100 / (1 + (avgGain / avgLoss)));
+    }
+    return rsi;
+}
+
+function calculateSMA(prices, period) {
+    const sma = new Float32Array(prices.length);
+    let sum = 0;
+    for (let i = 0; i < prices.length; i++) {
+        sum += prices[i];
+        if (i >= period) sum -= prices[i - period];
+        if (i >= period - 1) sma[i] = sum / period;
+    }
+    return sma;
+}
+
+/**
  * 2. Feature Engineering: Min-Max Scaling & Direct Multi-step Sequence Generation
  */
 function prepareData(historicalData) {
-    // Calculate Bounds for Min-Max Scaling
-    bounds.bdry.min = Math.min(...historicalData.map(d => d.bdry));
-    bounds.bdry.max = Math.max(...historicalData.map(d => d.bdry));
-    bounds.sp500.min = Math.min(...historicalData.map(d => d.sp500));
-    bounds.sp500.max = Math.max(...historicalData.map(d => d.sp500));
-    bounds.oil.min = Math.min(...historicalData.map(d => d.oil));
-    bounds.oil.max = Math.max(...historicalData.map(d => d.oil));
+    const bdryPrices = new Float32Array(historicalData.map(d => d.bdry));
+    const rsi14 = calculateRSI(bdryPrices, 14);
+    const sma14 = calculateSMA(bdryPrices, 14);
 
-    // Calculate historical volatility on BDRY (std dev of daily log returns)
-    let returns = [];
-    for (let i = 1; i < historicalData.length; i++) {
-        returns.push(Math.log(historicalData[i].bdry / historicalData[i - 1].bdry));
+    // Merge engineered features back into the dataset
+    for (let i = 0; i < historicalData.length; i++) {
+        historicalData[i].rsi14 = rsi14[i] || 50; // default RSI neutral
+        historicalData[i].sma14 = sma14[i] || historicalData[i].bdry;
     }
-    const meanReturn = returns.reduce((a, b) => a + b, 0) / returns.length;
-    const varianceReturns = returns.reduce((sum, r) => sum + Math.pow(r - meanReturn, 2), 0) / returns.length;
-    historicalVolatility = Math.sqrt(varianceReturns);
+
+    // Calculate Bounds for Min-Max Scaling dynamically
+    const featuresList = ['bdry', 'sp500', 'oil', 'sma14', 'rsi14'];
+    featuresList.forEach(f => {
+        bounds[f].min = Math.min(...historicalData.map(d => d[f]));
+        bounds[f].max = Math.max(...historicalData.map(d => d[f]));
+    });
+
+    // Calculate historical volatility on BDRY (std dev of daily log returns) using Float32Array
+    let returns = new Float32Array(historicalData.length - 1);
+    let sumReturns = 0;
+    for (let i = 1; i < historicalData.length; i++) {
+        returns[i-1] = Math.log(historicalData[i].bdry / historicalData[i - 1].bdry);
+        sumReturns += returns[i-1];
+    }
+    const meanReturn = sumReturns / returns.length;
+    let varianceReturns = 0;
+    for (let i = 0; i < returns.length; i++) {
+        varianceReturns += Math.pow(returns[i] - meanReturn, 2);
+    }
+    historicalVolatility = Math.sqrt(varianceReturns / returns.length);
 
     // Normalize Multivariate Data
     const normalizedData = historicalData.map(d => [
         (d.bdry - bounds.bdry.min) / (bounds.bdry.max - bounds.bdry.min),
         (d.sp500 - bounds.sp500.min) / (bounds.sp500.max - bounds.sp500.min),
-        (d.oil - bounds.oil.min) / (bounds.oil.max - bounds.oil.min)
+        (d.oil - bounds.oil.min) / (bounds.oil.max - bounds.oil.min),
+        (d.sma14 - bounds.sma14.min) / (bounds.sma14.max - bounds.sma14.min),
+        (d.rsi14 - bounds.rsi14.min) / (bounds.rsi14.max - bounds.rsi14.min)
     ]);
 
     latestMultivariateSequence = normalizedData.slice(-LOOKBACK_DAYS);
@@ -94,7 +147,7 @@ function prepareData(historicalData) {
     const labels = [];
     
     // Create sliding windows for DIRECT Multi-step forecasting
-    // Input: 30 days of 3 features (BDRY, SP500, OIL)
+    // Input: 60 days of 5 features (BDRY, SP500, OIL, SMA14, RSI14)
     // Output: Next 90 days of BDRY
     for (let i = LOOKBACK_DAYS; i <= normalizedData.length - OUTLOOK_DAYS; i++) {
         features.push(normalizedData.slice(i - LOOKBACK_DAYS, i));
@@ -106,10 +159,10 @@ function prepareData(historicalData) {
     const splitIdx = Math.floor(features.length * 0.85);
 
     return {
-        // X Shape: [batch_size, time_steps, features] -> [N, 30, 3]
-        trainX: tf.tensor3d(features.slice(0, splitIdx), [splitIdx, LOOKBACK_DAYS, 3]),
+        // X Shape: [batch_size, time_steps, features] -> [N, 60, 5]
+        trainX: tf.tensor3d(features.slice(0, splitIdx), [splitIdx, LOOKBACK_DAYS, 5]),
         trainY: tf.tensor2d(labels.slice(0, splitIdx), [splitIdx, OUTLOOK_DAYS]),
-        valX: tf.tensor3d(features.slice(splitIdx), [features.length - splitIdx, LOOKBACK_DAYS, 3]),
+        valX: tf.tensor3d(features.slice(splitIdx), [features.length - splitIdx, LOOKBACK_DAYS, 5]),
         valY: tf.tensor2d(labels.slice(splitIdx), [features.length - splitIdx, OUTLOOK_DAYS])
     };
 }
@@ -125,7 +178,7 @@ async function trainModel(trainX, trainY, valX, valY) {
         filters: 64,
         kernelSize: 3,
         activation: 'relu',
-        inputShape: [LOOKBACK_DAYS, 3]
+        inputShape: [LOOKBACK_DAYS, 5]
     }));
     model.add(tf.layers.maxPooling1d({ poolSize: 2 }));
     
@@ -136,7 +189,7 @@ async function trainModel(trainX, trainY, valX, valY) {
     }));
     
     model.add(tf.layers.dropout({ rate: 0.3 }));
-    model.add(tf.layers.dense({ units: 128, activation: 'relu' }));
+    model.add(tf.layers.dense({ units: 128, activation: 'relu', kernelRegularizer: tf.regularizers.l2({ l2: 0.001 }) }));
     model.add(tf.layers.dropout({ rate: 0.2 }));
     
     // Direct Multi-step Output (90 neurons for 90 days)
@@ -152,11 +205,11 @@ async function trainModel(trainX, trainY, valX, valY) {
     console.log("Training Advanced CNN-LSTM Hybrid Model...");
     
     await model.fit(trainX, trainY, {
-        epochs: 40,
+        epochs: 50,
         batchSize: 32,
         validationData: [valX, valY],
-        callbacks: tf.callbacks.earlyStopping({ monitor: 'val_loss', patience: 7 }),
-        verbose: 0 
+        callbacks: tf.callbacks.earlyStopping({ monitor: 'val_loss', patience: 10 }),
+        verbose: 1
     });
 
     return model;
@@ -187,42 +240,46 @@ async function getFreightForecast(shockMultiplier = 1.0) {
         tf.dispose([trainX, trainY, valX, valY]);
     }
     
-    let p50_value = 0;
-
     // Wrap inference in tf.tidy for strict memory management
-    tf.tidy(() => {
-        const inputTensor = tf.tensor3d([latestMultivariateSequence], [1, LOOKBACK_DAYS, 3]);
+    const p50_trajectory = tf.tidy(() => {
+        const inputTensor = tf.tensor3d([latestMultivariateSequence], [1, LOOKBACK_DAYS, 5]);
         
         // Predict all 90 days at once
         const predictionTensor = cachedModel.predict(inputTensor);
         const normalizedPredictions = predictionTensor.dataSync();
         
-        // For the headline metric, we'll take the predicted value at the END of the 90-day outlook
-        // Alternatively, an average of the period. Let's take the end period.
-        const finalDayNormalized = normalizedPredictions[OUTLOOK_DAYS - 1];
-        p50_value = denormalizeBdry(finalDayNormalized);
+        // Denormalize the entire trajectory
+        const trajectory = [];
+        for (let i = 0; i < OUTLOOK_DAYS; i++) {
+            trajectory.push(denormalizeBdry(normalizedPredictions[i]));
+        }
+        return trajectory;
     });
     
-    // Calculate Stochastic Bounds (using historical volatility & time-square-root rule)
-    const timeScaledVolatility = historicalVolatility * Math.sqrt(OUTLOOK_DAYS);
+    // Build the API response array according to the strict contract
+    const forecastArray = [];
+    const today = new Date();
+
+    for (let i = 0; i < OUTLOOK_DAYS; i++) {
+        const p50_value = p50_trajectory[i];
+        
+        // Calculate Stochastic Bounds (using historical volatility & time-square-root rule)
+        // Variance expands as we predict further into the future (i + 1 days out)
+        const timeScaledVolatility = historicalVolatility * Math.sqrt(i + 1);
+        const variance = p50_value * timeScaledVolatility * shockMultiplier;
+        
+        const futureDate = new Date(today);
+        futureDate.setDate(today.getDate() + (i + 1));
+
+        forecastArray.push({
+            date: futureDate.toISOString().split('T')[0],
+            p10: parseFloat(Math.max(0, p50_value - variance).toFixed(2)),
+            p50: parseFloat(p50_value.toFixed(2)),
+            p90: parseFloat((p50_value + variance).toFixed(2))
+        });
+    }
     
-    // Apply the shock multiplier from the "What-If" slider
-    const variance = p50_value * timeScaledVolatility * shockMultiplier;
-    
-    return {
-        timestamp: new Date().toISOString(),
-        outlook_days: OUTLOOK_DAYS,
-        underlying_index: "BDRY (Baltic Dry Index Proxy)",
-        current_rate: parseFloat(currentPrice.toFixed(2)),
-        shock_multiplier_applied: parseFloat(shockMultiplier.toFixed(2)),
-        historical_daily_volatility: parseFloat((historicalVolatility * 100).toFixed(2)) + "%",
-        forecast: {
-            p10_optimistic: parseFloat(Math.max(0, p50_value - variance).toFixed(2)), // ensure non-negative
-            p50_median: parseFloat(p50_value.toFixed(2)),
-            p90_pessimistic: parseFloat((p50_value + variance).toFixed(2))
-        },
-        model_status: "CNN-LSTM Hybrid (Direct Multi-Step, Huber Loss, S&P500/Oil Exogenous)"
-    };
+    return forecastArray;
 }
 
 module.exports = {
