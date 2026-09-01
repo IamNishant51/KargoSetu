@@ -1,10 +1,10 @@
-# 🚢 KargoSetu - Developer Tour (What Does What?)
+#  KargoSetu - Developer Tour (What Does What?)
 
 Welcome to the team! If you are new to the codebase, don't worry. This guide explains exactly what every major folder and file does in plain, easy-to-understand English.
 
 ---
 
-## 💻 1. The Frontend (`frontend/` folder)
+##  1. The Frontend (`frontend/` folder)
 This is everything the user sees and interacts with in their browser. It is built using Next.js and React.
 
 ### Main Pages
@@ -23,7 +23,7 @@ These are the reusable LEGO blocks used to build the dashboard.
 
 ---
 
-## ⚙️ 2. The Backend (`backend/` folder)
+## ️ 2. The Backend (`backend/` folder)
 This is the invisible "engine" running on the server. It does all the heavy math and AI prediction. It is built in pure JavaScript using Express.js.
 
 ### The Brain
@@ -36,7 +36,7 @@ This is the invisible "engine" running on the server. It does all the heavy math
 
 ---
 
-## 📚 3. The Documentation (`Docs/` folder)
+##  3. The Documentation (`Docs/` folder)
 These files are strictly for reading. They contain the official rules and planning for the Hackathon.
 * **`01_PRD_User_Personas.md`**: Explains *who* we are building this for (e.g., General Managers, Logistics Officers).
 * **`04_Backend_Architecture.md`**: Contains the hard math formulas used in `maritimeMath.js`.
@@ -45,5 +45,5 @@ These files are strictly for reading. They contain the official rules and planni
 
 ---
 
-### 💡 A Note for Developers and AI Agents:
+###  A Note for Developers and AI Agents:
 If you create a new file or make a massive change to what a file does, **you must update this document**. Keep it simple, and keep it human-readable!

@@ -78,7 +78,7 @@ Create a Toast/Snack-bar notification system that listens for threshold breaches
 useEffect(() => {
     if (forecast.p50 < user.targetPriceUsd * 0.9) {
         toast({
-            title: "🚨 Market Opportunity Detected",
+            title: " Market Opportunity Detected",
             description: `BDRY index dropped 10% below target. Lock in Q3 Laycan now for estimated $1.2M savings.`,
             action: <Button onClick={triggerBooking}>Approve CoA</Button>
         })
