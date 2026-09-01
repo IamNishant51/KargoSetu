@@ -31,10 +31,14 @@ This is the invisible "engine" running on the server. It does all the heavy math
 * **`package.json`**: A simple list of the tools the backend needs to run (like Express and TensorFlow).
 
 ### The Services (`services/` folder)
-* **`maritimeMath.js`**: The **Calculator**. This file handles the physical physics of ships. It calculates "Squat" (how much a ship sinks when moving fast) and "Sinkage" (how a ship floats differently in fresh vs. salt water) to ensure a ship won't scrape the ocean floor.
+* **`maritimeMath.js`**: The **Calculator**. This file handles the physical physics of ships. It calculates "Squat" and "Sinkage" to ensure a ship won't scrape the ocean floor. **New Update:** It now fetches real-time dynamic tide/wave data directly from the **Open-Meteo Marine API** instead of using static numbers!
 * **`mlPredictor.js`**: The **Crystal Ball**. This is our Artificial Intelligence (AI) file. It downloads live stock market data (`yahoo-finance2`), computes historical daily volatility, and feeds it into a neural network (`TensorFlow.js`). It now uses an **auto-regressive loop** to iteratively guess what shipping prices will be every day up to 90 days out, and applies dynamic math to calculate optimistic (P10) and pessimistic (P90) price bounds that can be adjusted by a Market Shock multiplier.
 
 ---
+
+### The Database (`prisma/` folder)
+* **`schema.prisma`**: The **Blueprint**. We added Prisma ORM to talk to a PostgreSQL database! This file defines what our port data looks like (Charted Depth, Permissible Draft, etc.).
+* **`seed.js`**: The **Data Filler**. A script used to load real-world bathymetry data for ports like Haldia, Paradip, and Dhamra into the database. Note: If the database isn't connected, the backend automatically uses a safe fallback so the dashboard keeps working!
 
 ##  3. The Documentation (`Docs/` folder)
 These files are strictly for reading. They contain the official rules and planning for the Hackathon.
@@ -42,6 +46,16 @@ These files are strictly for reading. They contain the official rules and planni
 * **`04_Backend_Architecture.md`**: Contains the hard math formulas used in `maritimeMath.js`.
 * **`05_Machine_Learning.md`**: Explains the logic behind how the AI predicts prices.
 * **`08_System_Architecture_Diagrams.md`**: Contains flowchart code (Mermaid) to visually map out how the app works.
+* **`10_Comprehensive_Architecture_And_Security_Plan.md`**: The definitive **Master Plan**. It details exactly how the Frontend, Backend, Machine Learning, and Database connect securely. It outlines all best practices (Next.js App Router, TF.js memory management, and Enterprise Security). **Read this before writing any new code.**
+
+---
+
+##  4. Core Best Practices & Security
+If you are writing code for KargoSetu, you MUST follow these rules (detailed fully in Doc 10):
+* **Frontend:** Use React Server Components by default. Use `"use client"` only when necessary. Use **Zustand** for state, **TanStack Query** for API calls, and **Zod** for form validation.
+* **Backend:** Keep the Express routes thin. Do the heavy math in the `services/` folder. Use **Zod** for strict input validation on every single API route.
+* **ML & DB:** Wrap all TensorFlow.js operations in `tf.tidy()` to prevent memory leaks. Use Prisma for all database queries to prevent SQL injection.
+* **Security:** Never expose `.env` variables to the frontend. The backend must use Helmet.js, strict CORS policies, and Rate Limiting to prevent CPU-exhaustion attacks on the AI engine.
 
 ---
 
