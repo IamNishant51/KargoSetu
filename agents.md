@@ -62,3 +62,8 @@ All constraint evaluation calculations MUST enforce these formulas:
 2. **Step-by-Step Implementation:** Ensure frontend and backend components align with defined interface contracts.
 3. **Validation:** Run linting, type checks, and mathematical unit tests prior to task completion.
 </agent-workflow>
+<developer-experience-mandate>
+### Maintain the Developer Guide
+We have a file named `DEVELOPER_GUIDE.md` designed specifically for junior developers and human team members. It explains what every file does in plain, non-jargon English.
+**STRICT RULE:** Whenever you (the AI Agent) create a new file, delete a file, or significantly change the architecture, you MUST update `DEVELOPER_GUIDE.md` to reflect these changes. Keep the tone friendly, accessible, and simple.
+</developer-experience-mandate>
