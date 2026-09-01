@@ -15,7 +15,7 @@
 
 ---
 
-## 🚀 Key SIH 26006 Capabilities
+##  Key SIH 26006 Capabilities
 
 1. **Optimal Market Entry Timing & Quantile Forecasting:**
    - Multi-horizon Quantile Regression (TensorFlow.js P10/P50/P90) predicting 30-, 60-, and 90-day freight rate curves.
@@ -42,7 +42,7 @@
 
 ---
 
-## 🏛️ System Architecture
+## ️ System Architecture
 
 *   **Frontend (Next.js 15 App Router & React 18):** Enterprise dark glassmorphism design system built with Tailwind CSS, ECharts, Framer Motion, and Zustand.
 *   **Backend (Express.js & Node.js 20):** High-performance maritime physics engine calculating Fresh Water Allowance (FWA), Hydrodynamic Squat, and Dynamic UKC.
@@ -50,7 +50,7 @@
 
 ---
 
-## 💻 Quick Start
+##  Quick Start
 
 ```bash
 # 1. Clone Repository
