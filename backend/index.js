@@ -44,7 +44,8 @@ app.post('/api/v1/requisitions/evaluate', (req, res) => {
 // 2. Machine Learning Predictive Freight Rate Endpoint
 app.get('/api/v1/forecast/rates', async (req, res) => {
     try {
-        const forecast = await getFreightForecast();
+        const shockMultiplier = parseFloat(req.query.shockMultiplier) || 1.0;
+        const forecast = await getFreightForecast(shockMultiplier);
         res.json(forecast);
     } catch (error) {
         res.status(500).json({ error: "Failed to generate ML forecast", message: error.message });
