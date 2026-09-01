@@ -15,7 +15,7 @@ KargoSetu transforms overseas dry bulk cargo procurement for Indian Public Secto
     *   *Workflow:* Operates fairway simulations; tests dynamic tidal drafts against vessel arrival ETAs; coordinates Sandheads transshipment splitting.
 *   **Persona C: Supply Chain & Market Intelligence Analyst**
     *   *Goal:* Audit model performance and cross-correlate BDI macro factors.
-    *   *Workflow:* Drills into XGBoost feature importances; monitors BDRY, VLSFO, and commodity crack spreads.
+    *   *Workflow:* Drills into TensorFlow.js feature importances; monitors BDRY, VLSFO, and commodity crack spreads.
 
 ## 1.3 Functional & Non-Functional Requirements (FRs & NFRs)
 **Functional Requirements:**

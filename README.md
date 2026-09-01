@@ -2,96 +2,70 @@
   <img src="assets/KargoSetu-LOGO.png" alt="KargoSetu Logo" width="350" />
 </p>
 
-# KargoSetu
+# KargoSetu (SIH Problem Statement 26006)
+### Intelligent Freight Forecasting & Bulk Cargo Procurement Platform for East Coast of India (SAIL / Ministry of Steel)
 
 [![Project Status: Active](https://www.repostatus.org/badges/latest/active.svg)](#)
 [![Next.js](https://img.shields.io/badge/Next.js-15-black?logo=next.js)](#)
-[![FastAPI](https://img.shields.io/badge/FastAPI-0.100+-009688?logo=fastapi)](#)
+[![Express.js](https://img.shields.io/badge/Express.js-0.104+-009688?logo=express)](#)
 [![PostgreSQL](https://img.shields.io/badge/PostGIS-Enabled-336791?logo=postgresql)](#)
-[![SIH Problem Statement](https://img.shields.io/badge/SIH-26006-080E1E)](#)
+[![SIH Problem Statement](https://img.shields.io/badge/SIH-26006-00E5FF)](#)
 
-**KargoSetu** is an enterprise-grade maritime logistics and predictive vessel chartering platform developed for the Smart India Hackathon (SIH26006). It serves Indian Public Sector Undertakings (PSUs) such as SAIL, RINL, NMDC, and NTPC by transforming overseas dry bulk cargo procurement from a reactive, spot-market dependency into a deterministic, data-driven pipeline.
-
----
-
-## Executive Summary
-
-Indian steel conglomerates import tens of millions of metric tons of raw materials annually. Traditional procurement strategies rely heavily on volatile spot markets and suffer from severe port mismatch risks. KargoSetu addresses these challenges through a dual-pronged architecture:
-
-1. **Physical Port Constraint Satisfaction:** Eliminates physical grounding risks and demurrage penalties by matching vessel dimensions (Draft, LOA, Beam) against dynamic tidal windows and fairway depths.
-2. **Predictive Freight Modeling:** Forecasts forward freight rates utilizing macroeconomic proxy data to recommend optimal market entry windows and contract structures.
+**KargoSetu** is an enterprise-grade maritime logistics intelligence and predictive chartering system built for the Smart India Hackathon (SIH26006) for the **Ministry of Steel (SAIL)**. It solves the inefficiency of single spot contract dependency by enabling predictive **Short/Medium-Term Contracts of Affreightment (CoA)** and dual-ended port constraint optimization.
 
 ---
 
-## System Architecture
+## 🚀 Key SIH 26006 Capabilities
 
-KargoSetu utilizes a robust microservices architecture segregated into distinct domains:
+1. **Optimal Market Entry Timing & Quantile Forecasting:**
+   - Multi-horizon Quantile Regression (TensorFlow.js P10/P50/P90) predicting 30-, 60-, and 90-day freight rate curves.
+   - Automatically detects 12.5% rate dip windows to trigger CoA contract bookings.
 
-*   **Frontend (Command Center):** Built with Next.js 15 (App Router), TypeScript, and Tailwind CSS. State management and data visualization are powered by Zustand, TanStack Query, and Apache ECharts.
-*   **Backend (Constraint Solver):** High-performance RESTful APIs built with Python 3.11 and FastAPI. Implements complex maritime physics equations to calculate arrival drafts and cargo splitting heuristics.
-*   **Machine Learning Engine:** Multivariate Time-Series Forecasting utilizing XGBoost, Quantile Regression, and Facebook Prophet to generate P10/P50/P90 confidence interval bands for future freight rates.
-*   **Database:** PostgreSQL 16 extended with PostGIS for spatial fairway mapping, georeferenced berth coordinates, and historical market data storage.
+2. **Spot vs. Short/Medium-Term CoA ROI Engine:**
+   - Evaluates spot contracts against 3-6 month short-term charters and 1-2 year Contracts of Affreightment.
+   - Calculates real-time monetary savings in **₹ Crores** for SAIL (est. ₹35.28 Crores / year).
 
----
+3. **Dual-Ended Port Infrastructure & Vessel Type Optimization:**
+   - Origin Ports Covered: Australia (Newcastle/Gladstone), USA (Hampton Roads), Mozambique (Maputo), Russia (Vostochny), Indonesia (Taboneo).
+   - East Coast Indian Ports Covered: Paradip, Vizag, Gangavaram, Gopalpur, Dhamra, Sagar-Sandheads, Haldia.
+   - Checks Draft, LOA, Beam, and Daily Handling Rates at both origin and destination.
+   - Auto-recommends Capesize, Panamax, Supramax, Handysize, or Sagar-Sandheads offshore lighterage & cargo splitting.
 
-## Documentation Directory
+4. **Idle Scenario Management & Positioning:**
+   - Minimizes vessel idle loss ($25,000/day for Capesize) by computing triangular repositioning routes and coastal coal sub-charters for NTPC/SAIL.
 
-Comprehensive technical specifications, design documents, and API contracts are available in the `Docs/` directory:
+5. **Risk Mitigation & Early Warning Center:**
+   - Live alerts for port congestion (e.g. Hampton Roads rail delays), monsoon sea state swells in Bay of Bengal, and market rate opportunity triggers.
 
-| Module | Document | Description |
-| :--- | :--- | :--- |
-| **01** | [PRD & User Personas](Docs/01_PRD_User_Personas.md) | ROI metrics, functional requirements, and SLA parameters. |
-| **02** | [UI/UX Design System](Docs/02_UI_UX_Design_System.md) | Visual tokens, typography, and core screen layouts. |
-| **03** | [Frontend Architecture](Docs/03_Frontend_Architecture.md) | Component blueprints, validation schemas, and ECharts logic. |
-| **04** | [Backend Architecture](Docs/04_Backend_Architecture.md) | Mathematical formulations and FastAPI solver implementation. |
-| **05** | [Machine Learning](Docs/05_Machine_Learning.md) | Feature engineering pipelines and quantile regression models. |
-| **06** | [Database Schemas](Docs/06_Database_Schemas.md) | PostgreSQL Data Definition Language (DDL) and spatial indexes. |
-| **07** | [API Specification](Docs/07_API_Specification.md) | JSON request/response contracts for core REST endpoints. |
-| **08** | [System Architecture](Docs/08_System_Architecture_Diagrams.md) | Mermaid flowcharts, sequence diagrams, and decision trees. |
-| **09** | [Hackathon Execution Plan](Docs/09_Hackathon_Execution_Plan.md) | ESG implementation, alerting, weather fallbacks, and interactive demo strategy. |
+6. **IMO Scope 3 Carbon Accounting:**
+   - Calculates VLSFO fuel consumption and IMO CO2 emission footprints (3.114 tCO2 per tonne fuel) for green logistics.
 
 ---
 
-## Core Capabilities
+## 🏛️ System Architecture
 
-### 1. Smart Charter Optimizer
-Calculates arrival draft via bunker burn approximations and compares it against permissible berth drafts and tidal curves. When single-vessel fixtures are physically impossible, the engine automatically recommends mathematically optimized cargo splitting (e.g., splitting a Capesize cargo into multiple Supramax vessels).
-
-### 2. Market Timing & Rate Dip Analyzer
-Ingests the Baltic Dry Index (BDRY), VLSFO bunker rates, and commodity crack spreads to output a 30-, 60-, and 90-day forward projection curve. Identifies optimal booking windows to transition from volatile spot market fixtures to long-term Contracts of Affreightment (CoA).
-
-### 3. Interactive Port Fairway Simulator
-Provides dynamic visualizations of approach channels and berths. Calculates exact Under Keel Clearance (UKC) safety margins based on estimated times of arrival (ETAs) and harmonic tidal predictions.
+*   **Frontend (Next.js 15 App Router & React 18):** Enterprise dark glassmorphism design system built with Tailwind CSS, ECharts, Framer Motion, and Zustand.
+*   **Backend (Express.js & Node.js 20):** High-performance maritime physics engine calculating Fresh Water Allowance (FWA), Hydrodynamic Squat, and Dynamic UKC.
+*   **Zero-Cost Ecosystem:** 100% free data pipeline using `yfinance` (`BDRY`), Open-Meteo, MapLibre GL, and CARTO Dark tiles.
 
 ---
 
-## Local Development Setup
+## 💻 Quick Start
 
-**Prerequisites:**
-*   Node.js 20.x+
-*   Python 3.11+
-*   Docker & Docker Compose (for PostgreSQL/PostGIS and Redis)
-
-**Quick Start:**
 ```bash
-# 1. Clone the repository
+# 1. Clone Repository
 git clone https://github.com/IamNishant51/KargoSetu.git
 cd KargoSetu
 
-# 2. Start Infrastructure (PostgreSQL + Redis)
-docker-compose up -d
-
-# 3. Initialize Backend
+# 2. Run Backend (Express.js)
 cd backend
 pip install -r requirements.txt
 uvicorn main:app --reload --port 8000
 
-# 4. Initialize Frontend
+# 3. Run Frontend (Next.js 15)
 cd ../frontend
 npm install
 npm run dev
 ```
 
----
-
-*For detailed contribution guidelines and AI agent context rules, please refer to the `agents.md` file located at the repository root.*
+Visit `http://localhost:3000` to launch the Executive Command Center.

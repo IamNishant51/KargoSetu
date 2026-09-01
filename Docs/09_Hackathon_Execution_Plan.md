@@ -23,8 +23,8 @@ ALTER TABLE charter_recommendations ADD COLUMN projected_co2_mt DECIMAL(10,2);
 ALTER TABLE charter_recommendations ADD COLUMN green_freight_score DECIMAL(3,2);
 ```
 
-**2. Backend Logic Update (FastAPI - `PortConstraintService.py`):**
-```python
+**2. Backend Logic Update (Express.js - `PortConstraintService.py`):**
+```javascript
 IMO_HFO_CARBON_FACTOR = 3.114 # MT of CO2 per MT of fuel
 
 def calculate_route_emissions(vessel, sailing_days: float) -> float:
@@ -96,7 +96,7 @@ useEffect(() => {
 Integrate `OpenWeatherMap API` or `Stormglass.io` for marine weather.
 
 **2. Constraint Solver Modification:**
-```python
+```javascript
 def check_transshipment_feasibility(port_code: str, eta_timestamp: int) -> bool:
     weather = fetch_marine_weather(port_code, eta_timestamp)
     if weather.wave_height_meters > 2.5 or weather.wind_knots > 25:
@@ -114,4 +114,4 @@ def check_transshipment_feasibility(port_code: str, eta_timestamp: int) -> bool:
 **Route Structure (Next.js):**
 *   `/dashboard/executive`: High-level numbers, Net Savings, Carbon Impact, and the "Market Shock" slider.
 *   `/dashboard/operations`: The Interactive Map, Tidal Draft Simulator, and splitting physics.
-*   `/dashboard/intelligence`: XGBoost feature importance charts, BDI correlation matrices, and model telemetry (for technical judges only).
+*   `/dashboard/intelligence`: TensorFlow.js feature importance charts, BDI correlation matrices, and model telemetry (for technical judges only).

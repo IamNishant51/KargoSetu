@@ -12,18 +12,18 @@ graph TD
         Map[MapLibre GL / OpenSeaMap GIS]
     end
 
-    subgraph API Gateway FastAPI
+    subgraph API Gateway Node.js & Express
         Router[API Router & Data Cache]
     end
 
     subgraph Core Engines
         Solver[Constraint Solver & Maritime Hydrodynamics]
-        MLEngine[XGBoost Quantile Predictor P10/P50/P90]
+        MLEngine[TensorFlow.js LSTM Predictor P10/P50/P90]
         ESG[IMO Scope 3 Carbon Calculator]
     end
 
     subgraph 100% Free Data Pipeline
-        YF[yfinance BDRY]
+        YF[Yahoo Finance / node-fetch BDRY]
         OM[Open-Meteo Marine API]
         WPI[NGA World Port Index GeoJSON]
         SR[Searoute Offline Engine]
@@ -51,7 +51,7 @@ sequenceDiagram
     autonumber
     actor User as Logistics Officer
     participant UI as Next.js Frontend
-    participant API as FastAPI Backend
+    participant API as Express Backend
     participant DB as PostgreSQL (PostGIS)
     
     User->>UI: Input Cargo (Volume, Origin, Dest, Dates)
@@ -74,9 +74,9 @@ sequenceDiagram
 
 ```mermaid
 flowchart LR
-    A[Raw Data Sources] -->|yfinance / APIs| B(Data Ingestion Layer)
+    A[Raw Data Sources] -->|node-fetch / APIs| B(Data Ingestion Layer)
     B --> C{Feature Engineering}
-    C -->|Lagged Returns| D[XGBoost Quantile Model]
+    C -->|Lagged Returns| D[TensorFlow.js LSTM Model]
     C -->|Rolling Volatility| D
     C -->|EMA Crosses| D
     D --> E[P10: Optimistic Bound]
