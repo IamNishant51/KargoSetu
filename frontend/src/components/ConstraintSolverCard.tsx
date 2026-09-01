@@ -1,11 +1,20 @@
 "use client";
 import React, { useState } from 'react';
 
+type EvaluationResult = {
+  feasible: boolean;
+  strategy: string;
+  total_vessels?: number;
+  vessel_class?: string;
+  calculatedDraft?: number;
+  clearance_margin?: number;
+};
+
 export default function ConstraintSolverCard() {
   const [volume, setVolume] = useState(100000);
   const [port, setPort] = useState('Haldia');
-  const [commodity, setCommodity] = useState('Iron Ore');
-  const [result, setResult] = useState<any>(null);
+  const [commodity] = useState('Iron Ore');
+  const [result, setResult] = useState<EvaluationResult | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -22,8 +31,9 @@ export default function ConstraintSolverCard() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Failed to evaluate');
       setResult(data);
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      if (err instanceof Error) setError(err.message);
+      else setError('Unknown error');
     } finally {
       setLoading(false);
     }

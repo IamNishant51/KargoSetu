@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 
 type ForecastResult = {
   current_rate: number;
@@ -17,24 +17,30 @@ export default function ForecastPriceChart() {
   const [data, setData] = useState<ForecastResult | null>(null);
   const [loading, setLoading] = useState(false);
 
-  const fetchForecast = useCallback(async (multiplier: number) => {
-    setLoading(true);
-    try {
-      const res = await fetch(`http://localhost:3001/api/v1/forecast/rates?shockMultiplier=${multiplier}`);
-      if (res.ok) {
-        const json = await res.json() as unknown;
-        setData(json as ForecastResult);
-      }
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
   useEffect(() => {
-    fetchForecast(shock);
-  }, [shock, fetchForecast]);
+    let isMounted = true;
+
+    const fetchForecast = async () => {
+      setLoading(true);
+      try {
+        const res = await fetch(`http://localhost:3001/api/v1/forecast/rates?shockMultiplier=${shock}`);
+        if (res.ok) {
+          const json = await res.json() as unknown;
+          if (isMounted) setData(json as ForecastResult);
+        }
+      } catch (e) {
+        console.error(e);
+      } finally {
+        if (isMounted) setLoading(false);
+      }
+    };
+
+    void fetchForecast();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [shock]);
 
   return (
     <div className="p-6 bg-slate-900 border border-slate-700 rounded-lg shadow-lg">
