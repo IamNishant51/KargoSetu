@@ -27,12 +27,12 @@ These are the reusable LEGO blocks used to build the dashboard.
 This is the invisible "engine" running on the server. It does all the heavy math and AI prediction. It is built in pure JavaScript using Express.js.
 
 ### The Brain
-* **`index.js`**: The **Server Entry Point**. Think of this as a traffic cop. It listens for requests from the frontend (like "evaluate this cargo" or "get the forecast") and sends back the answers.
+* **`index.js`**: The **Server Entry Point**. Think of this as a traffic cop. It listens for requests from the frontend (like "evaluate this cargo" or "get the forecast?shockMultiplier=1.5") and sends back the answers.
 * **`package.json`**: A simple list of the tools the backend needs to run (like Express and TensorFlow).
 
 ### The Services (`services/` folder)
 * **`maritimeMath.js`**: The **Calculator**. This file handles the physical physics of ships. It calculates "Squat" (how much a ship sinks when moving fast) and "Sinkage" (how a ship floats differently in fresh vs. salt water) to ensure a ship won't scrape the ocean floor.
-* **`mlPredictor.js`**: The **Crystal Ball**. This is our Artificial Intelligence (AI) file. It downloads live stock market data (`yahoo-finance2`), feeds it into a neural network (`TensorFlow.js`), and guesses what shipping prices will be in 90 days.
+* **`mlPredictor.js`**: The **Crystal Ball**. This is our Artificial Intelligence (AI) file. It downloads live stock market data (`yahoo-finance2`), computes historical daily volatility, and feeds it into a neural network (`TensorFlow.js`). It now uses an **auto-regressive loop** to iteratively guess what shipping prices will be every day up to 90 days out, and applies dynamic math to calculate optimistic (P10) and pessimistic (P90) price bounds that can be adjusted by a Market Shock multiplier.
 
 ---
 
