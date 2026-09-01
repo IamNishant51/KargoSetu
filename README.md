@@ -1,156 +1,194 @@
 <!-- PROJECT SHIELDS -->
 <div align="center">
-
-  [![Contributors](https://img.shields.io/badge/Contributors-Team_KargoSetu-blue?style=for-the-badge)](#)
-  [![Forks](https://img.shields.io/badge/Forks-0-green?style=for-the-badge)](#)
-  [![Stargazers](https://img.shields.io/badge/Stars-0-yellow?style=for-the-badge)](#)
-  [![Issues](https://img.shields.io/badge/Issues-0-red?style=for-the-badge)](#)
-  [![License](https://img.shields.io/badge/License-MIT-blue?style=for-the-badge)](#)
+  <a href="#"><img src="https://img.shields.io/badge/Contributors-Team_KargoSetu-blue?style=for-the-badge" alt="Contributors"></a>
+  <a href="#"><img src="https://img.shields.io/badge/Forks-0-green?style=for-the-badge" alt="Forks"></a>
+  <a href="#"><img src="https://img.shields.io/badge/Stars-0-yellow?style=for-the-badge" alt="Stars"></a>
+  <a href="#"><img src="https://img.shields.io/badge/Issues-0-red?style=for-the-badge" alt="Issues"></a>
+  <a href="#"><img src="https://img.shields.io/badge/License-MIT-blue?style=for-the-badge" alt="License"></a>
 </div>
 
-<!-- PROJECT LOGO -->
+<!-- PROJECT LOGO & HEADER -->
 <br />
 <div align="center">
   <img src="assets/KargoSetu-LOGO.png" alt="KargoSetu Logo" width="350" />
 
-  <h3 align="center">KargoSetu - Intelligent Freight Forecasting & Bulk Cargo Procurement</h3>
+  <h2 align="center">Intelligent Freight Forecasting & Bulk Cargo Procurement</h2>
 
   <p align="center">
-    Winning Solution for Smart India Hackathon (SIH) 2026
+    <strong>Official Submission for Smart India Hackathon (SIH) 2026</strong>
     <br />
-    <a href="Docs/10_Comprehensive_Architecture_And_Security_Plan.md"><strong>Explore the Docs »</strong></a>
+    <br />
+    <a href="Docs/10_Comprehensive_Architecture_And_Security_Plan.md"><strong>Explore the Technical Architecture »</strong></a>
     <br />
     <br />
     <a href="#">View Live Demo</a>
     ·
     <a href="#">Watch Pitch Video</a>
     ·
-    <a href="#">Report Bug</a>
+    <a href="#">Read Developer Guide</a>
   </p>
 </div>
 
----
+<hr />
 
-## 🏆 SIH 2026 Problem Statement 
+## SYSTEM OVERVIEW: SIH 26006
 
 | Category | Details |
 | :--- | :--- |
 | **Problem Statement ID** | `SIH26006` |
 | **Problem Title** | Intelligent Freight Forecasting & Bulk Cargo Procurement Platform for East Coast of India |
-| **Organization** | Ministry of Steel (SAIL) |
-| **Theme** | Smart Automation & Logistics |
+| **Target Organization** | Ministry of Steel (SAIL) |
+| **Hackathon Theme** | Smart Automation & Logistics |
 
-**Objective:** 
-To solve the inefficiency of single spot contract dependency by enabling predictive Short/Medium-Term Contracts of Affreightment (CoA) and dual-ended port constraint optimization, maximizing ROI and minimizing idle losses.
+> **Core Objective:** Eradicate the financial inefficiency of single spot contract dependency. KargoSetu enables highly predictive Short/Medium-Term Contracts of Affreightment (CoA) paired with dual-ended port constraint optimization, maximizing fleet ROI and minimizing idle losses for the Ministry of Steel.
 
----
+<hr />
 
-## ✨ Key Features & Business Value
+## SYSTEM ARCHITECTURE & DATA FLOW
 
-1. **Optimal Market Entry Timing & Quantile Forecasting:**
-   - Multi-horizon Quantile Regression (TensorFlow.js P10/P50/P90) predicting 30-, 60-, and 90-day freight rate curves.
-   - Automatically detects 12.5% rate dip windows to trigger CoA contract bookings.
-2. **Spot vs. Short/Medium-Term CoA ROI Engine:**
-   - Evaluates spot contracts against 3-6 month short-term charters and 1-2 year Contracts of Affreightment.
-   - Calculates real-time monetary savings in **₹ Crores** for SAIL (est. ₹35.28 Crores / year).
-3. **Dual-Ended Port Infrastructure & Vessel Type Optimization:**
-   - Checks Draft, LOA, Beam, and Daily Handling Rates at origin and destination.
-   - Auto-recommends Capesize, Panamax, Supramax, Handysize, or offshore lighterage & cargo splitting.
-4. **Idle Scenario Management & Positioning:**
-   - Minimizes vessel idle loss ($25,000/day for Capesize) by computing triangular repositioning routes.
-5. **IMO Scope 3 Carbon Accounting:**
-   - Calculates VLSFO fuel consumption and IMO CO2 emission footprints for ESG compliance.
+The following diagram illustrates the real-time data pipelines and constraint resolution engines powering the KargoSetu platform.
 
----
+```mermaid
+graph TD
+    %% Define Client Layer
+    subgraph Client [Frontend UI - Next.js 15]
+        UI[Executive Dashboard]
+        Map[MapLibre GIS]
+        Charts[ECharts Data Viz]
+    end
 
-## 💻 Tech Stack
+    %% Define Server Layer
+    subgraph Backend [Backend API - Node.js / Express]
+        API[REST Router]
+        Math[Maritime Physics Engine]
+        ML[TensorFlow.js Predictor]
+        Auth[Zod Validation Layer]
+    end
 
-| Category | Technologies |
-| :--- | :--- |
-| **Frontend** | Next.js 15 (App Router), React 19, Tailwind CSS v4, Shadcn UI |
-| **State Management** | Zustand, TanStack Query |
-| **Backend** | Node.js, Express.js (REST API) |
-| **Machine Learning** | TensorFlow.js (LSTM Neural Networks), Yahoo Finance Data (`yahoo-finance2`) |
-| **Database & ORM** | PostgreSQL, Prisma ORM |
-| **Maps & Charts** | ECharts, MapLibre GL JS |
+    %% Define Data & External Layers
+    subgraph Database [Persistence Layer]
+        PG[(PostgreSQL)]
+        Prisma[Prisma ORM]
+    end
 
----
+    subgraph External [External APIs]
+        YF[Yahoo Finance - BDRY]
+        Meteo[Open-Meteo Marine Tide]
+    end
 
-## 📂 Repository Structure
+    %% Connections
+    UI <-->|JSON payload via TanStack Query| API
+    Map -.-> UI
+    Charts -.-> UI
 
-```text
-KargoSetu/
-├── backend/                  # Express.js REST API & ML Engine
-│   ├── index.js              # Server entry point
-│   ├── prisma/               # Database schemas & seeding scripts
-│   └── services/             
-│       ├── maritimeMath.js   # Physics engine (Squat, Sinkage, UKC)
-│       └── mlPredictor.js    # TensorFlow.js prediction models
-├── frontend/                 # Next.js 15 Web Application
-│   ├── src/app/              # App Router pages (Dashboard, Auth, etc.)
-│   └── src/components/       # Reusable Shadcn UI & Data viz components
-├── Docs/                     # Comprehensive Project Documentation
-│   ├── 08_System_Architecture_Diagrams.md
-│   └── 10_Comprehensive_Architecture_And_Security_Plan.md
-├── .github/                  # CI/CD Workflows & Issue Templates
-└── DEVELOPER_GUIDE.md        # Start here if you are a developer!
+    API --> Auth
+    Auth --> Math
+    Auth --> ML
+
+    Math <-->|Fetch Bathymetry| Prisma
+    Prisma <--> PG
+    Math <-->|Live Tide Data| Meteo
+
+    ML <-->|Ingest Market Data| YF
 ```
 
----
+<hr />
 
-## 🚀 Quick Start (Local Development)
+## CORE CAPABILITIES & BUSINESS IMPACT
 
-Follow these instructions to run the project locally.
+### 1. Optimal Market Entry Timing & Quantile Forecasting
+*   **Mechanism:** Multi-horizon Quantile Regression via TensorFlow.js predicting 30, 60, and 90-day freight rate curves.
+*   **Impact:** Automatically detects 12.5% rate dip windows, alerting executives to trigger optimal CoA contract bookings.
+
+### 2. Spot vs. Short/Medium-Term CoA ROI Engine
+*   **Mechanism:** Evaluates current spot contracts against 3-6 month short-term charters and 1-2 year Contracts of Affreightment.
+*   **Impact:** Calculates real-time monetary savings in **₹ Crores** for SAIL (Estimated savings: ₹35.28 Crores / year).
+
+### 3. Dual-Ended Port Infrastructure & Vessel Type Optimization
+*   **Mechanism:** Analyzes Draft, LOA, Beam, and Daily Handling Rates at both origin (e.g., Newcastle, Maputo) and destination (e.g., Paradip, Haldia).
+*   **Impact:** Auto-recommends Capesize, Panamax, Supramax, or calculates optimal offshore lighterage and cargo splitting thresholds.
+
+### 4. Idle Scenario Management & ESG Compliance
+*   **Mechanism:** Minimizes vessel idle loss ($25,000/day for Capesize) via triangular repositioning routes.
+*   **Impact:** Calculates VLSFO fuel consumption and IMO CO2 emission footprints ensuring strictly green, ESG-compliant logistics.
+
+<hr />
+
+## TECHNOLOGY STACK
+
+**Frontend Environment**<br/>
+![Next.js](https://img.shields.io/badge/Next.js_15-000000?style=for-the-badge&logo=nextdotjs&logoColor=white)
+![React](https://img.shields.io/badge/React_19-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS_v4-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)
+![Zustand](https://img.shields.io/badge/Zustand-443E38?style=for-the-badge)
+
+**Backend & Physics Engine**<br/>
+![Node.js](https://img.shields.io/badge/Node.js-43853D?style=for-the-badge&logo=node.js&logoColor=white)
+![Express.js](https://img.shields.io/badge/Express.js-404D59?style=for-the-badge)
+![Prisma](https://img.shields.io/badge/Prisma_ORM-2D3748?style=for-the-badge&logo=prisma&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge&logo=postgresql&logoColor=white)
+
+**Machine Learning & Intelligence**<br/>
+![TensorFlow.js](https://img.shields.io/badge/TensorFlow.js-FF6F00?style=for-the-badge&logo=tensorflow&logoColor=white)
+![ECharts](https://img.shields.io/badge/Apache_ECharts-E43961?style=for-the-badge&logo=apache&logoColor=white)
+
+<hr />
+
+## LOCAL DEVELOPMENT SETUP
+
+Follow these instructions to run the enterprise platform locally.
 
 ### Prerequisites
-* **Node.js:** v20 or higher
-* **PostgreSQL:** Running locally or via Docker
+* **Node.js:** v24.x (Required to match CI/CD pipeline constraints)
+* **PostgreSQL:** Running locally or exposed via Docker container
 
-### 1. Clone the repository
+### 1. Clone the Repository
 ```bash
 git clone https://github.com/IamNishant51/KargoSetu.git
 cd KargoSetu
 ```
 
-### 2. Setup the Backend (Express + TensorFlow.js)
+### 2. Initialize the Backend Services
 ```bash
 cd backend
 npm install
 
-# Setup Prisma Database (Requires PostgreSQL)
-# Make sure to create a .env file with DATABASE_URL
+# Setup Prisma Database Connection
+# Ensure a .env file is present with the DATABASE_URL string
 npx prisma generate
 node prisma/seed.js
 
-# Start the server
+# Boot the Express API Server
 npm run dev
 ```
-*The backend will run on `http://localhost:3001`*
+*The backend services will be exposed at `http://localhost:3001`*
 
-### 3. Setup the Frontend (Next.js)
+### 3. Initialize the Frontend Application
 ```bash
-# Open a new terminal and navigate to the frontend folder
+# Open a secondary terminal instance
 cd frontend
 npm install
 
-# Start the development server
+# Boot the Next.js development server
 npm run dev
 ```
-*The frontend will run on `http://localhost:3000`*
+*Access the Executive Command Center at `http://localhost:3000`*
 
----
+<hr />
 
-## 🛡️ Security & Enterprise Readiness
-* **Double Validation:** Strict `Zod` schemas enforced on both Client and Server.
-* **ML Sandboxing:** `tf.tidy()` prevents memory leaks during high-load LSTM predictions.
-* **Rate Limiting & Helmet:** Backend protected against DoS and XSS attacks.
-* For more details, see our [Architecture & Security Plan](Docs/10_Comprehensive_Architecture_And_Security_Plan.md).
+## ENTERPRISE SECURITY PROTOCOLS
+This system is engineered to enterprise logistics standards:
+* **Payload Validation:** Strict `Zod` schemas enforced on both Client and Server parameters.
+* **ML Sandboxing:** Dedicated `tf.tidy()` implementations prevent memory leaks during high-load LSTM prediction sequences.
+* **Network Defense:** Backend protected via Helmet.js headers and strict CORS origin limits to prevent DoS and XSS intrusions.
 
----
+<hr />
 
-## 👥 Meet the Team
-* **[Nishant]** - Full Stack Architect & ML Lead
-* *(Add other team members here)*
+## PROJECT CONTRIBUTORS
+* **Nishant** - Full Stack Architect & ML Lead
+* *(Additional team members to be added)*
 
 <br/>
-<p align="center">Made with ❤️ for Smart India Hackathon 2026</p>
+<div align="center">
+  <p>Engineered for the Smart India Hackathon 2026</p>
+</div>
