@@ -39,25 +39,23 @@ export default function HeroSection({ onOpenDemo }: HeroSectionProps) {
             </p>
 
             {/* CTA Buttons */}
-            <div className="flex flex-col sm:flex-row justify-center lg:justify-start gap-3.5 max-w-md mx-auto lg:mx-0">
+            <div className="flex flex-col sm:flex-row justify-center lg:justify-start gap-4 max-w-md mx-auto lg:mx-0 mt-8">
               <Link
                 href="/dashboard"
-                className="bg-[#0F172A] hover:bg-[#1E293B] text-white px-7 py-3.5 sm:py-4 rounded-xl font-semibold transition-all flex items-center justify-center gap-2.5 shadow-md hover:shadow-lg text-sm sm:text-base group"
+                className="group relative inline-flex items-center justify-center gap-2.5 rounded-xl bg-slate-900 px-8 py-4 text-sm font-semibold text-white shadow-lg shadow-slate-900/20 transition-all duration-300 hover:bg-slate-800 hover:shadow-xl hover:shadow-slate-900/30 hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-slate-900 focus:ring-offset-2 w-full sm:w-auto"
               >
-                <User size={19} className="transition-transform group-hover:scale-110" />
+                <User size={18} className="transition-transform group-hover:scale-110" />
                 <span>Get Started Free</span>
               </Link>
-
               <button
                 onClick={onOpenDemo}
-                className="bg-white border border-slate-200 hover:border-slate-300 hover:bg-slate-50 text-slate-700 px-7 py-3.5 sm:py-4 rounded-xl font-semibold transition-all flex items-center justify-center gap-2.5 shadow-2xs hover:shadow-xs text-sm sm:text-base cursor-pointer"
+                className="group relative inline-flex items-center justify-center gap-2.5 rounded-xl bg-white border border-slate-200 px-8 py-4 text-sm font-semibold text-slate-700 shadow-sm transition-all duration-300 hover:bg-slate-50 hover:border-slate-300 hover:text-slate-900 hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-slate-200 focus:ring-offset-2 w-full sm:w-auto"
               >
-                <Play size={18} className="text-slate-700 fill-slate-700" />
+                <Play size={18} className="text-slate-500 group-hover:text-[#EA580C] transition-colors" />
                 <span>Watch Demo</span>
               </button>
             </div>
           </div>
-
           {/* Right Column: Hero Graphic & Floating Card */}
           <div className="mt-12 lg:mt-0 lg:col-span-7 relative flex flex-col items-center lg:items-end">
             
@@ -74,56 +72,60 @@ export default function HeroSection({ onOpenDemo }: HeroSectionProps) {
                 />
               </div>
 
-              {/* Market Snapshot Card - Stacked below the image to ensure image is perfectly visible */}
-              <div className="mt-8 bg-white rounded-2xl p-5 sm:p-6 shadow-2xl border border-slate-100 w-full max-w-md lg:max-w-[480px] z-20 mx-auto transition-transform hover:-translate-y-0.5">
+              {/* Market Snapshot Card - Shadcn Style */}
+              <div className="mt-8 bg-white/90 backdrop-blur-md rounded-2xl p-6 shadow-xl shadow-slate-200/40 border border-slate-200/60 w-full max-w-md lg:max-w-[480px] z-20 mx-auto transition-transform duration-300 hover:-translate-y-1">
                 
                 {/* Snapshot Header */}
-                <div className="flex justify-between items-center mb-4">
-                  <h3 className="font-bold text-slate-900 text-sm sm:text-base">Market Snapshot</h3>
-                  <div className="flex items-center gap-1.5 text-xs font-semibold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-100">
-                    <span className="relative flex h-2 w-2">
+                <div className="flex justify-between items-center mb-5">
+                  <div className="flex items-center gap-2">
+                    <Activity size={16} className="text-[#EA580C]" />
+                    <h3 className="font-bold text-slate-900 text-sm sm:text-base tracking-tight">Market Snapshot</h3>
+                  </div>
+                  <div className="flex items-center gap-1.5 text-[10px] sm:text-xs font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-100 uppercase tracking-widest shadow-sm">
+                    <span className="relative flex h-1.5 w-1.5">
                       <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                      <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                      <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>
                     </span>
-                    Live
+                    Live Data
                   </div>
                 </div>
 
                 {/* 2-Column Metrics Grid */}
-                <div className="grid grid-cols-2 gap-4 divide-x divide-slate-100">
+                <div className="grid grid-cols-2 gap-5 divide-x divide-slate-100">
                   
                   {/* Metric 1: Global Freight Index */}
-                  <div className="pr-2">
-                    <p className="text-xs text-slate-500 font-medium mb-1 truncate">Global Freight Index</p>
+                  <div className="pr-1">
+                    <p className="text-[11px] sm:text-xs text-slate-500 font-semibold mb-1.5 uppercase tracking-wider truncate">Baltic Dry Index</p>
                     <div className="flex items-baseline gap-2 mb-2 flex-wrap">
-                      <span className="text-2xl sm:text-[26px] font-bold text-slate-900 font-mono tracking-tight">1,842</span>
-                      <span className="text-[11px] font-bold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-100">+2.45%</span>
+                      <span className="text-2xl sm:text-3xl font-extrabold text-slate-900 font-mono tracking-tighter">1,842</span>
+                      <span className="text-[10px] sm:text-[11px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded-md border border-emerald-100">+2.4%</span>
                     </div>
-                    {/* Sparkline Graphic */}
-                    <div className="h-7 w-full my-1">
-                      <svg viewBox="0 0 120 30" className="w-full h-full stroke-emerald-500" fill="none" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                    {/* Premium Sparkline Graphic */}
+                    <div className="h-8 w-full my-2 relative">
+                      <div className="absolute inset-0 bg-gradient-to-t from-emerald-50/50 to-transparent rounded-sm" />
+                      <svg viewBox="0 0 120 30" className="w-full h-full stroke-emerald-500 relative z-10 drop-shadow-sm" fill="none" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                         <path d="M2,24 L14,21 L26,23 L38,15 L50,17 L62,11 L74,13 L86,7 L98,9 L110,3 L118,4" />
                       </svg>
                     </div>
-                    <p className="text-[10px] text-slate-400 mt-1 font-medium">vs last 7 days</p>
+                    <p className="text-[10px] text-slate-400 mt-1 font-medium">vs trailing 7 days</p>
                   </div>
 
                   {/* Metric 2: Avg. Charter Rate */}
-                  <div className="pl-4">
-                    <p className="text-xs text-slate-500 font-medium mb-1 truncate">Avg. Charter Rate (USD/Day)</p>
+                  <div className="pl-5">
+                    <p className="text-[11px] sm:text-xs text-slate-500 font-semibold mb-1.5 uppercase tracking-wider truncate">Avg. Charter Rate</p>
                     <div className="flex items-baseline gap-2 mb-2 flex-wrap">
-                      <span className="text-2xl sm:text-[26px] font-bold text-slate-900 font-mono tracking-tight">18,650</span>
-                      <span className="text-[11px] font-bold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-100">+1.82%</span>
+                      <span className="text-2xl sm:text-3xl font-extrabold text-slate-900 font-mono tracking-tighter"><span className="text-slate-400 font-medium text-lg mr-0.5">$</span>18.6k</span>
+                      <span className="text-[10px] sm:text-[11px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded-md border border-emerald-100">+1.8%</span>
                     </div>
-                    {/* Sparkline Graphic */}
-                    <div className="h-7 w-full my-1">
-                      <svg viewBox="0 0 120 30" className="w-full h-full stroke-emerald-500" fill="none" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                    {/* Premium Sparkline Graphic */}
+                    <div className="h-8 w-full my-2 relative">
+                      <div className="absolute inset-0 bg-gradient-to-t from-emerald-50/50 to-transparent rounded-sm" />
+                      <svg viewBox="0 0 120 30" className="w-full h-full stroke-emerald-500 relative z-10 drop-shadow-sm" fill="none" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                         <path d="M2,22 L14,19 L26,20 L38,14 L50,15 L62,10 L74,11 L86,6 L98,8 L110,3 L118,2" />
                       </svg>
                     </div>
-                    <p className="text-[10px] text-slate-400 mt-1 font-medium">vs last 7 days</p>
+                    <p className="text-[10px] text-slate-400 mt-1 font-medium">vs trailing 7 days</p>
                   </div>
-
                 </div>
               </div>
             </div>
