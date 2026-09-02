@@ -66,18 +66,6 @@ export default function PortCorridor() {
           </p>
         </div>
 
-        {/* Massive Top Map Image */}
-        <div className="relative w-full aspect-[4/3] sm:aspect-[21/9] rounded-3xl overflow-hidden shadow-2xl shadow-slate-200/50 border border-slate-200/80 mb-16 bg-slate-900 group">
-          <Image 
-            src="/port-map.png" 
-            alt="Strategic East Coast Ports Map" 
-            fill 
-            className="object-cover group-hover:scale-105 transition-transform duration-[1.5s] ease-in-out" 
-            priority
-          />
-          {/* Overlay Gradient for depth */}
-          <div className="absolute inset-0 bg-gradient-to-t from-slate-900/60 via-transparent to-transparent pointer-events-none" />
-        </div>
 
         {/* Ports Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">

@@ -21,8 +21,7 @@ const FEATURES = [
      description: "Auto-regressive LSTM neural network ingesting Baltic Dry Index (BDI) and historical volatility to output P10, P50, and P90 confidence intervals. Memory-sandboxed via tf.tidy() for zero leak server execution.",
      metrics: ["Multi-Horizon (30/60/90 Days)", "What-If Volatility Slider", "Optimal CoA Window Detection"],
      color: "from-orange-500/10 to-transparent",
-     accent: "text-orange-600 bg-orange-50 border-orange-200",
-     image: "/ai-network.png"
+     accent: "text-orange-600 bg-orange-50 border-orange-200"
   },
   {
     icon: Navigation,
