@@ -32,7 +32,17 @@ export default function Navbar({ onOpenDemo }: NavbarProps) {
         <div className="flex justify-between items-center h-20">
           
           {/* Brand Logo & Name */}
-          <Link href="/" className="flex-shrink-0 flex items-center gap-3 sm:gap-4 group overflow-visible">
+          <Link 
+            href="/" 
+            className="flex-shrink-0 flex items-center gap-3 sm:gap-4 overflow-visible"
+            onClick={(e) => {
+              // If we are already on the landing page, smoothly scroll to top
+              if (window.location.pathname === '/') {
+                e.preventDefault();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }
+            }}
+          >
             {/* 
               Creative frontend trick: We increase the container size to exactly fit the 80px height (h-16 is 64px, leaving 8px top/bottom),
               and we use a subtle scale transform on the image to make it pop past any baked-in transparent padding 
@@ -43,7 +53,7 @@ export default function Navbar({ onOpenDemo }: NavbarProps) {
                 src="/logo-ks.png" 
                 alt="KargoSetu Logo" 
                 fill 
-                className="object-contain scale-[1.15] transition-transform duration-300 group-hover:scale-[1.25] drop-shadow-sm" 
+                className="object-contain scale-[1.15] drop-shadow-sm" 
                 priority
               />
             </div>
