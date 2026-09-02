@@ -47,16 +47,37 @@ async function fetchRealData() {
         yahooFinance.chart('CL=F', { period1, interval: '1d' })
     ]);
 
-    // Align data by date (inner join) to avoid look-ahead bias and mismatched sequences
-    const dateMap = {};
-    bdryRaw.quotes.forEach(q => { if (q.close) dateMap[q.date.toISOString().split('T')[0]] = { bdry: q.close }; });
-    sp500Raw.quotes.forEach(q => { if (q.close && dateMap[q.date.toISOString().split('T')[0]]) dateMap[q.date.toISOString().split('T')[0]].sp500 = q.close; });
-    oilRaw.quotes.forEach(q => { if (q.close && dateMap[q.date.toISOString().split('T')[0]]) dateMap[q.date.toISOString().split('T')[0]].oil = q.close; });
+    // DSA Optimization: Fast Date Map using raw timestamps (Math.floor to day) to avoid slow string manipulation
+    const dateMap = new Map();
+    
+    const getDayKey = (date) => Math.floor(date.getTime() / 86400000);
 
-    // Filter out dates missing any of the 3 features
-    const alignedData = Object.keys(dateMap).sort()
-        .map(date => dateMap[date])
-        .filter(d => d.bdry != null && d.sp500 != null && d.oil != null);
+    for (let i = 0; i < bdryRaw.quotes.length; i++) {
+        const q = bdryRaw.quotes[i];
+        if (q.close) dateMap.set(getDayKey(q.date), { bdry: q.close });
+    }
+    
+    for (let i = 0; i < sp500Raw.quotes.length; i++) {
+        const q = sp500Raw.quotes[i];
+        if (q.close) {
+            const key = getDayKey(q.date);
+            if (dateMap.has(key)) dateMap.get(key).sp500 = q.close;
+        }
+    }
+    
+    for (let i = 0; i < oilRaw.quotes.length; i++) {
+        const q = oilRaw.quotes[i];
+        if (q.close) {
+            const key = getDayKey(q.date);
+            if (dateMap.has(key)) dateMap.get(key).oil = q.close;
+        }
+    }
+
+    // Filter out missing features and sort chronologically
+    const alignedData = Array.from(dateMap.entries())
+        .filter(([_, d]) => d.bdry != null && d.sp500 != null && d.oil != null)
+        .sort((a, b) => a[0] - b[0])
+        .map(([_, d]) => d);
 
     return alignedData;
 }
@@ -100,70 +121,98 @@ function calculateSMA(prices, period) {
  * 2. Feature Engineering: Min-Max Scaling & Direct Multi-step Sequence Generation
  */
 function prepareData(historicalData) {
-    const bdryPrices = new Float32Array(historicalData.map(d => d.bdry));
+    const N = historicalData.length;
+    const bdryPrices = new Float32Array(N);
+    for (let i = 0; i < N; i++) bdryPrices[i] = historicalData[i].bdry;
+
     const rsi14 = calculateRSI(bdryPrices, 14);
     const sma14 = calculateSMA(bdryPrices, 14);
 
-    // Merge engineered features back into the dataset
-    for (let i = 0; i < historicalData.length; i++) {
-        historicalData[i].rsi14 = rsi14[i] || 50; // default RSI neutral
-        historicalData[i].sma14 = sma14[i] || historicalData[i].bdry;
-    }
-
-    // Calculate Bounds for Min-Max Scaling dynamically
-    const featuresList = ['bdry', 'sp500', 'oil', 'sma14', 'rsi14'];
-    featuresList.forEach(f => {
-        bounds[f].min = Math.min(...historicalData.map(d => d[f]));
-        bounds[f].max = Math.max(...historicalData.map(d => d[f]));
+    // 1. O(N) Single-Pass Bounds Calculation (DSA Optimization)
+    // Prevents V8 Maximum Call Stack Size Exceeded and avoids Array allocations
+    const fList = ['bdry', 'sp500', 'oil', 'sma14', 'rsi14'];
+    fList.forEach(f => {
+        bounds[f].min = Infinity;
+        bounds[f].max = -Infinity;
     });
 
-    // Calculate historical volatility on BDRY (std dev of daily log returns) using Float32Array
-    let returns = new Float32Array(historicalData.length - 1);
+    for (let i = 0; i < N; i++) {
+        historicalData[i].rsi14 = rsi14[i] || 50;
+        historicalData[i].sma14 = sma14[i] || historicalData[i].bdry;
+        
+        for (let j = 0; j < fList.length; j++) {
+            const val = historicalData[i][fList[j]];
+            if (val < bounds[fList[j]].min) bounds[fList[j]].min = val;
+            if (val > bounds[fList[j]].max) bounds[fList[j]].max = val;
+        }
+    }
+
+    // 2. Historical Volatility on BDRY (Std Dev of Log Returns)
+    let returns = new Float32Array(N - 1);
     let sumReturns = 0;
-    for (let i = 1; i < historicalData.length; i++) {
-        returns[i-1] = Math.log(historicalData[i].bdry / historicalData[i - 1].bdry);
-        sumReturns += returns[i-1];
+    for (let i = 1; i < N; i++) {
+        returns[i - 1] = Math.log(historicalData[i].bdry / historicalData[i - 1].bdry);
+        sumReturns += returns[i - 1];
     }
-    const meanReturn = sumReturns / returns.length;
+    const meanReturn = sumReturns / (N - 1);
     let varianceReturns = 0;
-    for (let i = 0; i < returns.length; i++) {
-        varianceReturns += Math.pow(returns[i] - meanReturn, 2);
+    for (let i = 0; i < N - 1; i++) {
+        varianceReturns += (returns[i] - meanReturn) * (returns[i] - meanReturn);
     }
-    historicalVolatility = Math.sqrt(varianceReturns / returns.length);
+    historicalVolatility = Math.sqrt(varianceReturns / (N - 1));
 
-    // Normalize Multivariate Data
-    const normalizedData = historicalData.map(d => [
-        (d.bdry - bounds.bdry.min) / (bounds.bdry.max - bounds.bdry.min),
-        (d.sp500 - bounds.sp500.min) / (bounds.sp500.max - bounds.sp500.min),
-        (d.oil - bounds.oil.min) / (bounds.oil.max - bounds.oil.min),
-        (d.sma14 - bounds.sma14.min) / (bounds.sma14.max - bounds.sma14.min),
-        (d.rsi14 - bounds.rsi14.min) / (bounds.rsi14.max - bounds.rsi14.min)
-    ]);
+    // 3. Pre-allocate flat Float32Array for Tensors (Zero-copy ML optimization)
+    // Avoids creating tens of thousands of nested JS arrays -> drastic GC reduction
+    const numSamples = N - LOOKBACK_DAYS - OUTLOOK_DAYS + 1;
+    const flatFeatures = new Float32Array(numSamples * LOOKBACK_DAYS * 5);
+    const flatLabels = new Float32Array(numSamples * OUTLOOK_DAYS);
 
-    latestMultivariateSequence = normalizedData.slice(-LOOKBACK_DAYS);
-    currentPrice = historicalData[historicalData.length - 1].bdry;
+    // Normalize Multivariate Data upfront into a flat buffer
+    const normBuffer = new Float32Array(N * 5);
+    for (let i = 0; i < N; i++) {
+        const d = historicalData[i];
+        normBuffer[i * 5 + 0] = (d.bdry - bounds.bdry.min) / (bounds.bdry.max - bounds.bdry.min);
+        normBuffer[i * 5 + 1] = (d.sp500 - bounds.sp500.min) / (bounds.sp500.max - bounds.sp500.min);
+        normBuffer[i * 5 + 2] = (d.oil - bounds.oil.min) / (bounds.oil.max - bounds.oil.min);
+        normBuffer[i * 5 + 3] = (d.sma14 - bounds.sma14.min) / (bounds.sma14.max - bounds.sma14.min);
+        normBuffer[i * 5 + 4] = (d.rsi14 - bounds.rsi14.min) / (bounds.rsi14.max - bounds.rsi14.min);
+    }
 
-    const features = [];
-    const labels = [];
-    
-    // Create sliding windows for DIRECT Multi-step forecasting
-    // Input: 60 days of 5 features (BDRY, SP500, OIL, SMA14, RSI14)
-    // Output: Next 90 days of BDRY
-    for (let i = LOOKBACK_DAYS; i <= normalizedData.length - OUTLOOK_DAYS; i++) {
-        features.push(normalizedData.slice(i - LOOKBACK_DAYS, i));
-        // The label is the next OUTLOOK_DAYS of purely the BDRY index (feature index 0)
-        labels.push(normalizedData.slice(i, i + OUTLOOK_DAYS).map(d => d[0]));
+    // Save latest sequence for real-time inference
+    latestMultivariateSequence = [];
+    for (let i = N - LOOKBACK_DAYS; i < N; i++) {
+        latestMultivariateSequence.push([
+            normBuffer[i * 5 + 0], normBuffer[i * 5 + 1], normBuffer[i * 5 + 2],
+            normBuffer[i * 5 + 3], normBuffer[i * 5 + 4]
+        ]);
+    }
+    currentPrice = historicalData[N - 1].bdry;
+
+    // 4. Sliding Window Construction directly into Flat Arrays
+    let fIdx = 0;
+    let lIdx = 0;
+    for (let i = LOOKBACK_DAYS; i <= N - OUTLOOK_DAYS; i++) {
+        // Copy LOOKBACK_DAYS * 5 values into flatFeatures
+        const startFeature = (i - LOOKBACK_DAYS) * 5;
+        const endFeature = i * 5;
+        for (let k = startFeature; k < endFeature; k++) {
+            flatFeatures[fIdx++] = normBuffer[k];
+        }
+        
+        // Copy OUTLOOK_DAYS values (only BDRY, index 0) into flatLabels
+        for (let j = 0; j < OUTLOOK_DAYS; j++) {
+            flatLabels[lIdx++] = normBuffer[(i + j) * 5 + 0]; // 0 offset for bdry
+        }
     }
     
-    // Chronological Train/Validation Split (85/15) - crucial for time series
-    const splitIdx = Math.floor(features.length * 0.85);
-
+    // Chronological Train/Validation Split (85/15)
+    const splitIdx = Math.floor(numSamples * 0.85);
+    
     return {
-        // X Shape: [batch_size, time_steps, features] -> [N, 60, 5]
-        trainX: tf.tensor3d(features.slice(0, splitIdx), [splitIdx, LOOKBACK_DAYS, 5]),
-        trainY: tf.tensor2d(labels.slice(0, splitIdx), [splitIdx, OUTLOOK_DAYS]),
-        valX: tf.tensor3d(features.slice(splitIdx), [features.length - splitIdx, LOOKBACK_DAYS, 5]),
-        valY: tf.tensor2d(labels.slice(splitIdx), [features.length - splitIdx, OUTLOOK_DAYS])
+        trainX: tf.tensor3d(flatFeatures.subarray(0, splitIdx * LOOKBACK_DAYS * 5), [splitIdx, LOOKBACK_DAYS, 5]),
+        trainY: tf.tensor2d(flatLabels.subarray(0, splitIdx * OUTLOOK_DAYS), [splitIdx, OUTLOOK_DAYS]),
+        valX: tf.tensor3d(flatFeatures.subarray(splitIdx * LOOKBACK_DAYS * 5), [numSamples - splitIdx, LOOKBACK_DAYS, 5]),
+        valY: tf.tensor2d(flatLabels.subarray(splitIdx * OUTLOOK_DAYS), [numSamples - splitIdx, OUTLOOK_DAYS])
     };
 }
 
