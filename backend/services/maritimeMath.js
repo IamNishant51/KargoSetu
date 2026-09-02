@@ -3,12 +3,21 @@
  * Implements physical constraints for bulk carriers in shallow fairways.
  */
 
-const FLEET = [
-    { name: "Capesize", capacity: 150000, laden_draft: 18.0, daily_cost: 25000, block_coefficient: 0.85, speed_knots: 12.0 },
-    { name: "Panamax", capacity: 75000, laden_draft: 14.0, daily_cost: 15000, block_coefficient: 0.85, speed_knots: 12.0 },
-    { name: "Supramax", capacity: 50000, laden_draft: 11.5, daily_cost: 12000, block_coefficient: 0.85, speed_knots: 12.0 },
-    { name: "Handysize", capacity: 35000, laden_draft: 10.0, daily_cost: 9500, block_coefficient: 0.82, speed_knots: 12.0 }
-];
+const { PrismaClient } = require('@prisma/client');
+const prisma = new PrismaClient();
+
+let cachedFleet = null;
+let lastFleetFetch = 0;
+
+async function getFleet() {
+    const now = Date.now();
+    // Cache for 1 hour to prevent DB spam
+    if (!cachedFleet || (now - lastFleetFetch) > 3600000) {
+        cachedFleet = await prisma.vessel.findMany();
+        lastFleetFetch = now;
+    }
+    return cachedFleet;
+}
 
 /**
  * Calculates Brackish Water Sinkage (Fresh Water Allowance)
@@ -36,6 +45,7 @@ function calculateDynamicUKC(chartedDepth, tidalHeight, draftLaden, deltaDraft, 
  * Evaluates the fleet against destination port constraints
  */
 async function evaluateRequisition(volume_mt, dest_port_draft, commodity, lat = 21.02, lon = 88.06) {
+    const fleet = await getFleet();
     const UKC_MARGIN = 1.0;  // 1.0 meter safety margin
     const PORT_DENSITY = 1.010; // e.g., Haldia brackish water
     
@@ -55,9 +65,9 @@ async function evaluateRequisition(volume_mt, dest_port_draft, commodity, lat = 
     }
     let validVessels = [];
 
-    for (const vessel of FLEET) {
+    for (const vessel of fleet) {
         const deltaDraft = calculateBrackishSinkage(vessel.laden_draft, PORT_DENSITY);
-        const squat = calculateHydrodynamicSquat(vessel.block_coefficient, vessel.speed_knots);
+        const squat = calculateHydrodynamicSquat(vessel.block_coeff, vessel.speed_knots);
         const ukcDynamic = calculateDynamicUKC(dest_port_draft, TIDAL_HEIGHT, vessel.laden_draft, deltaDraft, squat);
 
         if (ukcDynamic >= UKC_MARGIN) {
