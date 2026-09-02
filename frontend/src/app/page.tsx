@@ -79,18 +79,6 @@ export default function Home() {
 
               {/* Hero Image & Cards */}
               <div className="mt-16 lg:mt-0 lg:col-span-7 relative flex justify-center lg:justify-end">
-                {/* Arc graphic behind image */}
-                <div className="absolute inset-0 z-0 hidden lg:block" style={{ top: '-10%', right: '-5%', width: '110%', height: '110%' }}>
-                  <svg viewBox="0 0 800 600" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-full">
-                    <path d="M50 500 A 350 350 0 0 1 750 500" stroke="url(#paint0_linear)" strokeWidth="12" strokeLinecap="round"/>
-                    <defs>
-                      <linearGradient id="paint0_linear" x1="50" y1="500" x2="750" y2="500" gradientUnits="userSpaceOnUse">
-                        <stop stopColor="#f97316" />
-                        <stop offset="0.5" stopColor="#16a34a" />
-                      </linearGradient>
-                    </defs>
-                  </svg>
-                </div>
 
                 {/* Main Ship Image */}
                 <div className="relative z-10 w-full max-w-2xl">
