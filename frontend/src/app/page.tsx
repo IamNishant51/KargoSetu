@@ -12,7 +12,7 @@ export default function Home() {
             {/* Logo */}
             <div className="flex-shrink-0 flex items-center gap-2">
               <div className="relative w-12 h-12">
-                <Image src="/logo.png" alt="KargoSetu Logo" fill className="object-contain" />
+                <Image src="/logo-ks.png" alt="KargoSetu Logo" fill className="object-contain" />
               </div>
               <span className="font-bold text-2xl tracking-tight text-[#0f172a]">KargoSetu</span>
             </div>
