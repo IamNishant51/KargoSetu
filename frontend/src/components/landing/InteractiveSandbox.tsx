@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useQuery, useMutation } from '@tanstack/react-query';
 import { 
   TrendingUp, 
   Sparkles, 
@@ -20,8 +21,37 @@ export default function InteractiveSandbox() {
   const [port, setPort] = useState<string>('Haldia');
   const [commodity, setCommodity] = useState<string>('Coking Coal');
 
+  // React Query Mutation for Constraint Solver
+  const evaluateMutation = useMutation({
+    mutationFn: async (data: { volume_mt: number; dest_port_name: string; commodity: string }) => {
+      const res = await fetch('http://localhost:3001/api/v1/requisitions/evaluate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+      if (!res.ok) throw new Error('Network response was not ok');
+      return res.json();
+    },
+  });
+
+  useEffect(() => {
+    evaluateMutation.mutate({ volume_mt: volume, dest_port_name: port, commodity });
+  }, [volume, port, commodity]);
+
+
   // Tab 2 State: ML Forecast
   const [shockMultiplier, setShockMultiplier] = useState<number>(1.2);
+
+  // React Query for ML Forecast
+  const { data: forecastData, isLoading: forecastLoading } = useQuery({
+    queryKey: ['forecastRates', shockMultiplier],
+    queryFn: async () => {
+      const res = await fetch(`http://localhost:3001/api/v1/forecast/rates?shockMultiplier=${shockMultiplier}`);
+      if (!res.ok) throw new Error('Network response was not ok');
+      return res.json();
+    },
+  });
+
 
   // Tab 3 State: ROI Calculator
   const [annualTonnage, setAnnualTonnage] = useState<number>(3.5); // Million MT
@@ -40,20 +70,38 @@ export default function InteractiveSandbox() {
   // Deterministic thousands separator to prevent SSR/CSR locale hydration mismatches
   const formatNum = (val: number) => Math.round(val).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 
-  // Constraint calculation logic
-  const isDirectFeasible = volume <= 55000 || (port === 'Dhamra' && volume <= 180000) || (port === 'Paradip' && volume <= 85000);
+  // Constraint calculation logic from API
+  const isDirectFeasible = evaluateMutation.data ? evaluateMutation.data.feasible : (volume <= 55000 || (port === 'Dhamra' && volume <= 180000) || (port === 'Paradip' && volume <= 85000));
   const splitRequired = !isDirectFeasible;
-  const numVessels = splitRequired ? Math.ceil(volume / 50000) : 1;
-  const vesselClass = splitRequired ? 'Supramax' : (volume > 100000 ? 'Capesize' : volume > 55000 ? 'Panamax' : 'Supramax');
-  const arrivalDraft = splitRequired ? 6.9 : (volume > 100000 ? 18.2 : volume > 55000 ? 12.8 : 7.1);
-  const clearanceMargin = (currentPortInfo.draft + currentPortInfo.tide - arrivalDraft).toFixed(2);
+  const numVessels = evaluateMutation.data?.total_vessels || (splitRequired ? Math.ceil(volume / 50000) : 1);
+  const vesselClass = evaluateMutation.data?.vessel_class || (splitRequired ? 'Supramax' : (volume > 100000 ? 'Capesize' : volume > 55000 ? 'Panamax' : 'Supramax'));
+  const arrivalDraft = evaluateMutation.data?.calculatedDraft || (splitRequired ? 6.9 : (volume > 100000 ? 18.2 : volume > 55000 ? 12.8 : 7.1));
+  const clearanceMargin = evaluateMutation.data?.clearance_margin || (currentPortInfo.draft + currentPortInfo.tide - Number(arrivalDraft)).toFixed(2);
 
-  // ML Forecast calculation
-  const baseRate = 18650;
-  const p10 = Math.round(baseRate * (0.84 * shockMultiplier));
-  const p50 = Math.round(baseRate * (1.02 * shockMultiplier));
-  const p90 = Math.round(baseRate * (1.28 * shockMultiplier));
+
+  // ML Forecast calculation from API
+  let baseRate = 18650;
+  let p10 = Math.round(baseRate * (0.84 * shockMultiplier));
+  let p50 = Math.round(baseRate * (1.02 * shockMultiplier));
+  let p90 = Math.round(baseRate * (1.28 * shockMultiplier));
+
+  if (forecastData && Array.isArray(forecastData) && forecastData.length > 0) {
+    baseRate = forecastData[0].p50;
+    
+    interface ForecastDay {
+      p10: number;
+      p50: number;
+      p90: number;
+    }
+    
+    // Calculate average over the forecast period
+    p10 = Math.round(forecastData.reduce((acc: number, val: ForecastDay) => acc + val.p10, 0) / forecastData.length);
+    p50 = Math.round(forecastData.reduce((acc: number, val: ForecastDay) => acc + val.p50, 0) / forecastData.length);
+    p90 = Math.round(forecastData.reduce((acc: number, val: ForecastDay) => acc + val.p90, 0) / forecastData.length);
+  }
+  
   const dipSavings = Math.round(((p90 - p10) / p90) * 100);
+
 
   // ROI calculation
   const annualSpendUSD = annualTonnage * 1000000 * spotRate;
@@ -213,7 +261,11 @@ export default function InteractiveSandbox() {
                       Hydrodynamic Feasibility Status
                     </span>
                     <div className="flex items-center gap-2">
-                      {isDirectFeasible ? (
+                      {evaluateMutation.isPending ? (
+                        <div className="flex items-center gap-2 text-slate-500 font-bold text-lg animate-pulse">
+                          <span>Evaluating Constraints...</span>
+                        </div>
+                      ) : isDirectFeasible ? (
                         <div className="flex items-center gap-2 text-emerald-700 font-bold text-lg">
                           <CheckCircle2 size={22} className="text-emerald-600" />
                           <span>Direct Berthing Feasible</span>
@@ -230,7 +282,7 @@ export default function InteractiveSandbox() {
                   <div className="text-left sm:text-right">
                     <span className="text-[11px] text-slate-400 font-semibold uppercase tracking-wider block">Recommended Strategy</span>
                     <span className="text-sm font-bold text-[#EA580C] font-mono">
-                      {splitRequired ? `Split into ${numVessels}x ${vesselClass}` : `Direct 1x ${vesselClass}`}
+                      {evaluateMutation.isPending ? 'Calculating...' : evaluateMutation.data?.strategy || (splitRequired ? `Split into ${numVessels}x ${vesselClass}` : `Direct 1x ${vesselClass}`)}
                     </span>
                   </div>
                 </div>
@@ -343,7 +395,7 @@ export default function InteractiveSandbox() {
                       90-Day Forward Rate Projection
                     </span>
                     <h4 className="text-lg font-bold text-slate-900 font-mono" suppressHydrationWarning>
-                      Spot Rate: ${formatNum(baseRate)} / Day
+                      {forecastLoading ? 'Loading forecast...' : `Spot Rate: $${formatNum(baseRate)} / Day`}
                     </h4>
                   </div>
                   <span className="px-2.5 py-1 rounded-full text-xs font-bold text-emerald-700 bg-emerald-50 border border-emerald-200">
@@ -353,21 +405,21 @@ export default function InteractiveSandbox() {
 
                 {/* Probabilistic Quantile Boxes */}
                 <div className="grid grid-cols-3 gap-3">
-                  <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 border-t-4 border-t-emerald-500 text-center">
+                  <div className={`bg-slate-50 p-4 rounded-xl border border-slate-200 border-t-4 border-t-emerald-500 text-center ${forecastLoading ? 'animate-pulse' : ''}`}>
                     <div className="text-[11px] text-slate-500 font-semibold uppercase mb-1">P10 (Optimistic)</div>
-                    <div className="text-xl sm:text-2xl font-bold font-mono text-slate-900" suppressHydrationWarning>${formatNum(p10)}</div>
+                    <div className="text-xl sm:text-2xl font-bold font-mono text-slate-900" suppressHydrationWarning>${forecastLoading ? '---' : formatNum(p10)}</div>
                     <div className="text-[10px] text-emerald-700 font-medium mt-1">Best Entry Window</div>
                   </div>
 
-                  <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 border-t-4 border-t-blue-500 text-center">
+                  <div className={`bg-slate-50 p-4 rounded-xl border border-slate-200 border-t-4 border-t-blue-500 text-center ${forecastLoading ? 'animate-pulse' : ''}`}>
                     <div className="text-[11px] text-slate-500 font-semibold uppercase mb-1">P50 (Median Base)</div>
-                    <div className="text-xl sm:text-2xl font-bold font-mono text-slate-900" suppressHydrationWarning>${formatNum(p50)}</div>
+                    <div className="text-xl sm:text-2xl font-bold font-mono text-slate-900" suppressHydrationWarning>${forecastLoading ? '---' : formatNum(p50)}</div>
                     <div className="text-[10px] text-blue-700 font-medium mt-1">Projected Median</div>
                   </div>
 
-                  <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 border-t-4 border-t-rose-500 text-center">
+                  <div className={`bg-slate-50 p-4 rounded-xl border border-slate-200 border-t-4 border-t-rose-500 text-center ${forecastLoading ? 'animate-pulse' : ''}`}>
                     <div className="text-[11px] text-slate-500 font-semibold uppercase mb-1">P90 (Pessimistic)</div>
-                    <div className="text-xl sm:text-2xl font-bold font-mono text-slate-900" suppressHydrationWarning>${formatNum(p90)}</div>
+                    <div className="text-xl sm:text-2xl font-bold font-mono text-slate-900" suppressHydrationWarning>${forecastLoading ? '---' : formatNum(p90)}</div>
                     <div className="text-[10px] text-rose-700 font-medium mt-1">Spot Ceiling Risk</div>
                   </div>
                 </div>

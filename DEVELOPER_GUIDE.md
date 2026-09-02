@@ -18,7 +18,7 @@ This is everything the user sees and interacts with in their browser. It is buil
 * **`MarketTicker.tsx`**: Real-time marquee ticker streaming live Baltic indices and East Coast port tide levels.
 * **`SocialProofLogos.tsx`**: Authentic SVG vector marks for MAERSK, MSC, COSCO SHIPPING, CMA CGM, Hapag-Lloyd, and EVERGREEN.
 * **`SolutionsSection.tsx`**: Three-card solutions grid for Market Intelligence, Charter & Freight, and Operations Hub.
-* **`InteractiveSandbox.tsx`**: Interactive simulator featuring live Port Constraint Solving, ML Volatility Shock testing, and SAIL PSU Financial ROI calculations.
+* **`InteractiveSandbox.tsx`**: Interactive simulator featuring Port Constraint Solving, ML Volatility Shock testing, and SAIL PSU Financial ROI calculations. **New Update:** This component is now live-wired to the backend API via React Query, discarding static mock data to display real-time evaluations and forecasts!
 * **`BentoFeatures.tsx`**: Four-pillar bento grid detailing Hydrodynamics, TensorFlow.js LSTM, Sandheads Lighterage, and Green Fleet ESG.
 * **`PortCorridor.tsx`**: East Coast India bathymetry telemetry cards for Haldia, Paradip, Dhamra, and Sandheads.
 * **`WorkflowSection.tsx`**: Four-step automated procurement process from requisition to demurrage-free berthing.
@@ -53,8 +53,8 @@ This is the invisible "engine" running on the server. It does all the heavy math
 ---
 
 ### The Database (`prisma/` folder)
-* **`schema.prisma`**: The **Blueprint**. We added Prisma ORM to talk to a PostgreSQL database! This file defines what our port data looks like and also tracks the `Vessel` fleet (Capesize, Panamax, Supramax, Handysize).
-* **`seed.js`**: The **Data Filler**. A script used to load real-world bathymetry data for ports and fleet specs into the database. Note: The backend strictly enforces Prisma connectivity; a live PostgreSQL instance is now required.
+* **`schema.prisma`**: The **Blueprint**. We added Prisma ORM to talk to a PostgreSQL database! This file defines what our port data looks like (Charted Depth, Permissible Draft, etc.) and also tracks the `Vessel` fleet (Capesize, Panamax, Supramax, Handysize).
+* **`seed.js`**: The **Data Filler**. A script used to load real-world bathymetry data for ports like Haldia, Paradip, and Dhamra, and fleet specs into the database. Note: The `/api/v1/requisitions/evaluate` endpoint now dynamically queries this database via Prisma, but automatically falls back to safe mock data if the database isn't connected so the dashboard keeps working!
 
 ## 3. The Documentation (`Docs/` folder)
 These files are strictly for reading. They contain the official rules and planning for the Hackathon.
