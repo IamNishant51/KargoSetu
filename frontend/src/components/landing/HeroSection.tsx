@@ -3,7 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { User, Play } from 'lucide-react';
+ import { User, Play, Activity } from 'lucide-react';
 
 interface HeroSectionProps {
   onOpenDemo: () => void;
