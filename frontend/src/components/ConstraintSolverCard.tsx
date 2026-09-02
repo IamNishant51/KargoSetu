@@ -1,5 +1,7 @@
 "use client";
 import React, { useState } from 'react';
+import { useMutation } from '@tanstack/react-query';
+
 
 type EvaluationResult = {
   feasible: boolean;
@@ -14,15 +16,8 @@ export default function ConstraintSolverCard() {
   const [volume, setVolume] = useState(100000);
   const [port, setPort] = useState('Haldia');
   const [commodity] = useState('Iron Ore');
-  const [result, setResult] = useState<EvaluationResult | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-
-  const evaluateRequisition = async () => {
-    setLoading(true);
-    setError('');
-    setResult(null);
-    try {
+  const { mutate: evaluateRequisition, data: result, isPending: loading, error } = useMutation({
+    mutationFn: async () => {
       const res = await fetch('http://localhost:3001/api/v1/requisitions/evaluate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -30,14 +25,10 @@ export default function ConstraintSolverCard() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Failed to evaluate');
-      setResult(data);
-    } catch (err: unknown) {
-      if (err instanceof Error) setError(err.message);
-      else setError('Unknown error');
-    } finally {
-      setLoading(false);
+      return data as EvaluationResult;
     }
-  };
+  });
+
 
   return (
     <div className="p-6 bg-slate-900 border border-slate-700 rounded-lg shadow-lg">
@@ -55,11 +46,11 @@ export default function ConstraintSolverCard() {
             <option>Dhamra</option>
           </select>
         </div>
-        <button onClick={evaluateRequisition} disabled={loading} className="mt-2 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition-colors disabled:opacity-50">
+        <button onClick={() => evaluateRequisition()} disabled={loading} className="mt-2 bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded transition-colors disabled:opacity-50">
           {loading ? 'Evaluating...' : 'Evaluate'}
         </button>
 
-        {error && <div className="text-red-400 mt-2">{error}</div>}
+        {error && <div className="text-red-400 mt-2">{error instanceof Error ? error.message : 'Unknown error'}</div>}
         
         {result && (
           <div className="mt-4 p-4 bg-slate-800 rounded border border-slate-700">

@@ -1,17 +1,69 @@
-import Link from 'next/link';
+"use client";
+
+import React, { useState } from 'react';
+import Navbar from '@/components/landing/Navbar';
+import HeroSection from '@/components/landing/HeroSection';
+import SocialProofLogos from '@/components/landing/SocialProofLogos';
+import SolutionsSection from '@/components/landing/SolutionsSection';
+import MarketTicker from '@/components/landing/MarketTicker';
+import InteractiveSandbox from '@/components/landing/InteractiveSandbox';
+import BentoFeatures from '@/components/landing/BentoFeatures';
+import PortCorridor from '@/components/landing/PortCorridor';
+import WorkflowSection from '@/components/landing/WorkflowSection';
+import TestimonialsSection from '@/components/landing/TestimonialsSection';
+import FaqSection from '@/components/landing/FaqSection';
+import CtaSection from '@/components/landing/CtaSection';
+import Footer from '@/components/landing/Footer';
+import DemoModal from '@/components/landing/DemoModal';
 
 export default function Home() {
+  const [demoOpen, setDemoOpen] = useState(false);
+
   return (
-    <main className="min-h-screen bg-navy-950 bg-slate-950 flex flex-col items-center justify-center p-8">
-      <h1 className="text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-300 mb-6 tracking-tight">
-        KargoSetu
-      </h1>
-      <p className="text-xl text-slate-300 max-w-2xl text-center mb-8">
-        Smart India Hackathon 2026. Maritime Logistics Systems & Predictive Analytics using real-time Baltic Dry Index data and Open-Meteo live tides.
-      </p>
-      <Link href="/dashboard" className="px-8 py-4 bg-blue-600 hover:bg-blue-500 transition-colors rounded-lg font-semibold text-white shadow-[0_0_20px_rgba(37,99,235,0.4)]">
-        Launch Executive Dashboard
-      </Link>
-    </main>
+    <div className="min-h-screen bg-[#F8FAFC] font-sans selection:bg-orange-100 selection:text-orange-900 text-slate-900 flex flex-col">
+      {/* Top Navigation */}
+      <Navbar onOpenDemo={() => setDemoOpen(true)} />
+
+      <main className="flex-1">
+        {/* 1. Hero Section (Pixel-perfect to Desktop & Mobile References, ship fully visible) */}
+        <HeroSection onOpenDemo={() => setDemoOpen(true)} />
+
+        {/* 2. Trusted By Maritime Leaders Worldwide (Matches Reference Image Marquee) */}
+        <SocialProofLogos />
+
+        {/* 3. Solutions for Every Maritime Need (Exact Match to Reference Image) */}
+        <SolutionsSection />
+
+        {/* 4. Live Baltic & Port Telemetry Ticker Strip (Moved lower, clean light theme) */}
+        <MarketTicker />
+
+        {/* 5. Interactive Intelligence Sandbox (Constraint Solver, ML Forecast, ROI Calc) */}
+        <InteractiveSandbox />
+
+        {/* 6. Core SIH26006 Architectural Bento Grid */}
+        <BentoFeatures />
+
+        {/* 7. Strategic East Coast India Port Corridor */}
+        <PortCorridor />
+
+        {/* 8. 4-Step Intelligent Workflow */}
+        <WorkflowSection />
+
+        {/* 9. Executive Personas & Endorsements (SAIL, Haldia, NMDC) */}
+        <TestimonialsSection />
+
+        {/* 10. Interactive FAQ Accordion */}
+        <FaqSection />
+
+        {/* 11. High-Converting Call to Action Banner (Clean Light Enterprise Design) */}
+        <CtaSection onOpenDemo={() => setDemoOpen(true)} />
+      </main>
+
+      {/* 12. Enterprise Footer */}
+      <Footer />
+
+      {/* Interactive Walkthrough Demo Modal */}
+      <DemoModal isOpen={demoOpen} onClose={() => setDemoOpen(false)} />
+    </div>
   );
 }
