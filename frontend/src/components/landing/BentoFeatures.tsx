@@ -2,9 +2,20 @@
 
  import React from 'react';
  import Image from 'next/image';
- import { Cpu, Anchor, Navigation, ShieldCheck, Waves, Gauge, ArrowUpRight, CheckCircle2 } from 'lucide-react';
+ import { Cpu, Anchor, Navigation, ShieldCheck, CheckCircle2 } from 'lucide-react';
 
-const FEATURES = [
+type FeatureItem = {
+  icon: React.ElementType;
+  tag: string;
+  title: string;
+  description: string;
+  metrics: string[];
+  color: string;
+  accent: string;
+  image?: string;
+};
+
+const FEATURES: FeatureItem[] = [
   {
     icon: Anchor,
     tag: "Maritime Physics Engine",

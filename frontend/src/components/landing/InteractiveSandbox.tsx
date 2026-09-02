@@ -2,14 +2,10 @@
 
 import React, { useState } from 'react';
 import { 
-  Calculator, 
   TrendingUp, 
   Sparkles, 
   Layers, 
-  ArrowRight, 
   Info, 
-  Gauge, 
-  Anchor, 
   IndianRupee,
   Ship,
   CheckCircle2,

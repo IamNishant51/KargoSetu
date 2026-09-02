@@ -2,7 +2,6 @@
 
  import React from 'react';
  import Link from 'next/link';
- import Image from 'next/image';
 import { User, Play, ArrowRight, ShieldCheck, Zap } from 'lucide-react';
 
 interface CtaSectionProps {

@@ -1,8 +1,7 @@
 "use client";
 
  import React from 'react';
- import Image from 'next/image';
- import { Anchor, Waves, Navigation, ArrowUpRight, ShieldAlert, CheckCircle2 } from 'lucide-react';
+ import { Anchor } from 'lucide-react';
 
 const PORTS = [
   {

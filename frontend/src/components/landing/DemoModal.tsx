@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { X, CheckCircle2, ShieldCheck, Cpu, Anchor, ArrowRight, Compass } from 'lucide-react';
+import { X, ArrowRight, Compass } from 'lucide-react';
 
 interface DemoModalProps {
   isOpen: boolean;

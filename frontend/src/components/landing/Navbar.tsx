@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Menu, X, User, ChevronDown, BarChart3, Ship, PackageOpen, Waves, Sparkles, ArrowRight, Play } from 'lucide-react';
+import { Menu, X, User, ChevronDown, BarChart3, Ship, PackageOpen, ArrowRight, Play } from 'lucide-react';
 
 interface NavbarProps {
   onOpenDemo: () => void;

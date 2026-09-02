@@ -1,7 +1,7 @@
 "use client";
 
 import React from 'react';
-import { Quote, Star, ShieldCheck } from 'lucide-react';
+import { Quote, ShieldCheck } from 'lucide-react';
 
 const TESTIMONIALS = [
   {

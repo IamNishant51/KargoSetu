@@ -1,7 +1,7 @@
 "use client";
 
 import React from 'react';
-import { TrendingUp, TrendingDown, Waves, Activity } from 'lucide-react';
+import { TrendingUp, TrendingDown } from 'lucide-react';
 
 const TICKER_ITEMS = [
   { symbol: "BDI", name: "Baltic Dry Index", value: "1,948", delta: "+3.2%", isPositive: true },

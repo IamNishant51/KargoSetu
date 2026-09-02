@@ -2,7 +2,7 @@
 
  import React from 'react';
  import Image from 'next/image';
- import { ClipboardCheck, Cpu, Anchor, CheckCircle, ArrowRight } from 'lucide-react';
+ import { ClipboardCheck, Cpu, Anchor, CheckCircle } from 'lucide-react';
 
 const STEPS = [
   {
