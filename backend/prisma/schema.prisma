@@ -21,3 +21,15 @@ model Port {
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 }
+
+model Vessel {
+  id               String   @id @default(uuid())
+  name             String   @unique
+  capacity         Int
+  laden_draft      Float
+  daily_cost       Int
+  block_coeff      Float    @default(0.85)
+  speed_knots      Float    @default(12.0)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}

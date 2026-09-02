@@ -39,7 +39,22 @@ async function main() {
     });
   }
 
-  console.log('Seeding completed.');
+  console.log('Seeding fleet data...');
+  const fleet = [
+      { name: "Capesize", capacity: 150000, laden_draft: 18.0, daily_cost: 25000, block_coeff: 0.85, speed_knots: 12.0 },
+      { name: "Panamax", capacity: 75000, laden_draft: 14.0, daily_cost: 15000, block_coeff: 0.85, speed_knots: 12.0 },
+      { name: "Supramax", capacity: 50000, laden_draft: 11.5, daily_cost: 12000, block_coeff: 0.85, speed_knots: 12.0 },
+      { name: "Handysize", capacity: 35000, laden_draft: 10.0, daily_cost: 9500, block_coeff: 0.82, speed_knots: 12.0 }
+  ];
+  for (const v of fleet) {
+      await prisma.vessel.upsert({
+          where: { name: v.name },
+          update: v,
+          create: v,
+      });
+  }
+
+  console.log('Seeding Completed.');
 }
 
 main()
