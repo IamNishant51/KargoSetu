@@ -47,8 +47,8 @@ export default function Navbar({ onOpenDemo }: NavbarProps) {
                 priority
               />
             </div>
-            <span className="font-bold text-2xl sm:text-[28px] tracking-tight text-[#0F172A] font-sans">
-              KargoSetu
+            <span className="font-extrabold text-2xl sm:text-[28px] tracking-tighter text-[#0F172A] font-sans">
+              KargoSetu<span className="text-[#EA580C]">.</span>
             </span>
           </Link>
 

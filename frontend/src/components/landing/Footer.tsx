@@ -14,14 +14,9 @@ export default function Footer() {
           {/* Brand Col */}
           <div className="lg:col-span-2 space-y-5">
             <Link href="/" className="inline-block group">
-              <div className="flex items-center gap-2">
-                <div className="w-8 h-8 bg-slate-900 rounded-lg flex items-center justify-center shadow-md shadow-slate-900/20 group-hover:scale-105 transition-transform duration-300">
-                  <span className="text-white font-black text-lg font-mono">K</span>
-                </div>
-                <span className="font-extrabold text-2xl tracking-tighter text-slate-900">
-                  KargoSetu<span className="text-[#EA580C]">.</span>
-                </span>
-              </div>
+              <span className="font-extrabold text-2xl tracking-tighter text-slate-900">
+                KargoSetu<span className="text-[#EA580C]">.</span>
+              </span>
             </Link>
 
             <p className="text-slate-500 text-sm leading-relaxed max-w-sm font-medium">
