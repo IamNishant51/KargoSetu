@@ -18,19 +18,23 @@ export default function HeroSection({ onOpenDemo }: HeroSectionProps) {
           {/* Left Column: Hero Content */}
           <div className="lg:col-span-5 text-center lg:text-left z-10">
             {/* Tagline / Badge */}
-            <p className="text-[#16A34A] font-bold tracking-wider text-xs sm:text-sm mb-3 uppercase">
-              AI-POWERED MARITIME INTELLIGENCE
-            </p>
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-50 text-emerald-700 font-bold text-xs tracking-widest uppercase border border-emerald-100 mb-6 sm:mb-8 shadow-[0_2px_10px_rgba(16,185,129,0.1)]">
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+              </span>
+              AI-Powered Maritime Intelligence
+            </div>
 
             {/* Main Headline */}
-            <h1 className="text-4xl sm:text-5xl lg:text-[64px] font-extrabold tracking-tight mb-5 leading-[1.08] font-sans">
-              <span className="text-[#0F172A] block mb-1">Smarter Decisions.</span>
-              <span className="text-[#EA580C]">Stronger </span>
+            <h1 className="text-5xl sm:text-6xl lg:text-[76px] font-extrabold tracking-tighter mb-6 leading-[1.05] font-sans">
+              <span className="text-[#0F172A] block mb-2">Smarter Decisions.</span>
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#EA580C] to-[#f97316]">Stronger </span>
               <span className="text-[#0F172A]">Voyages.</span>
             </h1>
 
             {/* Subtitle */}
-            <p className="text-base sm:text-lg text-slate-500 mb-8 max-w-md lg:max-w-[420px] mx-auto lg:mx-0 leading-relaxed">
+            <p className="text-lg sm:text-xl text-slate-600 mb-10 max-w-xl mx-auto lg:mx-0 leading-relaxed font-medium">
               KargoSetu empowers maritime professionals with real-time insights, accurate forecasts, and AI-driven intelligence to navigate global trade with confidence.
             </p>
 
