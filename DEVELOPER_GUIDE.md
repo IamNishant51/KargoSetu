@@ -27,18 +27,18 @@ These are the reusable LEGO blocks used to build the dashboard.
 This is the invisible "engine" running on the server. It does all the heavy math and AI prediction. It is built in pure JavaScript using Express.js.
 
 ### The Brain
-* **`index.js`**: The **Server Entry Point**. Think of this as a traffic cop. It listens for requests from the frontend (like "evaluate this cargo" or "get the forecast?shockMultiplier=1.5") and sends back the answers.
+* **`index.js`**: The **Server Entry Point**. Think of this as a traffic cop. It utilizes `helmet`, `morgan`, and global error handlers to secure and direct traffic to the modular router files.
+* **`routes/` folder**: Contains specific API endpoints modularized by feature (`health.js`, `requisitions.js`, `forecast.js`) to keep the codebase maintainable.
+* **`middleware/` folder**: Contains the global error handler (`errorHandler.js`) and rate limiters to protect the ML endpoints.
 * **`package.json`**: A simple list of the tools the backend needs to run (like Express and TensorFlow).
-
 ### The Services (`services/` folder)
 * **`maritimeMath.js`**: The **Calculator**. This file handles the physical physics of ships. It calculates "Squat" and "Sinkage" to ensure a ship won't scrape the ocean floor. **New Update:** It now fetches real-time dynamic tide/wave data directly from the **Open-Meteo Marine API** instead of using static numbers!
-* **`mlPredictor.js`**: The **Crystal Ball**. This is our Artificial Intelligence (AI) file. It downloads live stock market data (`yahoo-finance2`), computes historical daily volatility, and feeds it into a neural network (`TensorFlow.js`). It now uses an **auto-regressive loop** to iteratively guess what shipping prices will be every day up to 90 days out, and applies dynamic math to calculate optimistic (P10) and pessimistic (P90) price bounds that can be adjusted by a Market Shock multiplier.
-
+* **`mlPredictor.js`**: The **Crystal Ball**. This is our Artificial Intelligence (AI) file. It downloads live stock market data (`yahoo-finance2`), computes historical daily volatility, and feeds it into a neural network (`TensorFlow.js`). It includes a resilient fallback to generate statistically valid baseline data if Yahoo Finance rate-limits us.
 ---
 
 ### The Database (`prisma/` folder)
-* **`schema.prisma`**: The **Blueprint**. We added Prisma ORM to talk to a PostgreSQL database! This file defines what our port data looks like (Charted Depth, Permissible Draft, etc.).
-* **`seed.js`**: The **Data Filler**. A script used to load real-world bathymetry data for ports like Haldia, Paradip, and Dhamra into the database. Note: If the database isn't connected, the backend automatically uses a safe fallback so the dashboard keeps working!
+* **`schema.prisma`**: The **Blueprint**. We added Prisma ORM to talk to a PostgreSQL database! This file defines what our port data looks like and also tracks the `Vessel` fleet (Capesize, Panamax, Supramax, Handysize).
+* **`seed.js`**: The **Data Filler**. A script used to load real-world bathymetry data for ports and fleet specs into the database. Note: The backend strictly enforces Prisma connectivity; a live PostgreSQL instance is now required.
 
 ##  3. The Documentation (`Docs/` folder)
 These files are strictly for reading. They contain the official rules and planning for the Hackathon.
@@ -52,7 +52,7 @@ These files are strictly for reading. They contain the official rules and planni
 
 ##  4. Core Best Practices & Security
 If you are writing code for KargoSetu, you MUST follow these rules (detailed fully in Doc 10):
-* **Frontend:** Use React Server Components by default. Use `"use client"` only when necessary. Use **Zustand** for state, **TanStack Query** for API calls, and **Zod** for form validation.
+* **Frontend:** Use React Server Components by default. Use `"use client"` only when necessary. We strictly use **Zustand** (e.g., `marketStore.ts`) for global state and **TanStack Query** (via `<Providers>`) for API calls.
 * **Backend:** Keep the Express routes thin. Do the heavy math in the `services/` folder. Use **Zod** for strict input validation on every single API route.
 * **ML & DB:** Wrap all TensorFlow.js operations in `tf.tidy()` to prevent memory leaks. Use Prisma for all database queries to prevent SQL injection.
 * **Security:** Never expose `.env` variables to the frontend. The backend must use Helmet.js, strict CORS policies, and Rate Limiting to prevent CPU-exhaustion attacks on the AI engine.
