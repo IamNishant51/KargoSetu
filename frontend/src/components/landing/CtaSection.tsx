@@ -30,21 +30,21 @@ interface CtaSectionProps {
           Join leading maritime logistics teams and eliminate costly demurrage penalties with real-time constraint solving and deep learning freight forecasts.
         </p>
 
-        <div className="flex flex-col sm:flex-row justify-center items-center gap-4 max-w-md mx-auto">
+        <div className="flex flex-col sm:flex-row justify-center items-center gap-4 max-w-xl mx-auto">
           <Link
             href="/dashboard"
-            className="w-full sm:w-auto bg-[#EA580C] hover:bg-[#C2410C] text-white px-8 py-4 rounded-xl font-bold transition-all duration-300 flex items-center justify-center gap-2.5 shadow-lg hover:shadow-orange-500/25 hover:-translate-y-0.5 group text-sm sm:text-base"
+            className="w-full sm:w-auto bg-[#EA580C] hover:bg-[#C2410C] text-white px-6 py-3 rounded-xl font-bold transition-all duration-300 flex items-center justify-center gap-2 shadow-lg hover:shadow-orange-500/25 hover:-translate-y-0.5 group text-sm whitespace-nowrap"
           >
-            <User size={18} />
+            <User size={16} />
             <span>Launch Command Center</span>
-            <ArrowRight size={17} className="transition-transform group-hover:translate-x-1" />
+            <ArrowRight size={15} className="transition-transform group-hover:translate-x-1" />
           </Link>
 
           <button
             onClick={onOpenDemo}
-            className="w-full sm:w-auto bg-white hover:bg-slate-50 text-slate-800 border border-slate-200 hover:border-slate-300 px-7 py-4 rounded-xl font-semibold transition-all duration-300 flex items-center justify-center gap-2.5 shadow-sm hover:shadow-md text-sm sm:text-base hover:-translate-y-0.5 group"
+            className="w-full sm:w-auto bg-white hover:bg-slate-50 text-slate-800 border border-slate-200 hover:border-slate-300 px-6 py-3 rounded-xl font-semibold transition-all duration-300 flex items-center justify-center gap-2 shadow-sm hover:shadow-md text-sm hover:-translate-y-0.5 group whitespace-nowrap"
           >
-            <Play size={18} className="text-slate-500 group-hover:text-emerald-600 transition-colors" />
+            <Play size={16} className="text-slate-500 group-hover:text-emerald-600 transition-colors" />
             <span>Watch Live Demo</span>
           </button>
         </div>

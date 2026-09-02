@@ -63,7 +63,7 @@ export default function WorkflowSection() {
                 src="/workflow-ship.png" 
                 alt="Vessel Physics & Draft Constraints" 
                 fill 
-                className="object-cover hover:scale-105 transition-transform duration-700" 
+                className="object-cover" 
               />
             </div>
             {/* Floating decorative badge */}
