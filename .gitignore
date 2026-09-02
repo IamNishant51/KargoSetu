@@ -12,3 +12,4 @@ backend/services/__pycache__/
 *.log
 .vscode/
 .idea/
+POSTGRES_SETUP.md

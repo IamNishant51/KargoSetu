@@ -1,5 +1,7 @@
 "use client";
-import React, { useState, useEffect } from 'react';
+import React from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { useMarketStore } from '../store/marketStore';
 
 type ForecastResult = {
   current_rate: number;
@@ -13,34 +15,16 @@ type ForecastResult = {
 };
 
 export default function ForecastPriceChart() {
-  const [shock, setShock] = useState(1.0);
-  const [data, setData] = useState<ForecastResult | null>(null);
-  const [loading, setLoading] = useState(false);
+  const { shockMultiplier, setShockMultiplier } = useMarketStore();
 
-  useEffect(() => {
-    let isMounted = true;
-
-    const fetchForecast = async () => {
-      setLoading(true);
-      try {
-        const res = await fetch(`http://localhost:3001/api/v1/forecast/rates?shockMultiplier=${shock}`);
-        if (res.ok) {
-          const json = await res.json() as unknown;
-          if (isMounted) setData(json as ForecastResult);
-        }
-      } catch (e) {
-        console.error(e);
-      } finally {
-        if (isMounted) setLoading(false);
-      }
-    };
-
-    void fetchForecast();
-
-    return () => {
-      isMounted = false;
-    };
-  }, [shock]);
+  const { data, isLoading } = useQuery<ForecastResult>({
+    queryKey: ['forecast', shockMultiplier],
+    queryFn: async () => {
+      const res = await fetch(`http://localhost:3001/api/v1/forecast/rates?shockMultiplier=${shockMultiplier}`);
+      if (!res.ok) throw new Error('Failed to fetch forecast');
+      return res.json();
+    },
+  });
 
   return (
     <div className="p-6 bg-slate-900 border border-slate-700 rounded-lg shadow-lg">
@@ -49,21 +33,21 @@ export default function ForecastPriceChart() {
       <div className="mb-6">
         <label className="flex justify-between text-slate-300 mb-2">
           <span>What-If Market Shock Multiplier</span>
-          <span className="font-mono bg-slate-800 px-2 rounded text-blue-400">{shock.toFixed(1)}x</span>
+          <span className="font-mono bg-slate-800 px-2 rounded text-blue-400">{shockMultiplier.toFixed(1)}x</span>
         </label>
         <input 
           type="range" 
           min="0.5" 
           max="3.0" 
           step="0.1" 
-          value={shock} 
-          onChange={(e) => setShock(parseFloat(e.target.value))}
+          value={shockMultiplier} 
+          onChange={(e) => setShockMultiplier(parseFloat(e.target.value))}
           className="w-full accent-blue-500" 
         />
         <p className="text-xs text-slate-500 mt-1">Adjust historical volatility variance bounds in real-time.</p>
       </div>
 
-      {loading && !data && <div className="text-slate-400">Running LSTM model...</div>}
+      {isLoading && !data && <div className="text-slate-400">Running LSTM model...</div>}
 
       {data && (
         <div className="grid grid-cols-3 gap-4">
