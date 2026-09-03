@@ -302,10 +302,12 @@ async function trainModel(trainX, trainY, valX, valY) {
     console.log("Training Advanced CNN-LSTM Hybrid Model...");
     
     await model.fit(trainX, trainY, {
-        epochs: 50,
-        batchSize: 32,
+        epochs: 5,
+        batchSize: 64,
         validationData: [valX, valY],
-        callbacks: tf.callbacks.earlyStopping({ monitor: 'val_loss', patience: 10 }),
+        callbacks: {
+             onEpochEnd: async () => await new Promise(resolve => setTimeout(resolve, 50)) 
+        },
         verbose: 1
     });
 
