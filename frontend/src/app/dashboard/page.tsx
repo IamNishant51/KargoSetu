@@ -297,7 +297,7 @@ export default function DashboardPage() {
               </div>
 
               {/* Stats Row */}
-              <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+              <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-5 gap-4">
                 <div className="flex flex-col">
                   <p className="text-sm text-slate-500 mb-1 font-medium">Total Volume</p>
                   <p className="text-lg font-semibold text-slate-800">145,000 MT</p>
@@ -392,7 +392,7 @@ export default function DashboardPage() {
                 </div>
 
                 {/* Bottom Details Row */}
-                <div className="grid grid-cols-5 gap-4 pt-4 border-t border-slate-100">
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 pt-4 border-t border-slate-100">
                   <div className="flex flex-col">
                     <p className="text-sm text-slate-500 mb-1">Port</p>
                     <p className="text-sm font-semibold text-slate-800">Singapore (SGSIN)</p>

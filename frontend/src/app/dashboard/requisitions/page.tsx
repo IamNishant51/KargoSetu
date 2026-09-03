@@ -66,7 +66,7 @@ export default function RequisitionsPage() {
       </div>
 
       {/* Stats Row */}
-      <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
         {/* Total Requisitions */}
         <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm flex items-center space-x-4">
           <div className="w-12 h-12 rounded-xl bg-blue-50 flex items-center justify-center shrink-0">
@@ -129,8 +129,8 @@ export default function RequisitionsPage() {
       </div>
 
       {/* Filters Row */}
-      <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm flex flex-col xl:flex-row gap-4 items-end xl:items-center justify-between z-20 relative">
-        <div className="flex-1 w-full relative">
+      <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between z-20 relative">
+        <div className="flex-1 w-full lg:max-w-md relative">
           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
             <Search className="w-4 h-4 text-slate-400" />
           </div>

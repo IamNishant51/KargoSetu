@@ -3,10 +3,12 @@
 import { ReactNode, useState, useRef, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
-import { Ship, LayoutDashboard, FileText, TrendingUp, Settings, Bell, LogOut, User, CheckCircle2 } from "lucide-react";
+import { Ship, LayoutDashboard, FileText, TrendingUp, Settings, Bell, LogOut, User, CheckCircle2, Menu, X } from "lucide-react";
+
 export default function DashboardLayout({ children }: { children: ReactNode }) {
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const pathname = usePathname();
   
   const notifRef = useRef<HTMLDivElement>(null);
@@ -21,16 +23,35 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  // Close sidebar on route change on mobile
+  useEffect(() => {
+    setSidebarOpen(false);
+  }, [pathname]);
+
   return (
-    <div className="min-h-screen bg-slate-50 flex">
+    <div className="min-h-screen bg-slate-50 flex overflow-hidden">
+      
+      {/* Mobile Sidebar Overlay */}
+      {sidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-slate-900/50 z-20 md:hidden transition-opacity"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
       {/* Sidebar */}
-      <aside className="w-64 bg-[#0A1727] text-white flex flex-col fixed inset-y-0 left-0 z-20">
+      <aside className={`w-64 bg-[#0A1727] text-white flex flex-col fixed inset-y-0 left-0 z-30 transform transition-transform duration-300 ease-in-out md:translate-x-0 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
         {/* Logo Area */}
-        <div className="h-16 flex items-center px-6 border-b border-white/10">
-          <img src="/light-KargoSetu-LOGO.png" alt="Logo" className="h-8 w-auto mr-3 object-contain" />
-          <span className="text-xl font-bold tracking-wide text-white">
-            KargoSetu<span className="text-orange-500">.</span>
-          </span>
+        <div className="h-16 flex items-center justify-between px-6 border-b border-white/10 shrink-0">
+          <div className="flex items-center">
+            <img src="/light-KargoSetu-LOGO.png" alt="Logo" className="h-8 w-auto mr-3 object-contain" />
+            <span className="text-xl font-bold tracking-wide text-white">
+              KargoSetu<span className="text-orange-500">.</span>
+            </span>
+          </div>
+          <button className="md:hidden text-slate-400 hover:text-white" onClick={() => setSidebarOpen(false)}>
+            <X className="w-5 h-5" />
+          </button>
         </div>
 
         {/* Navigation */}
@@ -80,16 +101,24 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
       </aside>
 
       {/* Main Content Wrapper */}
-      <div className="flex-1 flex flex-col ml-64 min-h-screen">
+      <div className="flex-1 min-w-0 flex flex-col md:ml-64 min-h-screen transition-all duration-300">
+        
         {/* Top Header */}
-        <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-8 z-10 sticky top-0">
+        <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-4 sm:px-8 z-10 sticky top-0 shrink-0">
           <div className="flex items-center text-slate-600">
-            {pathname === '/dashboard' && <><LayoutDashboard className="w-5 h-5 mr-2" /><span className="text-sm font-medium">Dashboard</span></>}
-            {pathname.includes('/requisitions') && <><FileText className="w-5 h-5 mr-2" /><span className="text-sm font-medium">Requisitions</span></>}
-            {pathname.includes('/forecasts') && <><TrendingUp className="w-5 h-5 mr-2" /><span className="text-sm font-medium">Forecasts</span></>}
-            {pathname.includes('/settings') && <><Settings className="w-5 h-5 mr-2" /><span className="text-sm font-medium">Settings</span></>}
+            <button 
+              className="md:hidden p-2 mr-2 -ml-2 text-slate-500 hover:text-slate-700 hover:bg-slate-100 rounded-md transition-colors"
+              onClick={() => setSidebarOpen(true)}
+            >
+              <Menu className="w-5 h-5" />
+            </button>
+            {pathname === '/dashboard' && <><LayoutDashboard className="hidden sm:block w-5 h-5 mr-2" /><span className="text-sm font-medium">Dashboard</span></>}
+            {pathname.includes('/requisitions') && <><FileText className="hidden sm:block w-5 h-5 mr-2" /><span className="text-sm font-medium">Requisitions</span></>}
+            {pathname.includes('/forecasts') && <><TrendingUp className="hidden sm:block w-5 h-5 mr-2" /><span className="text-sm font-medium">Forecasts</span></>}
+            {pathname.includes('/settings') && <><Settings className="hidden sm:block w-5 h-5 mr-2" /><span className="text-sm font-medium">Settings</span></>}
           </div>
-          <div className="flex items-center space-x-6">
+
+          <div className="flex items-center space-x-3 sm:space-x-6">
             
             {/* Notifications Dropdown */}
             <div className="relative" ref={notifRef}>
@@ -136,17 +165,17 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
             </div>
 
             {/* Profile Dropdown */}
-            <div className="relative border-l border-slate-200 pl-6" ref={profileRef}>
+            <div className="relative border-l border-slate-200 pl-3 sm:pl-6" ref={profileRef}>
               <div 
                 onClick={() => setProfileOpen(!profileOpen)}
                 className="flex items-center cursor-pointer group"
               >
-                <div className="text-right mr-3 hidden md:block">
+                <div className="text-right mr-3 hidden lg:block">
                   <p className="text-sm font-medium text-slate-800 group-hover:text-blue-600 transition-colors">Admin User</p>
                   <p className="text-xs text-slate-500">Oceanix Corp.</p>
                 </div>
-                <div className={`w-9 h-9 rounded-full bg-slate-100 border text-slate-600 flex items-center justify-center shrink-0 overflow-hidden transition-all ${profileOpen ? 'border-blue-500 ring-2 ring-blue-500/20' : 'border-slate-200 group-hover:border-blue-300'}`}>
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6 mt-2">
+                <div className={`w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-slate-100 border text-slate-600 flex items-center justify-center shrink-0 overflow-hidden transition-all ${profileOpen ? 'border-blue-500 ring-2 ring-blue-500/20' : 'border-slate-200 group-hover:border-blue-300'}`}>
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5 sm:w-6 sm:h-6 mt-1 sm:mt-2">
                     <path fillRule="evenodd" d="M7.5 6a4.5 4.5 0 119 0 4.5 4.5 0 01-9 0zM3.751 20.105a8.25 8.25 0 0116.498 0 .75.75 0 01-.437.695A18.683 18.683 0 0112 22.5c-2.786 0-5.433-.608-7.812-1.7a.75.75 0 01-.437-.695z" clipRule="evenodd" />
                   </svg>
                 </div>
@@ -177,11 +206,12 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                 </div>
               )}
             </div>
+
           </div>
         </header>
 
         {/* Page Content */}
-        <main className="flex-1 p-8">
+        <main className="flex-1 p-4 sm:p-8">
           {children}
         </main>
       </div>
