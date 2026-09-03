@@ -43,12 +43,12 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
       <aside className={`w-64 bg-[#0A1727] text-white flex flex-col fixed inset-y-0 left-0 z-50 transform transition-transform duration-300 ease-in-out md:translate-x-0 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
         {/* Logo Area */}
         <div className="h-16 flex items-center justify-between px-6 border-b border-white/10 shrink-0">
-          <div className="flex items-center">
+          <Link href="/" className="flex items-center hover:opacity-80 transition-opacity cursor-pointer">
             <img src="/light-KargoSetu-LOGO.png" alt="Logo" className="h-8 w-auto mr-3 object-contain" />
             <span className="text-xl font-bold tracking-wide text-white">
               KargoSetu<span className="text-orange-500">.</span>
             </span>
-          </div>
+          </Link>
           <button className="md:hidden text-slate-400 hover:text-white" onClick={() => setSidebarOpen(false)}>
             <X className="w-5 h-5" />
           </button>
