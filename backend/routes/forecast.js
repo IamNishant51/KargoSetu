@@ -7,8 +7,8 @@ const router = express.Router();
 
 // Strict rate limiter for ML inference to prevent CPU exhaustion
 const mlLimiter = rateLimit({
-    windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 50, // Limit each IP to 50 requests per windowMs
+    windowMs: 1 * 60 * 1000, // 1 minute
+    max: 5000, // Massively increased for hackathon/development
     message: { error: "Too many requests to ML prediction engine, please try again after 15 minutes." }
 });
 
