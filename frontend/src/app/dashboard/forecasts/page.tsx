@@ -24,46 +24,39 @@ type ChartDataPoint = {
   p90: number;
 };
 
-// Mock data generation for the chart (in a real app, this would come from the API payload)
-const generateMockChartData = (baseShock: number): ChartDataPoint[] => {
-  const data: ChartDataPoint[] = [];
-  const today = new Date('2026-05-11'); // Using dates from the mockup
-  
-  let p10 = 12000 * baseShock;
-  let p50 = 20000 * baseShock;
-  let p90 = 30000 * baseShock;
-
-  for (let i = 0; i < 30; i++) {
-    const currentDate = new Date(today);
-    currentDate.setDate(today.getDate() + i);
-    
-    // Use a deterministic pseudo-random function based on index for SSR hydration safety
-    const pseudoRandom = Math.abs(Math.sin(i * 12.9898 + baseShock) * 43758.5453) % 1;
-    const noise = pseudoRandom * 500;
-    const trend = i * 200;
-    p10 += trend * 0.5 + noise - 250;
-    p50 += trend + noise - 250;
-    p90 += trend * 1.5 + noise - 250;
-
-    data.push({
-      date: currentDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' }),
-      rawDate: currentDate,
-      p10: Math.round(p10),
-      p50: Math.round(p50),
-      p90: Math.round(p90),
-    });
-  }
-  return data;
-};
 
 export default function ForecastsPage() {
   const [shock, setShock] = useState(2.0);
   const [apiChartData, setApiChartData] = useState<ChartDataPoint[] | null>(null);
+  const [days, setDays] = useState(30);
+  const [currentPage, setCurrentPage] = useState(1);
 
-  // Fallback to mock data if backend is not yet queried
-  const mockChartData = useMemo(() => generateMockChartData(shock), [shock]);
-  const chartData = apiChartData && apiChartData.length > 0 ? apiChartData : mockChartData;
+  const chartData = apiChartData ? apiChartData.slice(0, days) : [];
 
+  // Reset page when days change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [days]);
+
+  const handleExport = () => {
+    if (!chartData || chartData.length === 0) return;
+    
+    const headers = ['Date', 'P10', 'P50', 'P90'];
+    const csvRows = [
+      headers.join(','),
+      ...chartData.map(row => `${row.rawDate.toISOString().split('T')[0]},${row.p10},${row.p50},${row.p90}`)
+    ];
+    
+    const csvContent = csvRows.join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `forecast_data_${days}_days.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
   useEffect(() => {
     let isMounted = true;
 
@@ -74,7 +67,7 @@ export default function ForecastsPage() {
           const json = await res.json();
           // The backend API returns the array directly based on the contract
           if (isMounted && Array.isArray(json)) {
-            const mapped: ChartDataPoint[] = json.slice(0, 30).map((pt: { date: string; p10: number; p50: number; p90: number }) => {
+            const mapped: ChartDataPoint[] = json.map((pt: { date: string; p10: number; p50: number; p90: number }) => {
               const d = new Date(pt.date);
               return {
                 date: d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' }),
@@ -120,14 +113,21 @@ export default function ForecastsPage() {
             
             <div className="flex items-center bg-white border border-slate-200 rounded-md px-3 py-2 shadow-sm">
               <Calendar className="w-4 h-4 text-slate-400 mr-2" />
-              <select className="bg-transparent text-sm font-medium focus:outline-none text-slate-700">
-                <option>30 Days</option>
-                <option>90 Days</option>
-                <option>180 Days</option>
+              <select 
+                className="bg-transparent text-sm font-medium focus:outline-none text-slate-700"
+                value={days}
+                onChange={(e) => setDays(Number(e.target.value))}
+              >
+                <option value={30}>30 Days</option>
+                <option value={90}>90 Days</option>
+                <option value={180}>180 Days</option>
               </select>
             </div>
 
-            <button className="flex items-center bg-slate-900 hover:bg-slate-800 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors">
+            <button 
+              onClick={handleExport}
+              className="flex items-center bg-slate-900 hover:bg-slate-800 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors"
+            >
               <Download className="w-4 h-4 mr-2" />
               Export
             </button>
@@ -248,7 +248,7 @@ export default function ForecastsPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {chartData.slice(10, 16).map((row, idx) => (
+                {chartData.slice((currentPage - 1) * 10, currentPage * 10).map((row, idx) => (
                   <tr key={idx} className="hover:bg-slate-50/50 transition-colors">
                     <td className="px-6 py-4 whitespace-nowrap text-slate-700 font-medium">
                       {row.rawDate.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric', timeZone: 'UTC' })}
@@ -268,14 +268,33 @@ export default function ForecastsPage() {
             </table>
           </div>
           <div className="p-4 border-t border-slate-200 bg-slate-50 flex items-center justify-between text-xs text-slate-500">
-            <span>Showing 11 to 15 of 30 entries</span>
+            <span>Showing {chartData.length === 0 ? 0 : Math.min(chartData.length, (currentPage - 1) * 10 + 1)} to {Math.min(chartData.length, currentPage * 10)} of {chartData.length} entries</span>
             <div className="flex gap-1">
-              <button className="px-3 py-1 bg-white border border-slate-200 rounded hover:bg-slate-50 disabled:opacity-50" disabled>&lt;</button>
-              <button className="px-3 py-1 bg-white border border-slate-200 rounded hover:bg-slate-50">1</button>
-              <button className="px-3 py-1 bg-slate-900 text-white rounded">2</button>
-              <button className="px-3 py-1 bg-white border border-slate-200 rounded hover:bg-slate-50">3</button>
-              <button className="px-3 py-1 bg-white border border-slate-200 rounded hover:bg-slate-50">4</button>
-              <button className="px-3 py-1 bg-white border border-slate-200 rounded hover:bg-slate-50">&gt;</button>
+              <button 
+                className="px-3 py-1 bg-white border border-slate-200 rounded hover:bg-slate-50 disabled:opacity-50" 
+                disabled={currentPage === 1}
+                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+              >
+                &lt;
+              </button>
+              
+              {Array.from({ length: Math.ceil(chartData.length / 10) }).map((_, i) => (
+                <button 
+                  key={i}
+                  className={`px-3 py-1 rounded border ${currentPage === i + 1 ? 'bg-slate-900 text-white border-slate-900' : 'bg-white border-slate-200 hover:bg-slate-50'}`}
+                  onClick={() => setCurrentPage(i + 1)}
+                >
+                  {i + 1}
+                </button>
+              ))}
+              
+              <button 
+                className="px-3 py-1 bg-white border border-slate-200 rounded hover:bg-slate-50 disabled:opacity-50" 
+                disabled={currentPage === Math.ceil(chartData.length / 10) || chartData.length === 0}
+                onClick={() => setCurrentPage(p => Math.min(Math.ceil(chartData.length / 10), p + 1))}
+              >
+                &gt;
+              </button>
             </div>
           </div>
         </div>

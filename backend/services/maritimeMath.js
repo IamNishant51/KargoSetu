@@ -89,7 +89,8 @@ async function evaluateRequisition(volume_mt, dest_port_draft, commodity, lat = 
             feasible: false,
             strategy: "Offshore Transshipment Required (e.g., Lighterage at Sandheads)",
             details: "No standard vessel class clears dynamic UKC limits for this port.",
-            calculatedDraft: null
+            calculatedDraft: 0,
+            portMaxDraft: dest_port_draft
         };
     }
 

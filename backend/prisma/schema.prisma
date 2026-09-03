@@ -30,3 +30,19 @@ model Vessel {
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 }
+
+model UserSetting {
+  id    String @id @default(uuid())
+  key   String @unique
+  value String
+}
+
+model Requisition {
+  id            String   @id @default(uuid())
+  volume_mt     Float
+  dest_port     String
+  commodity     String
+  status        String   @default("Pending")
+  origin        String   @default("Global")
+  createdAt     DateTime @default(now())
+}

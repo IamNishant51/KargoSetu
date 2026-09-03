@@ -1,6 +1,7 @@
 const express = require('express');
 const rateLimit = require('express-rate-limit');
 const { getFreightForecast } = require('../services/mlPredictor');
+const { z } = require('zod');
 
 const router = express.Router();
 
@@ -11,9 +12,18 @@ const mlLimiter = rateLimit({
     message: { error: "Too many requests to ML prediction engine, please try again after 15 minutes." }
 });
 
+const ratesQuerySchema = z.object({
+    shockMultiplier: z.coerce.number().min(0).default(1.0)
+});
+
 router.get('/rates', mlLimiter, async (req, res, next) => {
     try {
-        const shockMultiplier = parseFloat(req.query.shockMultiplier) || 1.0;
+        const parseResult = ratesQuerySchema.safeParse(req.query);
+        if (!parseResult.success) {
+            return res.status(400).json({ error: "Invalid query parameters", details: parseResult.error.errors });
+        }
+        
+        const shockMultiplier = parseResult.data.shockMultiplier;
         const forecast = await getFreightForecast(shockMultiplier);
         res.json(forecast);
     } catch (error) {

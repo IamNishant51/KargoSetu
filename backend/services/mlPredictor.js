@@ -22,6 +22,35 @@ let currentPrice = 0;
 let historicalVolatility = 0;
 const OUTLOOK_DAYS = 90;
 const LOOKBACK_DAYS = 60; // Increased lookback to 60 days for deeper temporal context
+let modelInitPromise = null;
+
+async function initModel() {
+    if (cachedModel) return cachedModel;
+    if (!modelInitPromise) {
+        modelInitPromise = (async () => {
+            console.log("[ML] Background model initialization starting...");
+            const historicalData = await fetchRealData();
+            if (historicalData.length < LOOKBACK_DAYS + OUTLOOK_DAYS + 10) {
+                throw new Error("Not enough aligned historical data fetched.");
+            }
+            
+            const { trainX, trainY, valX, valY } = prepareData(historicalData);
+            try {
+                cachedModel = await trainModel(trainX, trainY, valX, valY);
+                console.log("[ML] Background model initialization complete!");
+                return cachedModel;
+            } finally {
+                // Cleanup tensors to prevent memory leak
+                tf.dispose([trainX, trainY, valX, valY]);
+            }
+        })().catch(err => {
+            modelInitPromise = null; // allow retry on failure
+            throw err;
+        });
+    }
+    return modelInitPromise;
+}
+
 
 // Feature normalization bounds
 let bounds = {
@@ -294,18 +323,25 @@ function denormalizeBdry(value) {
  * 5. Prediction Pipeline
  */
 async function getFreightForecast(shockMultiplier = 1.0) {
-    // If model isn't trained yet, train it once and cache it
+    // FAST PATH: Return heuristic forecast while model warms up
     if (!cachedModel) {
-        const historicalData = await fetchRealData();
-        if (historicalData.length < LOOKBACK_DAYS + OUTLOOK_DAYS + 10) {
-            throw new Error("Not enough aligned historical data fetched.");
+        console.log("[ML] Model still warming up. Returning fast heuristic forecast.");
+        const forecastArray = [];
+        const today = new Date();
+        let base_p50 = 1500; // Baseline BDRY
+        for (let i = 0; i < OUTLOOK_DAYS; i++) {
+            const variance = base_p50 * 0.02 * Math.sqrt(i + 1) * shockMultiplier;
+            const futureDate = new Date(today);
+            futureDate.setDate(today.getDate() + (i + 1));
+            forecastArray.push({
+                date: futureDate.toISOString().split('T')[0],
+                p10: parseFloat(Math.max(0, base_p50 - variance).toFixed(2)),
+                p50: parseFloat(base_p50.toFixed(2)),
+                p90: parseFloat((base_p50 + variance).toFixed(2))
+            });
+            base_p50 += (Math.random() - 0.45) * 5; // Slight upward bias
         }
-        
-        const { trainX, trainY, valX, valY } = prepareData(historicalData);
-        cachedModel = await trainModel(trainX, trainY, valX, valY);
-        
-        // Cleanup tensors to prevent memory leak
-        tf.dispose([trainX, trainY, valX, valY]);
+        return forecastArray;
     }
     
     // Wrap inference in tf.tidy for strict memory management
@@ -351,6 +387,7 @@ async function getFreightForecast(shockMultiplier = 1.0) {
 }
 
 module.exports = {
-    getFreightForecast
+    getFreightForecast,
+    initModel
 };
 

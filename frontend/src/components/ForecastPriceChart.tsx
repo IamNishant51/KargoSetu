@@ -1,6 +1,7 @@
 "use client";
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
+import axios from 'axios';
 import { useMarketStore } from '../store/marketStore';
 
 type ForecastResult = Array<{
@@ -16,20 +17,19 @@ export default function ForecastPriceChart() {
   const { data, isLoading } = useQuery<ForecastResult>({
     queryKey: ['forecast', shockMultiplier],
     queryFn: async () => {
-      const res = await fetch(`http://localhost:3001/api/v1/forecast/rates?shockMultiplier=${shockMultiplier}`);
-      if (!res.ok) throw new Error('Failed to fetch forecast');
-      return res.json();
+      const res = await axios.get(`http://localhost:3001/api/v1/forecast/rates?shockMultiplier=${shockMultiplier}`);
+      return res.data;
     },
   });
 
   return (
-    <div className="p-6 bg-slate-900 border border-slate-700 rounded-lg shadow-lg">
+    <div className="p-6 bg-navy-950 border border-slate-700 rounded-lg shadow-lg">
       <h2 className="text-xl font-bold text-white mb-4">ML Freight Forecast (90-Day)</h2>
       
       <div className="mb-6">
         <label className="flex justify-between text-slate-300 mb-2">
           <span>What-If Market Shock Multiplier</span>
-          <span className="font-mono bg-slate-800 px-2 rounded text-blue-400">{shockMultiplier.toFixed(1)}x</span>
+          <span className="font-mono bg-navy-900 px-2 rounded text-blue-400">{shockMultiplier.toFixed(1)}x</span>
         </label>
         <input 
           type="range" 
@@ -47,15 +47,15 @@ export default function ForecastPriceChart() {
 
       {data && data.length > 0 && (
         <div className="grid grid-cols-3 gap-4">
-          <div className="bg-slate-800 p-4 rounded text-center border-t-4 border-green-500">
+          <div className="bg-navy-900 p-4 rounded text-center border-t-4 border-green-500">
             <div className="text-xs text-slate-400 uppercase">P10 (Optimistic)</div>
             <div className="text-2xl font-bold text-white">${data[0].p10}</div>
           </div>
-          <div className="bg-slate-800 p-4 rounded text-center border-t-4 border-blue-500">
+          <div className="bg-navy-900 p-4 rounded text-center border-t-4 border-blue-500">
             <div className="text-xs text-slate-400 uppercase">P50 (Median)</div>
             <div className="text-2xl font-bold text-white">${data[0].p50}</div>
           </div>
-          <div className="bg-slate-800 p-4 rounded text-center border-t-4 border-red-500">
+          <div className="bg-navy-900 p-4 rounded text-center border-t-4 border-red-500">
             <div className="text-xs text-slate-400 uppercase">P90 (Pessimistic)</div>
             <div className="text-2xl font-bold text-white">${data[0].p90}</div>
           </div>

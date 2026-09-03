@@ -29,6 +29,31 @@ async function main() {
       lat: 20.83,
       lon: 86.96
     }
+    ,
+    {
+      name: 'Mumbai',
+      chartedDepth: 11.0,
+      permissibleDraft: 10.0,
+      brackishDensity: 1.025,
+      lat: 18.94,
+      lon: 72.83
+    },
+    {
+      name: 'Kandla',
+      chartedDepth: 10.5,
+      permissibleDraft: 9.5,
+      brackishDensity: 1.025,
+      lat: 23.03,
+      lon: 70.21
+    },
+    {
+      name: 'Mundra',
+      chartedDepth: 16.0,
+      permissibleDraft: 14.0,
+      brackishDensity: 1.025,
+      lat: 22.73,
+      lon: 69.70
+    }
   ];
 
   for (const p of ports) {
@@ -55,6 +80,21 @@ async function main() {
   }
 
   console.log('Seeding Completed.');
+  console.log('Seeding initial requisitions...');
+  const initialRequisitions = [
+    { volume_mt: 145000, dest_port: "Haldia", commodity: "Iron Ore", status: "Feasible", origin: "Newcastle, Australia" },
+    { volume_mt: 75000, dest_port: "Paradip", commodity: "Coal", status: "Pending", origin: "Richards Bay, SA" },
+    { volume_mt: 200000, dest_port: "Dhamra", commodity: "Bauxite", status: "Feasible", origin: "Dampier, Australia" },
+    { volume_mt: 50000, dest_port: "Mumbai", commodity: "Grain", status: "Pending", origin: "Global" },
+    { volume_mt: 120000, dest_port: "Mundra", commodity: "Coal", status: "Feasible", origin: "Tubarão, Brazil" },
+  ];
+
+  for (const req of initialRequisitions) {
+    await prisma.requisition.create({
+      data: req
+    });
+  }
+
 }
 
 main()
