@@ -36,6 +36,7 @@ export default function InteractiveSandbox() {
 
   useEffect(() => {
     evaluateMutation.mutate({ volume_mt: volume, dest_port_name: port, commodity });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [volume, port, commodity]);
 
 

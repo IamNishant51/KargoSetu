@@ -117,6 +117,7 @@ export default function RequisitionsPage() {
 
   // Reset page when filters change
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setPage(1);
   }, [statusFilter, commodityFilter, originFilter, dateRange, debouncedSearch]);
 

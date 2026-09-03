@@ -18,7 +18,7 @@ export default function ConstraintSolverCard() {
   const [volume, setVolume] = useState(100000);
   const [port, setPort] = useState('Haldia');
   const [commodity, setCommodity] = useState('Iron Ore');
-  const { mutate: evaluateRequisition, data: result, isPending: loading, error } = useMutation({
+  const { mutate: evaluateRequisition, data: result, isPending: loading } = useMutation({
     mutationFn: async () => {
       const res = await axios.post('http://localhost:5000/api/v1/requisitions/evaluate', {
         volume_mt: volume,

@@ -25,6 +25,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
 
   // Close sidebar on route change on mobile
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setSidebarOpen(false);
   }, [pathname]);
 
