@@ -33,7 +33,15 @@ router.post('/evaluate', async (req, res, next) => {
             return res.status(404).json({ error: `Port ${dest_port_name} not found in PostgreSQL database.` });
         }
 
-        const evaluation = await evaluateRequisition(volume_mt, portData.permissibleDraft, commodity, portData.lat, portData.lon);
+        const evaluation = await evaluateRequisition(
+            volume_mt, 
+            portData.permissibleDraft, 
+            commodity, 
+            portData.lat, 
+            portData.lon,
+            portData.brackishDensity,
+            portData.chartedDepth
+        );
         res.json(evaluation);
     } catch (error) {
         next(error);

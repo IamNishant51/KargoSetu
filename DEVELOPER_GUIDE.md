@@ -10,7 +10,7 @@ This is everything the user sees and interacts with in their browser. It is buil
 ### Main Pages
 * **`app/page.tsx`**: The **Landing Page**. The comprehensive, high-converting homepage featuring the hero section, live Baltic ticker, interactive sandbox, and SIH 26006 problem specifications.
 * **`app/layout.tsx`**: The **App Wrapper**. This file sets up application metadata, fonts, and global client providers.
-* **`app/dashboard/page.tsx`**: The **Command Center**. When you click "Launch Dashboard", this is the page that loads.
+* **`app/dashboard/page.tsx`**: The **Command Center**. When you click "Launch Dashboard", this is the page that loads. **New Update:** The static mock UI has been completely wired up using TanStack React Query to display real-time live calculations from the backend!
 
 ### Landing Page Components (`components/landing/` folder)
 * **`Navbar.tsx`**: Sticky responsive navigation with desktop solutions dropdown and mobile drawer.
@@ -48,7 +48,7 @@ This is the invisible "engine" running on the server. It does all the heavy math
 * **`middleware/` folder**: Contains the global error handler (`errorHandler.js`) and rate limiters to protect the ML endpoints.
 * **`package.json`**: A simple list of the tools the backend needs to run (like Express and TensorFlow).
 ### The Services (`services/` folder)
-* **`maritimeMath.js`**: The **Calculator**. This file handles the physical physics of ships. It calculates "Squat" and "Sinkage" to ensure a ship won't scrape the ocean floor. **New Update:** It now fetches real-time dynamic tide/wave data directly from the **Open-Meteo Marine API** instead of using static numbers!
+* **`maritimeMath.js`**: The **Calculator**. This file handles the physical physics of ships. It calculates "Squat" and "Sinkage" to ensure a ship won't scrape the ocean floor. **New Update:** It now dynamically fetches critical port constraints (like `chartedDepth` and `brackishDensity`) directly from the PostgreSQL database, fully removing hardcoded fallback values.
 * **`mlPredictor.js`**: The **Crystal Ball**. This is our Artificial Intelligence (AI) file. It downloads live stock market data (`yahoo-finance2`), computes historical daily volatility, and feeds it into a neural network (`TensorFlow.js`). It includes a resilient fallback to generate statistically valid baseline data if Yahoo Finance rate-limits us.
 ---
 

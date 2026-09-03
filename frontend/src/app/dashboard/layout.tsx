@@ -34,13 +34,13 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
       {/* Mobile Sidebar Overlay */}
       {sidebarOpen && (
         <div 
-          className="fixed inset-0 bg-slate-900/50 z-20 md:hidden transition-opacity"
+          className="fixed inset-0 bg-slate-900/50 z-40 md:hidden transition-opacity"
           onClick={() => setSidebarOpen(false)}
         />
       )}
 
       {/* Sidebar */}
-      <aside className={`w-64 bg-[#0A1727] text-white flex flex-col fixed inset-y-0 left-0 z-30 transform transition-transform duration-300 ease-in-out md:translate-x-0 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+      <aside className={`w-64 bg-[#0A1727] text-white flex flex-col fixed inset-y-0 left-0 z-50 transform transition-transform duration-300 ease-in-out md:translate-x-0 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
         {/* Logo Area */}
         <div className="h-16 flex items-center justify-between px-6 border-b border-white/10 shrink-0">
           <div className="flex items-center">
@@ -78,7 +78,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
             Forecasts
           </Link>
           <Link
-            href="/settings"
+            href="/dashboard/settings"
             className={`flex items-center px-3 py-3 rounded-md font-medium transition-colors ${pathname.includes('/settings') ? 'bg-[#1e293b] text-white border-l-4 border-blue-500' : 'text-slate-400 hover:text-white hover:bg-white/5'}`}
           >
             <Settings className="w-5 h-5 mr-3" />
@@ -104,7 +104,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
       <div className="flex-1 min-w-0 flex flex-col md:ml-64 min-h-screen transition-all duration-300">
         
         {/* Top Header */}
-        <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-4 sm:px-8 z-10 sticky top-0 shrink-0">
+        <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-4 sm:px-8 z-30 sticky top-0 shrink-0">
           <div className="flex items-center text-slate-600">
             <button 
               className="md:hidden p-2 mr-2 -ml-2 text-slate-500 hover:text-slate-700 hover:bg-slate-100 rounded-md transition-colors"
@@ -188,11 +188,11 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
                     <p className="text-xs text-slate-500 mt-0.5">admin@oceanix.com</p>
                   </div>
                   <div className="p-2">
-                    <Link href="/settings" className="flex items-center px-3 py-2 text-sm font-medium text-slate-700 rounded-md hover:bg-slate-100 transition-colors">
+                    <Link href="/dashboard/settings" className="flex items-center px-3 py-2 text-sm font-medium text-slate-700 rounded-md hover:bg-slate-100 transition-colors">
                       <User className="w-4 h-4 mr-3 text-slate-400" />
                       My Profile
                     </Link>
-                    <Link href="/settings" className="flex items-center px-3 py-2 text-sm font-medium text-slate-700 rounded-md hover:bg-slate-100 transition-colors">
+                    <Link href="/dashboard/settings" className="flex items-center px-3 py-2 text-sm font-medium text-slate-700 rounded-md hover:bg-slate-100 transition-colors">
                       <Settings className="w-4 h-4 mr-3 text-slate-400" />
                       Account Settings
                     </Link>

@@ -3,16 +3,12 @@ import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useMarketStore } from '../store/marketStore';
 
-type ForecastResult = {
-  current_rate: number;
-  shock_multiplier_applied: number;
-  forecast: {
-    p10_optimistic: number;
-    p50_median: number;
-    p90_pessimistic: number;
-  };
-  model_status: string;
-};
+type ForecastResult = Array<{
+  date: string;
+  p10: number;
+  p50: number;
+  p90: number;
+}>;
 
 export default function ForecastPriceChart() {
   const { shockMultiplier, setShockMultiplier } = useMarketStore();
@@ -49,26 +45,26 @@ export default function ForecastPriceChart() {
 
       {isLoading && !data && <div className="text-slate-400">Running LSTM model...</div>}
 
-      {data && (
+      {data && data.length > 0 && (
         <div className="grid grid-cols-3 gap-4">
           <div className="bg-slate-800 p-4 rounded text-center border-t-4 border-green-500">
             <div className="text-xs text-slate-400 uppercase">P10 (Optimistic)</div>
-            <div className="text-2xl font-bold text-white">${data.forecast.p10_optimistic}</div>
+            <div className="text-2xl font-bold text-white">${data[0].p10}</div>
           </div>
           <div className="bg-slate-800 p-4 rounded text-center border-t-4 border-blue-500">
             <div className="text-xs text-slate-400 uppercase">P50 (Median)</div>
-            <div className="text-2xl font-bold text-white">${data.forecast.p50_median}</div>
+            <div className="text-2xl font-bold text-white">${data[0].p50}</div>
           </div>
           <div className="bg-slate-800 p-4 rounded text-center border-t-4 border-red-500">
             <div className="text-xs text-slate-400 uppercase">P90 (Pessimistic)</div>
-            <div className="text-2xl font-bold text-white">${data.forecast.p90_pessimistic}</div>
+            <div className="text-2xl font-bold text-white">${data[0].p90}</div>
           </div>
         </div>
       )}
       
       {data && (
         <div className="mt-4 text-xs text-slate-500 text-right">
-          Status: {data.model_status}
+          Status: LSTM Hybrid Model Active (90-Day Outlook)
         </div>
       )}
     </div>

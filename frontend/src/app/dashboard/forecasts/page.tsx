@@ -37,16 +37,16 @@ const generateMockChartData = (baseShock: number): ChartDataPoint[] => {
     const currentDate = new Date(today);
     currentDate.setDate(today.getDate() + i);
     
-    // Add some random noise and a slight upward trend
-    const noise = Math.random() * 500;
+    // Use a deterministic pseudo-random function based on index for SSR hydration safety
+    const pseudoRandom = Math.abs(Math.sin(i * 12.9898 + baseShock) * 43758.5453) % 1;
+    const noise = pseudoRandom * 500;
     const trend = i * 200;
-    
     p10 += trend * 0.5 + noise - 250;
     p50 += trend + noise - 250;
     p90 += trend * 1.5 + noise - 250;
 
     data.push({
-      date: currentDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+      date: currentDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' }),
       rawDate: currentDate,
       p10: Math.round(p10),
       p50: Math.round(p50),
@@ -71,12 +71,13 @@ export default function ForecastsPage() {
       try {
         const res = await fetch(`http://localhost:3001/api/v1/forecast/rates?shockMultiplier=${shock}`);
         if (res.ok) {
-          const json = await res.json() as ForecastResponse;
-          if (isMounted && json.timeSeries && Array.isArray(json.timeSeries)) {
-            const mapped: ChartDataPoint[] = json.timeSeries.slice(0, 30).map((pt) => {
+          const json = await res.json();
+          // The backend API returns the array directly based on the contract
+          if (isMounted && Array.isArray(json)) {
+            const mapped: ChartDataPoint[] = json.slice(0, 30).map((pt: { date: string; p10: number; p50: number; p90: number }) => {
               const d = new Date(pt.date);
               return {
-                date: d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+                date: d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' }),
                 rawDate: d,
                 p10: pt.p10,
                 p50: pt.p50,
@@ -242,15 +243,15 @@ export default function ForecastsPage() {
                 <tr>
                   <th className="px-6 py-4 font-medium">Date</th>
                   <th className="px-6 py-4 font-medium">P10 (Bearish)</th>
-                  <th className="px-6 py-4 font-medium">P50 (Base Case)</th>
-                  <th className="px-6 py-4 font-medium">P90 (Bullish)</th>
+                  <th className="px-6 py-4 font-medium text-left">P50 (Base Case)</th>
+                  <th className="px-6 py-4 font-medium text-left">P90 (Bullish)</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
                 {chartData.slice(10, 16).map((row, idx) => (
                   <tr key={idx} className="hover:bg-slate-50/50 transition-colors">
                     <td className="px-6 py-4 whitespace-nowrap text-slate-700 font-medium">
-                      {row.rawDate.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
+                      {row.rawDate.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric', timeZone: 'UTC' })}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-emerald-600 font-semibold">
                       ${row.p10.toLocaleString()}

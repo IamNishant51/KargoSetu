@@ -44,10 +44,10 @@ function calculateDynamicUKC(chartedDepth, tidalHeight, draftLaden, deltaDraft, 
 /**
  * Evaluates the fleet against destination port constraints
  */
-async function evaluateRequisition(volume_mt, dest_port_draft, commodity, lat = 21.02, lon = 88.06) {
+async function evaluateRequisition(volume_mt, dest_port_draft, commodity, lat = 21.02, lon = 88.06, brackishDensity = 1.025, chartedDepth = 15.0) {
     const fleet = await getFleet();
     const UKC_MARGIN = 1.0;  // 1.0 meter safety margin
-    const PORT_DENSITY = 1.010; // e.g., Haldia brackish water
+    const PORT_DENSITY = brackishDensity; // Using DB density instead of hardcoded
     
     // Fetch real-time wave/tide data from Open-Meteo Marine API
     let TIDAL_HEIGHT = 1.5; // fallback
@@ -66,15 +66,20 @@ async function evaluateRequisition(volume_mt, dest_port_draft, commodity, lat = 
     let validVessels = [];
 
     for (const vessel of fleet) {
+        // Calculate Brackish Water Sinkage using dynamic port density
         const deltaDraft = calculateBrackishSinkage(vessel.laden_draft, PORT_DENSITY);
-        const squat = calculateHydrodynamicSquat(vessel.block_coeff, vessel.speed_knots);
-        const ukcDynamic = calculateDynamicUKC(dest_port_draft, TIDAL_HEIGHT, vessel.laden_draft, deltaDraft, squat);
 
+        // Calculate Hydrodynamic Squat
+        const squat = calculateHydrodynamicSquat(vessel.block_coeff, vessel.speed_knots);
+
+        // Calculate Dynamic Under Keel Clearance using dynamic charted depth
+        const ukcDynamic = calculateDynamicUKC(chartedDepth, TIDAL_HEIGHT, vessel.laden_draft, deltaDraft, squat);
+        
         if (ukcDynamic >= UKC_MARGIN) {
             validVessels.push({
                 ...vessel,
-                calculated_arrival_draft: vessel.laden_draft + deltaDraft + squat,
-                clearance: ukcDynamic
+                calculatedDraft: Number((vessel.laden_draft + deltaDraft).toFixed(2)),
+                clearance_margin: Number(ukcDynamic.toFixed(2))
             });
         }
     }
@@ -104,8 +109,8 @@ async function evaluateRequisition(volume_mt, dest_port_draft, commodity, lat = 
         strategy: strategy,
         vessel_class: bestVessel.name,
         total_vessels: vesselCount,
-        calculatedDraft: bestVessel.calculated_arrival_draft.toFixed(2),
-        clearance_margin: bestVessel.clearance.toFixed(2),
+        calculatedDraft: bestVessel.calculatedDraft,
+        clearance_margin: bestVessel.clearance_margin,
         portMaxDraft: dest_port_draft
     };
 }
@@ -114,6 +119,5 @@ module.exports = {
     calculateBrackishSinkage,
     calculateHydrodynamicSquat,
     calculateDynamicUKC,
-    evaluateRequisition,
-    FLEET
+    evaluateRequisition
 };
