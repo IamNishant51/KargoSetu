@@ -9,7 +9,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
       <aside className="w-64 bg-[#0A1727] text-white flex flex-col fixed inset-y-0 left-0 z-20">
         {/* Logo Area */}
         <div className="h-16 flex items-center px-6 border-b border-white/10">
-          <img src="/logo-ks.png" alt="Logo" className="w-8 h-8 mr-3 object-contain" />
+          <img src="/light-KargoSetu-LOGO.png" alt="Logo" className="h-8 w-auto mr-3 object-contain" />
           <span className="text-xl font-bold tracking-wide text-white">
             KargoSetu<span className="text-orange-500">.</span>
           </span>
