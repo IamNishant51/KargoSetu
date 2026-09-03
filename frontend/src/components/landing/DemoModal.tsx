@@ -4,7 +4,6 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { X, ArrowRight, Compass } from 'lucide-react';
 
-import { useDemoStore } from '../../store/demoStore';
 
 const DEMO_STEPS = [
   {
@@ -66,9 +65,7 @@ const DEMO_STEPS = [
 ];
 
 export default function DemoModal() {
-  const { demoOpen, setDemoOpen } = useDemoStore();
-  const isOpen = demoOpen;
-  const onClose = () => setDemoOpen(false);
+  const isOpen = false;
   const [activeStepIndex, setActiveStepIndex] = useState(0);
 
   if (!isOpen) return null;
@@ -94,7 +91,7 @@ export default function DemoModal() {
           </div>
 
           <button
-            onClick={onClose}
+            
             className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
             aria-label="Close modal"
           >
@@ -191,7 +188,7 @@ export default function DemoModal() {
           <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
             <Link
               href="/dashboard"
-              onClick={onClose}
+              
               className="w-full sm:w-auto bg-[#EA580C] hover:bg-[#C2410C] text-white text-xs sm:text-sm font-semibold px-4 py-2.5 rounded-xl transition-all flex items-center justify-center gap-2 shadow-sm cursor-pointer"
             >
               Launch Live Dashboard

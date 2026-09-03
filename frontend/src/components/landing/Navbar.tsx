@@ -5,10 +5,8 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { Menu, X, User, ChevronDown, BarChart3, Ship, PackageOpen, ArrowRight, Play } from 'lucide-react';
 
-import { useDemoStore } from '../../store/demoStore';
 
 export default function Navbar() {
-  const { setDemoOpen } = useDemoStore();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [solutionsOpen, setSolutionsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -164,7 +162,7 @@ export default function Navbar() {
           {/* Desktop Right Action CTA */}
           <div className="hidden md:flex items-center space-x-3">
             <button
-              onClick={() => setDemoOpen(true)}
+              
               className="text-slate-600 hover:text-slate-900 font-medium text-sm px-3.5 py-2 rounded-lg hover:bg-slate-100 transition-colors flex items-center gap-1.5 cursor-pointer"
             >
               <Play size={16} className="text-slate-500" />
@@ -262,7 +260,7 @@ export default function Navbar() {
             <button
               onClick={() => {
                 setMobileMenuOpen(false);
-                setDemoOpen(true);
+                ;
               }}
               className="w-full bg-white border border-slate-200 hover:bg-slate-50 text-slate-800 py-3 rounded-xl font-semibold transition-all flex items-center justify-center gap-2 shadow-2xs text-sm cursor-pointer"
             >

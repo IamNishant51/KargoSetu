@@ -5,10 +5,8 @@ import Link from 'next/link';
 import Image from 'next/image';
  import { User, Play, Activity } from 'lucide-react';
 
-import { useDemoStore } from '../../store/demoStore';
 
 export default function HeroSection() {
-  const { setDemoOpen } = useDemoStore();
   return (
     <section className="relative overflow-hidden pt-8 pb-16 lg:pt-14 lg:pb-32 bg-[#F8FAFC]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
@@ -47,7 +45,7 @@ export default function HeroSection() {
                 <span>Get Started Free</span>
               </Link>
               <button
-                onClick={() => setDemoOpen(true)}
+                
                 className="group relative inline-flex items-center justify-center gap-2.5 rounded-xl bg-white border border-slate-200 px-8 py-4 text-sm font-semibold text-slate-700 shadow-sm transition-all duration-300 hover:bg-slate-50 hover:border-slate-300 hover:text-slate-900 hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-slate-200 focus:ring-offset-2 w-full sm:w-auto"
               >
                 <Play size={18} className="text-slate-500 group-hover:text-[#EA580C] transition-colors" />

@@ -1,6 +1,11 @@
 /**
  * Real ML Predictor Service - TensorFlow.js
  * Forecasting Baltic Dry Index (BDRY ETF Proxy) for freight optimization.
+ * 
+ * LIMITATION NOTE (per audit):
+ * The BDRY ETF is used as a proxy for the Baltic Dry Index. This proxy is subject to 
+ * contango/backwardation roll yields, management fees, and tracking errors compared 
+ * to direct physical freight forward agreements (FFAs).
  */
 let tf;
 try {
@@ -33,10 +38,21 @@ async function initModel() {
             if (historicalData.length < LOOKBACK_DAYS + OUTLOOK_DAYS + 10) {
                 throw new Error("Not enough aligned historical data fetched.");
             }
-            
-            const { trainX, trainY, valX, valY } = tf.tidy(() => prepareData(historicalData));
+            const { trainX, trainY, valX, valY } = prepareData(historicalData);
             try {
-                cachedModel = await trainModel(trainX, trainY, valX, valY);
+                try {
+                    cachedModel = await tf.loadLayersModel('file://./models/freight-model/model.json');
+                    console.log("[ML] Loaded existing model from disk.");
+                } catch (e) {
+                    console.log("[ML] No valid existing model found on disk, training new one...");
+                    cachedModel = await trainModel(trainX, trainY, valX, valY);
+                    const fs = require('fs');
+                    if (!fs.existsSync('./models')) {
+                        fs.mkdirSync('./models', { recursive: true });
+                    }
+                    await cachedModel.save('file://./models/freight-model');
+                    console.log("[ML] Saved trained model to disk.");
+                }
                 console.log("[ML] Background model initialization complete!");
                 return cachedModel;
             } finally {
@@ -135,15 +151,24 @@ async function fetchRealData() {
  */
 function calculateRSI(prices, period = 14) {
     const rsi = new Float32Array(prices.length);
+    if (prices.length === 0) return rsi;
+    
     let gain = 0, loss = 0;
-    for (let i = 1; i <= period; i++) {
+    rsi[0] = 50; // Neutral start
+    for (let i = 1; i <= period && i < prices.length; i++) {
         const diff = prices[i] - prices[i - 1];
         if (diff > 0) gain += diff;
         else loss -= diff;
+        
+        let avgG = gain / i;
+        let avgL = loss / i;
+        rsi[i] = avgL === 0 ? (avgG === 0 ? 50 : 100) : 100 - (100 / (1 + (avgG / avgL)));
     }
+    
+    if (prices.length <= period + 1) return rsi;
+
     let avgGain = gain / period;
     let avgLoss = loss / period;
-    rsi[period] = avgLoss === 0 ? 100 : 100 - (100 / (1 + (avgGain / avgLoss)));
 
     for (let i = period + 1; i < prices.length; i++) {
         const diff = prices[i] - prices[i - 1];
@@ -195,19 +220,23 @@ function prepareData(historicalData) {
         }
     }
 
-    // 2. Historical Volatility on BDRY (Std Dev of Log Returns)
-    let returns = new Float32Array(N - 1);
+    // 2. Historical Volatility on BDRY (60-day rolling window)
+    const volWindow = 60;
+    const startIndex = Math.max(1, N - volWindow);
+    const actualWindow = N - startIndex;
+    let returns = new Float32Array(actualWindow);
     let sumReturns = 0;
-    for (let i = 1; i < N; i++) {
-        returns[i - 1] = Math.log(historicalData[i].bdry / historicalData[i - 1].bdry);
-        sumReturns += returns[i - 1];
+    for (let i = startIndex; i < N; i++) {
+        const ret = Math.log(historicalData[i].bdry / historicalData[i - 1].bdry);
+        returns[i - startIndex] = ret;
+        sumReturns += ret;
     }
-    const meanReturn = sumReturns / (N - 1);
+    const meanReturn = sumReturns / actualWindow;
     let varianceReturns = 0;
-    for (let i = 0; i < N - 1; i++) {
+    for (let i = 0; i < actualWindow; i++) {
         varianceReturns += (returns[i] - meanReturn) * (returns[i] - meanReturn);
     }
-    historicalVolatility = Math.sqrt(varianceReturns / (N - 1));
+    historicalVolatility = Math.sqrt(varianceReturns / actualWindow);
 
     // 3. Pre-allocate flat Float32Array for Tensors (Zero-copy ML optimization)
     // Avoids creating tens of thousands of nested JS arrays -> drastic GC reduction
@@ -217,13 +246,17 @@ function prepareData(historicalData) {
 
     // Normalize Multivariate Data upfront into a flat buffer
     const normBuffer = new Float32Array(N * 5);
+    const safeNorm = (val, min, max) => {
+        const range = max - min;
+        return range === 0 ? 0.5 : (val - min) / range;
+    };
     for (let i = 0; i < N; i++) {
         const d = historicalData[i];
-        normBuffer[i * 5 + 0] = (d.bdry - bounds.bdry.min) / (bounds.bdry.max - bounds.bdry.min);
-        normBuffer[i * 5 + 1] = (d.sp500 - bounds.sp500.min) / (bounds.sp500.max - bounds.sp500.min);
-        normBuffer[i * 5 + 2] = (d.oil - bounds.oil.min) / (bounds.oil.max - bounds.oil.min);
-        normBuffer[i * 5 + 3] = (d.sma14 - bounds.sma14.min) / (bounds.sma14.max - bounds.sma14.min);
-        normBuffer[i * 5 + 4] = (d.rsi14 - bounds.rsi14.min) / (bounds.rsi14.max - bounds.rsi14.min);
+        normBuffer[i * 5 + 0] = safeNorm(d.bdry, bounds.bdry.min, bounds.bdry.max);
+        normBuffer[i * 5 + 1] = safeNorm(d.sp500, bounds.sp500.min, bounds.sp500.max);
+        normBuffer[i * 5 + 2] = safeNorm(d.oil, bounds.oil.min, bounds.oil.max);
+        normBuffer[i * 5 + 3] = safeNorm(d.sma14, bounds.sma14.min, bounds.sma14.max);
+        normBuffer[i * 5 + 4] = safeNorm(d.rsi14, bounds.rsi14.min, bounds.rsi14.max);
     }
 
     // Save latest sequence for real-time inference
@@ -277,7 +310,6 @@ async function trainModel(trainX, trainY, valX, valY) {
         activation: 'relu',
         inputShape: [LOOKBACK_DAYS, 5]
     }));
-    model.add(tf.layers.maxPooling1d({ poolSize: 2 }));
     
     // LSTM for long-term temporal dependencies
     model.add(tf.layers.lstm({
@@ -296,20 +328,38 @@ async function trainModel(trainX, trainY, valX, valY) {
     // Huber loss handles extreme market volatility better than MSE
     model.compile({
         optimizer: tf.train.adam(0.001), // lower learning rate
-        loss: tf.losses.huberLoss
+        loss: (yTrue, yPred) => tf.losses.huberLoss(yTrue, yPred, null, 0.1)
     });
 
     console.log("Training Advanced CNN-LSTM Hybrid Model...");
     
+    let bestValLoss = Infinity;
+    let bestWeights = null;
+    
     await model.fit(trainX, trainY, {
         epochs: 5,
-        batchSize: 64,
+        batchSize: 32,
         validationData: [valX, valY],
-        callbacks: {
-             onEpochEnd: async () => await new Promise(resolve => setTimeout(resolve, 50)) 
-        },
+        callbacks: [
+            tf.callbacks.earlyStopping({ monitor: 'val_loss', patience: 2 }),
+            { 
+                onEpochEnd: async (epoch, logs) => {
+                    if (logs && logs.val_loss < bestValLoss) {
+                        bestValLoss = logs.val_loss;
+                        if (bestWeights) bestWeights.forEach(w => w.dispose());
+                        bestWeights = model.getWeights().map(w => w.clone());
+                    }
+                    await new Promise(resolve => setTimeout(resolve, 50));
+                }
+            }
+        ],
         verbose: 1
     });
+
+    if (bestWeights) {
+        model.setWeights(bestWeights);
+        bestWeights.forEach(w => w.dispose());
+    }
 
     return model;
 }
@@ -325,6 +375,7 @@ function denormalizeBdry(value) {
  * 5. Prediction Pipeline
  */
 async function getFreightForecast(shockMultiplier = 1.0) {
+    shockMultiplier = Math.max(0.1, Math.min(5.0, shockMultiplier));
     // FAST PATH: Return heuristic forecast while model warms up
     if (!cachedModel) {
         console.log("[ML] Model still warming up. Returning fast heuristic forecast.");
@@ -332,16 +383,22 @@ async function getFreightForecast(shockMultiplier = 1.0) {
         const today = new Date();
         let base_p50 = 1500; // Baseline BDRY
         for (let i = 0; i < OUTLOOK_DAYS; i++) {
-            const variance = base_p50 * 0.02 * Math.sqrt(i + 1) * shockMultiplier;
+            const variancePct = 0.02 * Math.sqrt(i + 1) * shockMultiplier;
             const futureDate = new Date(today);
             futureDate.setDate(today.getDate() + (i + 1));
+            
+            const p10 = base_p50 * (1 - variancePct * 1.28);
+            const p90 = base_p50 * (1 + variancePct * 1.28);
+            
             forecastArray.push({
                 date: futureDate.toISOString().split('T')[0],
-                p10: parseFloat(Math.max(0, base_p50 - variance).toFixed(2)),
+                p10: parseFloat(Math.max(0, p10).toFixed(2)),
                 p50: parseFloat(base_p50.toFixed(2)),
-                p90: parseFloat((base_p50 + variance).toFixed(2))
+                p90: parseFloat(p90.toFixed(2))
             });
-            base_p50 += (Math.random() - 0.45) * 5; // Slight upward bias
+            const pseudoRandom = Math.sin(i * 1234.5678) * 10000;
+            const deterministicRandom = pseudoRandom - Math.floor(pseudoRandom);
+            base_p50 += (deterministicRandom - 0.45) * 5; // Slight upward bias
         }
         return forecastArray;
     }
@@ -372,16 +429,19 @@ async function getFreightForecast(shockMultiplier = 1.0) {
         // Calculate Stochastic Bounds (using historical volatility & time-square-root rule)
         // Variance expands as we predict further into the future (i + 1 days out)
         const timeScaledVolatility = historicalVolatility * Math.sqrt(i + 1);
-        const variance = p50_value * timeScaledVolatility * shockMultiplier;
+        const variancePct = timeScaledVolatility * shockMultiplier;
+        
+        const p10 = p50_value * (1 - variancePct * 1.28);
+        const p90 = p50_value * (1 + variancePct * 1.28);
         
         const futureDate = new Date(today);
         futureDate.setDate(today.getDate() + (i + 1));
 
         forecastArray.push({
             date: futureDate.toISOString().split('T')[0],
-            p10: parseFloat(Math.max(0, p50_value - variance).toFixed(2)),
+            p10: parseFloat(Math.max(0, p10).toFixed(2)),
             p50: parseFloat(p50_value.toFixed(2)),
-            p90: parseFloat((p50_value + variance).toFixed(2))
+            p90: parseFloat(p90.toFixed(2))
         });
     }
     

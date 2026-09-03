@@ -15,6 +15,8 @@ model Port {
   brackishDensity  Float    @default(1.025)
   lat              Float
   lon              Float
+  typicalTidalRange Float   @default(0.0)
+  maxVesselClass    String   @default("Capesize")
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 }
@@ -24,6 +26,7 @@ model Vessel {
   name             String   @unique
   capacity         Int
   laden_draft      Float
+  ballast_draft    Float    @default(0.0)
   daily_cost       Int
   block_coeff      Float    @default(0.85)
   speed_knots      Float    @default(12.0)
@@ -40,9 +43,21 @@ model UserSetting {
 model Requisition {
   id            String   @id @default(uuid())
   volume_mt     Float
-  dest_port     String
+  destPortName  String   @map("dest_port")
   commodity     String
   status        String   @default("Pending")
   origin        String   @default("Global")
   createdAt     DateTime @default(now())
+
+  @@index([commodity])
+  @@index([destPortName])
+}
+
+model MLModel {
+  id        String   @id @default(uuid())
+  version   String
+  trainedAt DateTime
+  mape      Float
+  rmse      Float
+  isActive  Boolean
 }

@@ -8,8 +8,11 @@ function errorHandler(err, req, res, next) {
     const message = err.message || "Internal Server Error";
     
     res.status(statusCode).json({
-        error: "Server Error",
-        message: message,
+        success: false,
+        error: {
+            code: err.code || "SERVER_ERROR",
+            message: message
+        }
     });
 }
 

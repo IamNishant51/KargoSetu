@@ -1,8 +1,7 @@
 const express = require('express');
-const { PrismaClient } = require('@prisma/client');
+const prisma = require('../lib/prisma');
 const { z } = require('zod');
 const router = express.Router();
-const prisma = new PrismaClient();
 
 const SettingsArraySchema = z.array(
     z.object({
@@ -26,8 +25,12 @@ router.post('/', async (req, res, next) => {
         const parseResult = SettingsArraySchema.safeParse(req.body);
         if (!parseResult.success) {
             return res.status(400).json({ 
-                error: 'Invalid settings payload', 
-                details: parseResult.error.errors 
+                success: false,
+                error: {
+                    code: "BAD_REQUEST",
+                    message: 'Invalid settings payload', 
+                    details: parseResult.error.errors 
+                }
             });
         }
         const settingsArray = parseResult.data;

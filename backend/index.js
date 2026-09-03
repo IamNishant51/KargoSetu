@@ -9,6 +9,8 @@ const requisitionRoutes = require('./routes/requisitions');
 const forecastRoutes = require('./routes/forecast');
 const settingsRoutes = require('./routes/settings');
 const marketRoutes = require('./routes/market');
+const portsRoutes = require('./routes/ports');
+const commoditiesRoutes = require('./routes/commodities');
 const errorHandler = require('./middleware/errorHandler');
 const { initModel } = require('./services/mlPredictor');
 
@@ -17,7 +19,9 @@ const app = express();
 
 // Security & Utility Middleware
 app.use(helmet()); // Sets secure HTTP headers
-app.use(cors());
+app.use(cors({
+    origin: process.env.FRONTEND_URL || 'http://localhost:3000'
+}));
 app.use(express.json());
 app.use(morgan('combined')); // Enterprise-standard request logging
 app.use('/api/v1/settings', settingsRoutes);
@@ -27,6 +31,8 @@ app.use('/api/health', healthRoutes);
 app.use('/api/v1/requisitions', requisitionRoutes);
 app.use('/api/v1/forecast', forecastRoutes);
 app.use('/api/v1/market', marketRoutes);
+app.use('/api/v1/ports', portsRoutes);
+app.use('/api/v1/commodities', commoditiesRoutes);
 
 // Global Error Handler
 app.use(errorHandler);

@@ -4,10 +4,8 @@
  import Link from 'next/link';
 import { User, Play, ArrowRight, ShieldCheck, Zap } from 'lucide-react';
 
-import { useDemoStore } from '../../store/demoStore';
 
 export default function CtaSection() {
-  const { setDemoOpen } = useDemoStore();
    return (
      <section className="py-20 sm:py-24 bg-gradient-to-b from-slate-50 via-white to-slate-50 border-y border-slate-200/80 text-slate-900 relative overflow-hidden">
       {/* Background Decorative Soft Glows */}
@@ -39,7 +37,7 @@ export default function CtaSection() {
           </Link>
 
           <button
-            onClick={() => setDemoOpen(true)}
+            
             className="w-full sm:w-auto bg-white hover:bg-slate-50 text-slate-800 border border-slate-200 hover:border-slate-300 px-6 py-3 rounded-xl font-semibold transition-all duration-300 flex items-center justify-center gap-2 shadow-sm hover:shadow-md text-sm hover:-translate-y-0.5 group whitespace-nowrap"
           >
             <Play size={16} className="text-slate-500 group-hover:text-emerald-600 transition-colors" />

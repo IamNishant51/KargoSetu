@@ -1,21 +1,24 @@
 const express = require('express');
 const { z } = require('zod');
-const { PrismaClient } = require('@prisma/client');
+const prisma = require('../lib/prisma');
 const { evaluateRequisition } = require('../services/maritimeMath');
 const { OpenAI } = require('openai');
 
 const openai = new OpenAI({
-    apiKey: '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',
+    apiKey: process.env.NVIDIA_API_KEY,
     baseURL: 'https://integrate.api.nvidia.com/v1'
 });
 
 const router = express.Router();
-const prisma = new PrismaClient();
 
 const RequisitionSchema = z.object({
     volume_mt: z.number().positive(),
     dest_port_name: z.string().min(2),
-    commodity: z.string().min(3)
+    commodity: z.string().min(3),
+    preferredVessel: z.string().optional(),
+    laycanStart: z.string().optional(),
+    laycanEnd: z.string().optional(),
+    arrivalDate: z.string().optional()
 });
 const RequisitionCreateSchema = z.object({
     volume_mt: z.number().positive(),
@@ -43,7 +46,7 @@ router.get('/', async (req, res, next) => {
     try {
         const parseResult = RequisitionQuerySchema.safeParse(req.query);
         if (!parseResult.success) {
-            return res.status(400).json({ error: "Invalid query parameters", details: parseResult.error.errors });
+            return res.status(400).json({ success: false, error: { code: "BAD_REQUEST", message: "Invalid query parameters", details: parseResult.error.errors } });
         }
         
         const { page: pageNum, limit: limitNum, status, commodity, origin, search, dateRange } = parseResult.data;
@@ -102,8 +105,12 @@ router.post('/', async (req, res, next) => {
         
         if (!parseResult.success) {
             return res.status(400).json({ 
-                error: "Invalid request payload", 
-                details: parseResult.error.errors 
+                success: false,
+                error: {
+                    code: "BAD_REQUEST",
+                    message: "Invalid request payload", 
+                    details: parseResult.error.errors 
+                }
             });
         }
 
@@ -117,25 +124,40 @@ router.post('/', async (req, res, next) => {
     }
 });
 
+const EvaluationResponseSchema = z.object({
+    feasible: z.boolean(),
+    strategy: z.string(),
+    optimalVessel: z.string().nullable().optional(),
+    requiredVessels: z.number().nullable().optional(),
+    totalCost: z.number().nullable().optional(),
+    totalDays: z.number().nullable().optional(),
+    breakdown: z.array(z.any()).optional(),
+    ai_insight: z.string().optional()
+});
+
 router.post('/evaluate', async (req, res, next) => {
     try {
         const parseResult = RequisitionSchema.safeParse(req.body);
         
         if (!parseResult.success) {
             return res.status(400).json({ 
-                error: "Invalid request payload", 
-                details: parseResult.error.errors 
+                success: false,
+                error: {
+                    code: "BAD_REQUEST",
+                    message: "Invalid request payload", 
+                    details: parseResult.error.errors 
+                }
             });
         }
 
-        const { volume_mt, dest_port_name, commodity } = parseResult.data;
+        const { volume_mt, dest_port_name, commodity, preferredVessel, laycanStart, laycanEnd, arrivalDate } = parseResult.data;
         
         const portData = await prisma.port.findUnique({
             where: { name: dest_port_name }
         });
 
         if (!portData) {
-            return res.status(404).json({ error: `Port ${dest_port_name} not found in PostgreSQL database.` });
+            return res.status(404).json({ success: false, error: { code: "NOT_FOUND", message: `Port ${dest_port_name} not found in PostgreSQL database.` } });
         }
 
         const evaluation = await evaluateRequisition(
@@ -145,7 +167,10 @@ router.post('/evaluate', async (req, res, next) => {
             portData.lat, 
             portData.lon,
             portData.brackishDensity,
-            portData.chartedDepth
+            portData.chartedDepth,
+            portData.typicalTidalRange,
+            portData.maxVesselClass,
+            { preferredVessel, laycanStart, laycanEnd, arrivalDate }
         );
         const prompt = `You are a Maritime Analyst. Write a 2-3 sentence strategic insight based on these evaluation results: Feasible: ${evaluation.feasible}, Strategy: ${evaluation.strategy}`;
         
@@ -160,7 +185,9 @@ router.post('/evaluate', async (req, res, next) => {
             console.error("OpenAI Error:", err);
         }
 
-        res.json({ ...evaluation, ai_insight });
+        const responseData = { ...evaluation, ai_insight };
+        const validResponse = EvaluationResponseSchema.parse(responseData);
+        res.json(validResponse);
     } catch (error) {
         next(error);
     }
@@ -170,7 +197,14 @@ router.delete('/:id', async (req, res, next) => {
     try {
         const parseResult = IdSchema.safeParse(req.params);
         if (!parseResult.success) {
-            return res.status(400).json({ error: "Invalid ID format", details: parseResult.error.errors });
+            return res.status(400).json({ 
+                success: false,
+                error: {
+                    code: "BAD_REQUEST",
+                    message: "Invalid ID format", 
+                    details: parseResult.error.errors 
+                }
+            });
         }
         const { id } = parseResult.data;
         await prisma.requisition.delete({
@@ -178,7 +212,7 @@ router.delete('/:id', async (req, res, next) => {
         });
         res.json({ success: true, message: "Requisition deleted" });
     } catch (error) {
-        next(error);
+            return res.status(404).json({ success: false, error: { code: "NOT_FOUND", message: `Requisition ${req.params.id} not found` } });
     }
 });
 

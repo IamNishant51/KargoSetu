@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import { 
   Download, 
   Settings2, 
@@ -47,20 +47,40 @@ export default function DashboardPage() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const ports = [
-    { name: "Haldia", subtext: "India" },
-    { name: "Paradip", subtext: "India" },
-    { name: "Dhamra", subtext: "India" }
-  ];
+  const { data: portsData, isLoading: isLoadingPorts } = useQuery({
+    queryKey: ['ports'],
+    queryFn: async () => {
+      const res = await fetch('/api/v1/ports');
+      if (!res.ok) return [];
+      const data = await res.json();
+      return data.ports || data;
+    }
+  });
+  const ports = portsData || [];
+
+  const { data: commoditiesData, isLoading: isLoadingCommodities } = useQuery({
+    queryKey: ['commodities'],
+    queryFn: async () => {
+      const res = await fetch('/api/v1/commodities');
+      if (!res.ok) return [];
+      const data = await res.json();
+      return data.commodities || data;
+    }
+  });
+  const commodities = (commoditiesData && commoditiesData.length > 0) ? commoditiesData : ["Iron Ore", "Coal", "Grain", "Bauxite"];
+
+  const [laycanStart, setLaycanStart] = useState("2025-06-15");
+  const [laycanEnd, setLaycanEnd] = useState("2025-06-30");
+
 
   const { mutate: evaluateRequisition, data: result, isPending: loading, error } = useMutation({
     mutationFn: async () => {
       const parsedVolume = Number(volume.replace(/,/g, ''));
       const portName = selectedPort?.name || "Haldia";
-      const res = await fetch('http://localhost:3001/api/v1/requisitions/evaluate', {
+      const res = await fetch('/api/v1/requisitions/evaluate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ volume_mt: parsedVolume, dest_port_name: portName, commodity: selectedCommodity })
+        body: JSON.stringify({ volume_mt: parsedVolume, dest_port_name: portName, commodity: selectedCommodity, preferredVessel: selectedVessel !== 'Any' ? selectedVessel : undefined, laycanStart: laycanStart, laycanEnd: laycanEnd })
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Failed to evaluate');
@@ -68,7 +88,7 @@ export default function DashboardPage() {
     }
   });
 
-  const filteredPorts = ports.filter(p => 
+  const filteredPorts = ports.filter((p: any) => 
     p.name.toLowerCase().includes(portSearch.toLowerCase()) || 
     p.subtext.toLowerCase().includes(portSearch.toLowerCase())
   );
@@ -80,13 +100,19 @@ export default function DashboardPage() {
           <h1 className="text-2xl md:text-3xl font-bold text-[#0A1727]">Requisition Evaluation & Cargo Splitting</h1>
           <p className="text-slate-500 mt-1">Evaluate constraints and get the optimal cargo splitting strategy.</p>
         </div>
-        <button className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 h-10 px-4 py-2 shrink-0 shadow-sm">
+        <button onClick={() => alert("Coming soon")} className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 h-10 px-4 py-2 shrink-0 shadow-sm">
           <Download className="w-4 h-4 mr-2" />
           Export Report
         </button>
       </div>
 
       {/* Main Grid */}
+      {(isLoadingPorts || isLoadingCommodities) ? (
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 animate-pulse">
+          <div className="lg:col-span-4 h-[600px] bg-slate-200 rounded-xl"></div>
+          <div className="lg:col-span-8 h-[600px] bg-slate-200 rounded-xl"></div>
+        </div>
+      ) : (
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         
         {/* Left Column: Requisition Inputs */}
@@ -163,7 +189,7 @@ export default function DashboardPage() {
                       </div>
                       <ul className="max-h-60 overflow-auto py-1">
                         {filteredPorts.length > 0 ? (
-                          filteredPorts.map((port) => (
+                          filteredPorts.map((port: any) => (
                             <li 
                               key={port.name}
                               onClick={() => { setSelectedPort(port); setPortDropdownOpen(false); setPortSearch(""); }}
@@ -200,16 +226,16 @@ export default function DashboardPage() {
                   {commodityOpen && (
                     <div className="absolute z-50 mt-2 w-full rounded-md border border-slate-200 bg-white shadow-lg overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
                       <ul className="max-h-60 overflow-auto py-1">
-                        {["Iron Ore", "Coal", "Grain", "Bauxite"].map((item) => (
+                        {commodities.map((item: string | { name: string }) => { const name = typeof item === "string" ? item : item.name; return (
                           <li 
-                            key={item}
-                            onClick={() => { setSelectedCommodity(item); setCommodityOpen(false); }}
-                            className={`flex items-center px-3 py-2.5 cursor-pointer text-sm transition-colors ${selectedCommodity === item ? 'bg-blue-50 text-blue-700 font-medium' : 'text-slate-700 hover:bg-slate-50'}`}
+                            key={name}
+                            onClick={() => { setSelectedCommodity(name); setCommodityOpen(false); }}
+                            className={`flex items-center px-3 py-2.5 cursor-pointer text-sm transition-colors ${selectedCommodity === name ? 'bg-blue-50 text-blue-700 font-medium' : 'text-slate-700 hover:bg-slate-50'}`}
                           >
-                            {item}
-                            {selectedCommodity === item && <CheckCircle2 className="w-4 h-4 ml-auto text-blue-600" />}
+                            {name}
+                            {selectedCommodity === name && <CheckCircle2 className="w-4 h-4 ml-auto text-blue-600" />}
                           </li>
-                        ))}
+                        ); })}
                       </ul>
                     </div>
                   )}
@@ -342,6 +368,16 @@ export default function DashboardPage() {
                         <span className="text-sm text-slate-500">{result.vessel_class}</span>
                       </div>
                     )}
+                  {/* AI Insight */}
+                  {result.ai_insight && (
+                    <div className="bg-blue-50 border border-blue-100 rounded-lg p-5 flex flex-col shadow-sm">
+                      <div className="flex items-center space-x-2 mb-2">
+                        <Info className="w-4 h-4 text-blue-600" />
+                        <p className="text-xs font-bold text-blue-800 uppercase tracking-wider">AI Insight</p>
+                      </div>
+                      <p className="text-sm text-blue-900">{result.ai_insight}</p>
+                    </div>
+                  )}
                   </div>
 
                   {/* Stats Row */}
@@ -362,7 +398,7 @@ export default function DashboardPage() {
                     </div>
                     <div className="flex flex-col border-l border-slate-200 pl-4">
                       <p className="text-sm text-slate-500 mb-1 font-medium">Utilization</p>
-                      <p className="text-lg font-semibold text-green-600">{result.feasible ? '82%' : '-'}</p>
+                      <p className="text-lg font-semibold text-green-600">{result.feasible ? `${((result.requestedVolume / (result.vesselCapacity * result.total_vessels)) * 100).toFixed(1)}%` : '-'}</p>
                     </div>
                     <div className="flex flex-col border-l border-slate-200 pl-4">
                       <p className="text-sm text-slate-500 mb-1 font-medium">Constraint Status</p>
@@ -463,7 +499,7 @@ export default function DashboardPage() {
                         </div>
                         <div className="flex flex-col">
                           <p className="text-sm text-slate-500 mb-1">Tide Adjustment</p>
-                          <p className="text-sm font-semibold text-slate-800">+0.25 m</p>
+                          <p className="text-sm font-semibold text-slate-800">Dynamic (Live)</p>
                         </div>
                         <div className="flex flex-col">
                           <p className="text-sm text-slate-500 mb-1">UKC Requirement</p>
@@ -490,6 +526,7 @@ export default function DashboardPage() {
           </div>
         </div>
       </div>
+      )}
     </div>
   );
 }

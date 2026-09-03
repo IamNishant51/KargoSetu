@@ -7,9 +7,9 @@ const router = express.Router();
 
 // Strict rate limiter for ML inference to prevent CPU exhaustion
 const mlLimiter = rateLimit({
-    windowMs: 1 * 60 * 1000, // 1 minute
-    max: 5000, // Massively increased for hackathon/development
-    message: { error: "Too many requests to ML prediction engine, please try again after 15 minutes." }
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 60, // Max 60 per 15 min
+    message: { success: false, error: { code: "RATE_LIMIT_EXCEEDED", message: "Too many requests to ML prediction engine, please try again after 15 minutes." } }
 });
 
 const ratesQuerySchema = z.object({
@@ -20,7 +20,7 @@ router.get('/rates', mlLimiter, async (req, res, next) => {
     try {
         const parseResult = ratesQuerySchema.safeParse(req.query);
         if (!parseResult.success) {
-            return res.status(400).json({ error: "Invalid query parameters", details: parseResult.error.errors });
+            return res.status(400).json({ success: false, error: { code: "BAD_REQUEST", message: "Invalid query parameters", details: parseResult.error.errors } });
         }
         
         const shockMultiplier = parseResult.data.shockMultiplier;

@@ -3,8 +3,7 @@
  * Implements physical constraints for bulk carriers in shallow fairways.
  */
 
-const { PrismaClient } = require('@prisma/client');
-const prisma = new PrismaClient();
+const prisma = require('../lib/prisma');
 
 let cachedFleet = null;
 let lastFleetFetch = 0;
@@ -44,28 +43,53 @@ function calculateDynamicUKC(chartedDepth, tidalHeight, draftLaden, deltaDraft, 
 /**
  * Evaluates the fleet against destination port constraints
  */
-async function evaluateRequisition(volume_mt, dest_port_draft, commodity, lat = 21.02, lon = 88.06, brackishDensity = 1.025, chartedDepth = 15.0) {
+async function evaluateRequisition(volume_mt, dest_port_draft, commodity, lat = 21.02, lon = 88.06, brackishDensity = 1.025, chartedDepth = 15.0, typicalTidalRange = 1.5, maxVesselClass = null) {
     const fleet = await getFleet();
     const UKC_MARGIN = 1.0;  // 1.0 meter safety margin
     const PORT_DENSITY = brackishDensity; // Using DB density instead of hardcoded
     
     // Fetch real-time wave/tide data from Open-Meteo Marine API
-    let TIDAL_HEIGHT = 1.5; // fallback
+    let TIDAL_HEIGHT = typicalTidalRange; // fallback
     try {
-        // Using wave_height as a proxy for dynamic tidal action at the port entrance
-        const res = await fetch(`https://marine-api.open-meteo.com/v1/marine?latitude=${lat}&longitude=${lon}&hourly=wave_height`);
+        const res = await fetch(`https://marine-api.open-meteo.com/v1/marine?latitude=${lat}&longitude=${lon}&hourly=ocean_tide`);
         if (res.ok) {
             const data = await res.json();
-            if (data.hourly && data.hourly.wave_height && data.hourly.wave_height.length > 0) {
-                TIDAL_HEIGHT = data.hourly.wave_height[0] || 1.5;
+            if (data.hourly && data.hourly.ocean_tide && data.hourly.ocean_tide.length > 0) {
+                TIDAL_HEIGHT = data.hourly.ocean_tide[0] || typicalTidalRange;
             }
         }
     } catch (e) {
         console.error("Failed to fetch live tide data, using fallback.", e.message);
     }
+    const CARGO_RESTRICTIONS = {
+        "Grain": ["Handysize", "Handymax", "Supramax", "Panamax"],
+        "Iron Ore": ["Capesize", "Panamax", "Supramax"],
+        "Coal": ["Capesize", "Panamax", "Supramax"],
+        "Bauxite": ["Capesize", "Panamax", "Supramax"],
+        "Fertilizer": ["Handysize", "Handymax", "Supramax", "Panamax"]
+    };
+
+    const VESSEL_CLASS_ORDER = {
+        "Handysize": 1,
+        "Handymax": 2,
+        "Supramax": 3,
+        "Panamax": 4,
+        "Capesize": 5
+    };
+
     let validVessels = [];
 
     for (const vessel of fleet) {
+        // Compatibility matrix check
+        if (CARGO_RESTRICTIONS[commodity] && !CARGO_RESTRICTIONS[commodity].includes(vessel.name)) {
+            continue;
+        }
+
+        // Port max vessel class check
+        if (maxVesselClass && VESSEL_CLASS_ORDER[vessel.name] > VESSEL_CLASS_ORDER[maxVesselClass]) {
+            continue;
+        }
+
         // Calculate Brackish Water Sinkage using dynamic port density
         const deltaDraft = calculateBrackishSinkage(vessel.laden_draft, PORT_DENSITY);
 
@@ -112,7 +136,9 @@ async function evaluateRequisition(volume_mt, dest_port_draft, commodity, lat = 
         total_vessels: vesselCount,
         calculatedDraft: bestVessel.calculatedDraft,
         clearance_margin: bestVessel.clearance_margin,
-        portMaxDraft: dest_port_draft
+        portMaxDraft: dest_port_draft,
+        requestedVolume: volume_mt,
+        vesselCapacity: bestVessel.capacity
     };
 }
 
