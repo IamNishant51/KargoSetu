@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { 
   Download, 
   Settings2, 
@@ -22,8 +22,39 @@ import {
 export default function DashboardPage() {
   const [unit, setUnit] = useState<"Meters" | "Feet">("Meters");
   const [portDropdownOpen, setPortDropdownOpen] = useState(false);
-  const [selectedPort, setSelectedPort] = useState({ name: "Singapore (SGSIN)", subtext: "Singapore" });
+  const [portSearch, setPortSearch] = useState("");
+  const [selectedPort, setSelectedPort] = useState<{ name: string; subtext: string } | null>({ name: "Singapore (SGSIN)", subtext: "Singapore" });
+  const portRef = useRef<HTMLDivElement>(null);
 
+  const [commodityOpen, setCommodityOpen] = useState(false);
+  const [selectedCommodity, setSelectedCommodity] = useState("Iron Ore");
+  const commodityRef = useRef<HTMLDivElement>(null);
+
+  const [vesselOpen, setVesselOpen] = useState(false);
+  const [selectedVessel, setSelectedVessel] = useState("Supramax");
+  const vesselRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (portRef.current && !portRef.current.contains(event.target as Node)) setPortDropdownOpen(false);
+      if (commodityRef.current && !commodityRef.current.contains(event.target as Node)) setCommodityOpen(false);
+      if (vesselRef.current && !vesselRef.current.contains(event.target as Node)) setVesselOpen(false);
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const ports = [
+    { name: "Singapore (SGSIN)", subtext: "Singapore" },
+    { name: "Rotterdam (NLRTM)", subtext: "Netherlands" },
+    { name: "Shanghai (CNSHA)", subtext: "China" },
+    { name: "Hamburg (DEHAM)", subtext: "Germany" }
+  ];
+
+  const filteredPorts = ports.filter(p => 
+    p.name.toLowerCase().includes(portSearch.toLowerCase()) || 
+    p.subtext.toLowerCase().includes(portSearch.toLowerCase())
+  );
   return (
     <div className="max-w-7xl mx-auto space-y-6">
       {/* Header Section */}
@@ -74,7 +105,7 @@ export default function DashboardPage() {
               </div>
 
               {/* Destination Port */}
-              <div className="space-y-2 relative">
+              <div className="space-y-2 relative" ref={portRef}>
                 <label className="text-sm font-semibold text-slate-800 flex items-center">
                   Destination Port <span className="text-red-500 ml-1">*</span>
                 </label>
@@ -82,41 +113,51 @@ export default function DashboardPage() {
                   <button 
                     type="button"
                     onClick={() => setPortDropdownOpen(!portDropdownOpen)}
-                    className="flex h-10 w-full items-center justify-between rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all shadow-sm"
+                    className={`flex h-10 w-full items-center justify-between rounded-md border bg-white px-3 py-2 text-sm text-slate-700 transition-all shadow-sm ${portDropdownOpen ? 'border-blue-500 ring-2 ring-blue-500/20' : 'border-slate-300 hover:border-slate-400'}`}
                   >
-                    <span>{selectedPort.name}</span>
+                    <span className={selectedPort ? "text-slate-800" : "text-slate-400"}>
+                      {selectedPort ? selectedPort.name : "Select port..."}
+                    </span>
                     <div className="flex items-center space-x-2">
-                      <span className="text-slate-400 hover:text-slate-600 font-bold px-1">&times;</span>
-                      <ChevronDown className="w-4 h-4 text-slate-400" />
+                      {selectedPort && (
+                        <span 
+                          onClick={(e) => { e.stopPropagation(); setSelectedPort(null); }}
+                          className="text-slate-400 hover:text-slate-600 font-bold px-1 transition-colors"
+                        >
+                          &times;
+                        </span>
+                      )}
+                      <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform duration-200 ${portDropdownOpen ? 'rotate-180' : ''}`} />
                     </div>
                   </button>
 
                   {portDropdownOpen && (
-                    <div className="absolute z-50 mt-1 w-full rounded-md border border-slate-200 bg-white shadow-lg overflow-hidden">
-                      <div className="p-2 border-b border-slate-100 flex items-center bg-slate-50">
+                    <div className="absolute z-50 mt-2 w-full rounded-md border border-slate-200 bg-white shadow-lg overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
+                      <div className="p-2 border-b border-slate-100 flex items-center bg-slate-50 sticky top-0">
                         <Search className="w-4 h-4 text-slate-400 mr-2 shrink-0" />
                         <input 
                           type="text" 
                           placeholder="Search ports..." 
+                          value={portSearch}
+                          onChange={(e) => setPortSearch(e.target.value)}
                           className="w-full bg-transparent text-sm focus:outline-none text-slate-700 placeholder:text-slate-400"
                         />
                       </div>
                       <ul className="max-h-60 overflow-auto py-1">
-                        {[
-                          { name: "Singapore (SGSIN)", subtext: "Singapore" },
-                          { name: "Rotterdam (NLRTM)", subtext: "Netherlands" },
-                          { name: "Shanghai (CNSHA)", subtext: "China" },
-                          { name: "Hamburg (DEHAM)", subtext: "Germany" }
-                        ].map((port) => (
-                          <li 
-                            key={port.name}
-                            onClick={() => { setSelectedPort(port); setPortDropdownOpen(false); }}
-                            className="flex flex-col px-3 py-2 hover:bg-slate-50 cursor-pointer text-sm transition-colors"
-                          >
-                            <span className="font-medium text-slate-800">{port.name}</span>
-                            <span className="text-xs text-slate-500">{port.subtext}</span>
-                          </li>
-                        ))}
+                        {filteredPorts.length > 0 ? (
+                          filteredPorts.map((port) => (
+                            <li 
+                              key={port.name}
+                              onClick={() => { setSelectedPort(port); setPortDropdownOpen(false); setPortSearch(""); }}
+                              className={`flex flex-col px-3 py-2 cursor-pointer text-sm transition-colors ${selectedPort?.name === port.name ? 'bg-blue-50' : 'hover:bg-slate-50'}`}
+                            >
+                              <span className={`font-medium ${selectedPort?.name === port.name ? 'text-blue-700' : 'text-slate-800'}`}>{port.name}</span>
+                              <span className={`text-xs ${selectedPort?.name === port.name ? 'text-blue-500' : 'text-slate-500'}`}>{port.subtext}</span>
+                            </li>
+                          ))
+                        ) : (
+                          <li className="px-3 py-4 text-center text-sm text-slate-500">No ports found</li>
+                        )}
                       </ul>
                     </div>
                   )}
@@ -124,15 +165,37 @@ export default function DashboardPage() {
               </div>
 
               {/* Commodity Type */}
-              <div className="space-y-2">
+              <div className="space-y-2 relative" ref={commodityRef}>
                 <label className="text-sm font-semibold text-slate-800 flex items-center">
                   Commodity Type <span className="text-red-500 ml-1">*</span>
                 </label>
-                <select className="flex h-10 w-full rounded-md border border-slate-300 bg-transparent px-3 py-2 text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all appearance-none cursor-pointer">
-                  <option>Iron Ore</option>
-                  <option>Coal</option>
-                  <option>Grain</option>
-                </select>
+                <div className="relative">
+                  <button 
+                    type="button"
+                    onClick={() => setCommodityOpen(!commodityOpen)}
+                    className={`flex h-10 w-full items-center justify-between rounded-md border bg-white px-3 py-2 text-sm text-slate-700 transition-all shadow-sm ${commodityOpen ? 'border-blue-500 ring-2 ring-blue-500/20' : 'border-slate-300 hover:border-slate-400'}`}
+                  >
+                    <span className="text-slate-800">{selectedCommodity}</span>
+                    <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform duration-200 ${commodityOpen ? 'rotate-180' : ''}`} />
+                  </button>
+
+                  {commodityOpen && (
+                    <div className="absolute z-50 mt-2 w-full rounded-md border border-slate-200 bg-white shadow-lg overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
+                      <ul className="max-h-60 overflow-auto py-1">
+                        {["Iron Ore", "Coal", "Grain", "Bauxite"].map((item) => (
+                          <li 
+                            key={item}
+                            onClick={() => { setSelectedCommodity(item); setCommodityOpen(false); }}
+                            className={`flex items-center px-3 py-2.5 cursor-pointer text-sm transition-colors ${selectedCommodity === item ? 'bg-blue-50 text-blue-700 font-medium' : 'text-slate-700 hover:bg-slate-50'}`}
+                          >
+                            {item}
+                            {selectedCommodity === item && <CheckCircle2 className="w-4 h-4 ml-auto text-blue-600" />}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
               </div>
 
               {/* Laycan Window */}
@@ -153,15 +216,37 @@ export default function DashboardPage() {
               </div>
 
               {/* Vessel Preference */}
-              <div className="space-y-2">
+              <div className="space-y-2 relative" ref={vesselRef}>
                 <label className="text-sm font-semibold text-slate-800 flex items-center">
                   Vessel Preference <span className="text-slate-400 font-normal ml-1 text-xs">(Optional)</span>
                 </label>
-                <select className="flex h-10 w-full rounded-md border border-slate-300 bg-transparent px-3 py-2 text-sm placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all appearance-none cursor-pointer">
-                  <option>Supramax</option>
-                  <option>Panamax</option>
-                  <option>Capesize</option>
-                </select>
+                <div className="relative">
+                  <button 
+                    type="button"
+                    onClick={() => setVesselOpen(!vesselOpen)}
+                    className={`flex h-10 w-full items-center justify-between rounded-md border bg-white px-3 py-2 text-sm text-slate-700 transition-all shadow-sm ${vesselOpen ? 'border-blue-500 ring-2 ring-blue-500/20' : 'border-slate-300 hover:border-slate-400'}`}
+                  >
+                    <span className="text-slate-800">{selectedVessel}</span>
+                    <ChevronDown className={`w-4 h-4 text-slate-400 transition-transform duration-200 ${vesselOpen ? 'rotate-180' : ''}`} />
+                  </button>
+
+                  {vesselOpen && (
+                    <div className="absolute z-50 mt-2 w-full rounded-md border border-slate-200 bg-white shadow-lg overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
+                      <ul className="max-h-60 overflow-auto py-1">
+                        {["Supramax", "Panamax", "Capesize", "Handysize"].map((item) => (
+                          <li 
+                            key={item}
+                            onClick={() => { setSelectedVessel(item); setVesselOpen(false); }}
+                            className={`flex items-center px-3 py-2.5 cursor-pointer text-sm transition-colors ${selectedVessel === item ? 'bg-blue-50 text-blue-700 font-medium' : 'text-slate-700 hover:bg-slate-50'}`}
+                          >
+                            {item}
+                            {selectedVessel === item && <CheckCircle2 className="w-4 h-4 ml-auto text-blue-600" />}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
               </div>
 
             </div>

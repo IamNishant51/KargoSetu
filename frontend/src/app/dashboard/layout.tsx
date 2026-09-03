@@ -1,8 +1,24 @@
-import { ReactNode } from "react";
-import Link from "next/link";
-import { Ship, LayoutDashboard, FileText, TrendingUp, Settings, Bell } from "lucide-react";
+"use client";
 
+import { ReactNode, useState, useRef, useEffect } from "react";
+import Link from "next/link";
+import { Ship, LayoutDashboard, FileText, TrendingUp, Settings, Bell, LogOut, User, CheckCircle2 } from "lucide-react";
 export default function DashboardLayout({ children }: { children: ReactNode }) {
+  const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
+  
+  const notifRef = useRef<HTMLDivElement>(null);
+  const profileRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (notifRef.current && !notifRef.current.contains(event.target as Node)) setNotificationsOpen(false);
+      if (profileRef.current && !profileRef.current.contains(event.target as Node)) setProfileOpen(false);
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
   return (
     <div className="min-h-screen bg-slate-50 flex">
       {/* Sidebar */}
@@ -69,25 +85,93 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
             <LayoutDashboard className="w-5 h-5 mr-2" />
             <span className="text-sm font-medium">Dashboard</span>
           </div>
-
           <div className="flex items-center space-x-6">
-            <button className="relative p-2 text-slate-400 hover:text-slate-600 transition-colors focus:outline-none">
-              <Bell className="w-5 h-5" />
-              <span className="absolute top-1.5 right-1.5 w-4 h-4 bg-red-500 text-white text-[10px] font-bold flex items-center justify-center rounded-full border-2 border-white">
-                4
-              </span>
-            </button>
+            
+            {/* Notifications Dropdown */}
+            <div className="relative" ref={notifRef}>
+              <button 
+                onClick={() => setNotificationsOpen(!notificationsOpen)}
+                className={`relative p-2 rounded-full transition-colors focus:outline-none ${notificationsOpen ? 'bg-slate-100 text-slate-800' : 'text-slate-400 hover:text-slate-600 hover:bg-slate-50'}`}
+              >
+                <Bell className="w-5 h-5" />
+                <span className="absolute top-1.5 right-1.5 w-4 h-4 bg-red-500 text-white text-[10px] font-bold flex items-center justify-center rounded-full border-2 border-white">
+                  4
+                </span>
+              </button>
 
-            <div className="flex items-center border-l border-slate-200 pl-6 cursor-pointer">
-              <div className="text-right mr-3 hidden md:block">
-                <p className="text-sm font-medium text-slate-800">Admin User</p>
-                <p className="text-xs text-slate-500">Oceanix Corp.</p>
+              {notificationsOpen && (
+                <div className="absolute right-0 mt-2 w-80 rounded-xl border border-slate-200 bg-white shadow-lg overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200 z-50">
+                  <div className="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
+                    <h3 className="font-semibold text-slate-800">Notifications</h3>
+                    <span className="text-xs font-medium text-blue-600 cursor-pointer hover:text-blue-700">Mark all as read</span>
+                  </div>
+                  <div className="max-h-[300px] overflow-auto">
+                    {[
+                      { title: "Vessel laycan updated", desc: "Supramax available Jun 15 - 20", time: "2h ago", unread: true },
+                      { title: "Report generated", desc: "Requisition export completed.", time: "5h ago", unread: true },
+                      { title: "Draft alert", desc: "Haldia port draft restricted to 7.2m.", time: "1d ago", unread: true },
+                      { title: "New forecast model", desc: "Q3 freight rates updated.", time: "2d ago", unread: true }
+                    ].map((notif, i) => (
+                      <div key={i} className={`p-4 border-b border-slate-50 cursor-pointer transition-colors hover:bg-slate-50 flex gap-3 ${notif.unread ? 'bg-blue-50/30' : ''}`}>
+                        <div className="mt-0.5">
+                          <div className={`w-2 h-2 rounded-full ${notif.unread ? 'bg-blue-500' : 'bg-transparent'}`}></div>
+                        </div>
+                        <div>
+                          <p className={`text-sm ${notif.unread ? 'font-semibold text-slate-800' : 'font-medium text-slate-700'}`}>{notif.title}</p>
+                          <p className="text-xs text-slate-500 mt-0.5">{notif.desc}</p>
+                          <p className="text-[10px] text-slate-400 mt-1">{notif.time}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="p-3 text-center border-t border-slate-100 bg-slate-50">
+                    <button className="text-sm font-medium text-slate-600 hover:text-slate-800 transition-colors">View all notifications</button>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Profile Dropdown */}
+            <div className="relative border-l border-slate-200 pl-6" ref={profileRef}>
+              <div 
+                onClick={() => setProfileOpen(!profileOpen)}
+                className="flex items-center cursor-pointer group"
+              >
+                <div className="text-right mr-3 hidden md:block">
+                  <p className="text-sm font-medium text-slate-800 group-hover:text-blue-600 transition-colors">Admin User</p>
+                  <p className="text-xs text-slate-500">Oceanix Corp.</p>
+                </div>
+                <div className={`w-9 h-9 rounded-full bg-slate-100 border text-slate-600 flex items-center justify-center shrink-0 overflow-hidden transition-all ${profileOpen ? 'border-blue-500 ring-2 ring-blue-500/20' : 'border-slate-200 group-hover:border-blue-300'}`}>
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6 mt-2">
+                    <path fillRule="evenodd" d="M7.5 6a4.5 4.5 0 119 0 4.5 4.5 0 01-9 0zM3.751 20.105a8.25 8.25 0 0116.498 0 .75.75 0 01-.437.695A18.683 18.683 0 0112 22.5c-2.786 0-5.433-.608-7.812-1.7a.75.75 0 01-.437-.695z" clipRule="evenodd" />
+                  </svg>
+                </div>
               </div>
-              <div className="w-9 h-9 rounded-full bg-slate-100 border border-slate-200 text-slate-600 flex items-center justify-center shrink-0 overflow-hidden">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-6 h-6 mt-2">
-                  <path fillRule="evenodd" d="M7.5 6a4.5 4.5 0 119 0 4.5 4.5 0 01-9 0zM3.751 20.105a8.25 8.25 0 0116.498 0 .75.75 0 01-.437.695A18.683 18.683 0 0112 22.5c-2.786 0-5.433-.608-7.812-1.7a.75.75 0 01-.437-.695z" clipRule="evenodd" />
-                </svg>
-              </div>
+
+              {profileOpen && (
+                <div className="absolute right-0 mt-3 w-56 rounded-xl border border-slate-200 bg-white shadow-lg overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200 z-50">
+                  <div className="p-4 border-b border-slate-100 bg-slate-50">
+                    <p className="text-sm font-semibold text-slate-800">Admin User</p>
+                    <p className="text-xs text-slate-500 mt-0.5">admin@oceanix.com</p>
+                  </div>
+                  <div className="p-2">
+                    <Link href="/settings" className="flex items-center px-3 py-2 text-sm font-medium text-slate-700 rounded-md hover:bg-slate-100 transition-colors">
+                      <User className="w-4 h-4 mr-3 text-slate-400" />
+                      My Profile
+                    </Link>
+                    <Link href="/settings" className="flex items-center px-3 py-2 text-sm font-medium text-slate-700 rounded-md hover:bg-slate-100 transition-colors">
+                      <Settings className="w-4 h-4 mr-3 text-slate-400" />
+                      Account Settings
+                    </Link>
+                  </div>
+                  <div className="p-2 border-t border-slate-100">
+                    <button className="w-full flex items-center px-3 py-2 text-sm font-medium text-red-600 rounded-md hover:bg-red-50 transition-colors">
+                      <LogOut className="w-4 h-4 mr-3 text-red-500" />
+                      Sign Out
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </header>
