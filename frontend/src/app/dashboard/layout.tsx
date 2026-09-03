@@ -1,11 +1,13 @@
 "use client";
 
 import { ReactNode, useState, useRef, useEffect } from "react";
+import { usePathname } from "next/navigation";
 import Link from "next/link";
 import { Ship, LayoutDashboard, FileText, TrendingUp, Settings, Bell, LogOut, User, CheckCircle2 } from "lucide-react";
 export default function DashboardLayout({ children }: { children: ReactNode }) {
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
+  const pathname = usePathname();
   
   const notifRef = useRef<HTMLDivElement>(null);
   const profileRef = useRef<HTMLDivElement>(null);
@@ -35,28 +37,28 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
         <nav className="flex-1 px-4 py-6 space-y-2 overflow-y-auto">
           <Link
             href="/dashboard"
-            className="flex items-center px-3 py-3 bg-[#1e293b] text-white rounded-md border-l-4 border-blue-500 font-medium transition-colors"
+            className={`flex items-center px-3 py-3 rounded-md font-medium transition-colors ${pathname === '/dashboard' ? 'bg-[#1e293b] text-white border-l-4 border-blue-500' : 'text-slate-400 hover:text-white hover:bg-white/5'}`}
           >
             <LayoutDashboard className="w-5 h-5 mr-3" />
             Dashboard
           </Link>
           <Link
             href="/dashboard/requisitions"
-            className="flex items-center px-4 py-3 text-slate-400 hover:text-white hover:bg-white/5 rounded-lg font-medium transition-colors"
+            className={`flex items-center px-3 py-3 rounded-md font-medium transition-colors ${pathname.includes('/requisitions') ? 'bg-[#1e293b] text-white border-l-4 border-blue-500' : 'text-slate-400 hover:text-white hover:bg-white/5'}`}
           >
             <FileText className="w-5 h-5 mr-3" />
             Requisitions
           </Link>
           <Link
             href="/dashboard/forecasts"
-            className="flex items-center px-4 py-3 text-slate-400 hover:text-white hover:bg-white/5 rounded-lg font-medium transition-colors"
+            className={`flex items-center px-3 py-3 rounded-md font-medium transition-colors ${pathname.includes('/forecasts') ? 'bg-[#1e293b] text-white border-l-4 border-blue-500' : 'text-slate-400 hover:text-white hover:bg-white/5'}`}
           >
             <TrendingUp className="w-5 h-5 mr-3" />
             Forecasts
           </Link>
           <Link
             href="/settings"
-            className="flex items-center px-4 py-3 text-slate-400 hover:text-white hover:bg-white/5 rounded-lg font-medium transition-colors"
+            className={`flex items-center px-3 py-3 rounded-md font-medium transition-colors ${pathname.includes('/settings') ? 'bg-[#1e293b] text-white border-l-4 border-blue-500' : 'text-slate-400 hover:text-white hover:bg-white/5'}`}
           >
             <Settings className="w-5 h-5 mr-3" />
             Settings
@@ -82,8 +84,10 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
         {/* Top Header */}
         <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-8 z-10 sticky top-0">
           <div className="flex items-center text-slate-600">
-            <LayoutDashboard className="w-5 h-5 mr-2" />
-            <span className="text-sm font-medium">Dashboard</span>
+            {pathname === '/dashboard' && <><LayoutDashboard className="w-5 h-5 mr-2" /><span className="text-sm font-medium">Dashboard</span></>}
+            {pathname.includes('/requisitions') && <><FileText className="w-5 h-5 mr-2" /><span className="text-sm font-medium">Requisitions</span></>}
+            {pathname.includes('/forecasts') && <><TrendingUp className="w-5 h-5 mr-2" /><span className="text-sm font-medium">Forecasts</span></>}
+            {pathname.includes('/settings') && <><Settings className="w-5 h-5 mr-2" /><span className="text-sm font-medium">Settings</span></>}
           </div>
           <div className="flex items-center space-x-6">
             
