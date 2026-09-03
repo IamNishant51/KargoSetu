@@ -62,7 +62,7 @@ export default function ForecastsPage() {
 
     const fetchForecast = async () => {
       try {
-        const res = await fetch(`http://localhost:3001/api/v1/forecast/rates?shockMultiplier=${shock}`);
+        const res = await fetch(`http://localhost:5000/api/v1/forecast/rates?shockMultiplier=${shock}`);
         if (res.ok) {
           const json = await res.json();
           // The backend API returns the array directly based on the contract

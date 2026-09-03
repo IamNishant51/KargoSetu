@@ -17,7 +17,7 @@ export default function ForecastPriceChart() {
   const { data, isLoading } = useQuery<ForecastResult>({
     queryKey: ['forecast', shockMultiplier],
     queryFn: async () => {
-      const res = await axios.get(`http://localhost:3001/api/v1/forecast/rates?shockMultiplier=${shockMultiplier}`);
+      const res = await axios.get(`http://localhost:5000/api/v1/forecast/rates?shockMultiplier=${shockMultiplier}`);
       return res.data;
     },
   });

@@ -57,7 +57,7 @@ export default function DashboardPage() {
     mutationFn: async () => {
       const parsedVolume = Number(volume.replace(/,/g, ''));
       const portName = selectedPort?.name || "Haldia";
-      const res = await fetch('http://localhost:3001/api/v1/requisitions/evaluate', {
+      const res = await fetch('http://localhost:5000/api/v1/requisitions/evaluate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ volume_mt: parsedVolume, dest_port_name: portName, commodity: selectedCommodity })

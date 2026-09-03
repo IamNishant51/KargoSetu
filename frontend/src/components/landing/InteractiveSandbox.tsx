@@ -24,7 +24,7 @@ export default function InteractiveSandbox() {
   // React Query Mutation for Constraint Solver
   const evaluateMutation = useMutation({
     mutationFn: async (data: { volume_mt: number; dest_port_name: string; commodity: string }) => {
-      const res = await fetch('http://localhost:3001/api/v1/requisitions/evaluate', {
+      const res = await fetch('http://localhost:5000/api/v1/requisitions/evaluate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
@@ -46,7 +46,7 @@ export default function InteractiveSandbox() {
   const { data: forecastData, isLoading: forecastLoading } = useQuery({
     queryKey: ['forecastRates', shockMultiplier],
     queryFn: async () => {
-      const res = await fetch(`http://localhost:3001/api/v1/forecast/rates?shockMultiplier=${shockMultiplier}`);
+      const res = await fetch(`http://localhost:5000/api/v1/forecast/rates?shockMultiplier=${shockMultiplier}`);
       if (!res.ok) throw new Error('Network response was not ok');
       return res.json();
     },
