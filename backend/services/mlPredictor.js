@@ -34,7 +34,7 @@ async function initModel() {
                 throw new Error("Not enough aligned historical data fetched.");
             }
             
-            const { trainX, trainY, valX, valY } = prepareData(historicalData);
+            const { trainX, trainY, valX, valY } = tf.tidy(() => prepareData(historicalData));
             try {
                 cachedModel = await trainModel(trainX, trainY, valX, valY);
                 console.log("[ML] Background model initialization complete!");

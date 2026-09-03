@@ -4,10 +4,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { X, ArrowRight, Compass } from 'lucide-react';
 
-interface DemoModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-}
+import { useDemoStore } from '../../store/demoStore';
 
 const DEMO_STEPS = [
   {
@@ -68,7 +65,10 @@ const DEMO_STEPS = [
   }
 ];
 
-export default function DemoModal({ isOpen, onClose }: DemoModalProps) {
+export default function DemoModal() {
+  const { demoOpen, setDemoOpen } = useDemoStore();
+  const isOpen = demoOpen;
+  const onClose = () => setDemoOpen(false);
   const [activeStepIndex, setActiveStepIndex] = useState(0);
 
   if (!isOpen) return null;

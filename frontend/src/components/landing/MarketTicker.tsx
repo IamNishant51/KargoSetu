@@ -18,7 +18,7 @@ export default function MarketTicker() {
   const { data: tickerItems = [], isLoading, isError } = useQuery({
     queryKey: ['marketTicker'],
     queryFn: async () => {
-      const res = await axios.get('http://localhost:5000/api/v1/market/ticker');
+      const res = await axios.get('http://localhost:3001/api/v1/market/ticker');
       return res.data as TickerItem[];
     }
   });

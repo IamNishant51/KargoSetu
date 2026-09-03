@@ -25,12 +25,28 @@ const RequisitionCreateSchema = z.object({
     status: z.string().optional()
 });
 
+const RequisitionQuerySchema = z.object({
+    page: z.coerce.number().min(1).default(1),
+    limit: z.coerce.number().min(1).max(100).default(10),
+    status: z.string().optional(),
+    commodity: z.string().optional(),
+    origin: z.string().optional(),
+    search: z.string().optional(),
+    dateRange: z.string().optional()
+});
+
+const IdSchema = z.object({
+    id: z.string().uuid()
+});
+
 router.get('/', async (req, res, next) => {
     try {
-        const { page = 1, limit = 10, status, commodity, origin, search, dateRange } = req.query;
-        const pageNum = parseInt(page);
-        const limitNum = parseInt(limit);
+        const parseResult = RequisitionQuerySchema.safeParse(req.query);
+        if (!parseResult.success) {
+            return res.status(400).json({ error: "Invalid query parameters", details: parseResult.error.errors });
+        }
         
+        const { page: pageNum, limit: limitNum, status, commodity, origin, search, dateRange } = parseResult.data;
         const where = {};
         if (status && status !== 'All Statuses') where.status = status;
         if (commodity && commodity !== 'All Commodities') where.commodity = commodity;
@@ -152,7 +168,11 @@ router.post('/evaluate', async (req, res, next) => {
 
 router.delete('/:id', async (req, res, next) => {
     try {
-        const { id } = req.params;
+        const parseResult = IdSchema.safeParse(req.params);
+        if (!parseResult.success) {
+            return res.status(400).json({ error: "Invalid ID format", details: parseResult.error.errors });
+        }
+        const { id } = parseResult.data;
         await prisma.requisition.delete({
             where: { id }
         });
