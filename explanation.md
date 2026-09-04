@@ -19,3 +19,26 @@ Ship rental rates (vessel chartering) change every single day like stock prices 
 
 ---
 
+## Backend Run Instructions (Python/FastAPI)
+
+To run the recently migrated Python FastAPI backend locally:
+
+1. Navigate to the backend directory:
+   ```bash
+   cd backend
+   ```
+2. Install the required Python dependencies:
+   ```bash
+   pip install -r requirements.txt
+   ```
+3. Generate the Prisma Python client (this must be done before starting the server):
+   ```bash
+   prisma generate
+   ```
+4. Start the ASGI Uvicorn server:
+   ```bash
+   uvicorn app.main:app --host 0.0.0.0 --port 7860 --reload
+   ```
+
+*The backend API will be live at `http://localhost:7860`.*
+

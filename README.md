@@ -18,20 +18,23 @@
     <strong>Official Submission for Smart India Hackathon (SIH) 2026</strong>
     <br />
     <br />
-    <a href="Docs/10_Comprehensive_Architecture_And_Security_Plan.md"><strong>Explore the Technical Architecture »</strong></a>
+    <a href="MIGRATION_PLAN.md"><strong>Explore the Backend Migration Plan »</strong></a>
     <br />
     <br />
     <a href="#">View Live Demo</a>
     ·
     <a href="#">Watch Pitch Video</a>
     ·
-    <a href="#">Read Developer Guide</a>
+    <a href="DEVELOPER_GUIDE.md">Read Developer Guide</a>
   </p>
 </div>
 
 <hr />
 
 ## SYSTEM OVERVIEW: SIH 26006
+
+<details>
+  <summary><strong>Click to expand Problem Statement Details</strong></summary>
 
 | Category | Details |
 | :--- | :--- |
@@ -41,6 +44,7 @@
 | **Hackathon Theme** | Smart Automation & Logistics |
 
 > **Core Objective:** Eradicate the financial inefficiency of single spot contract dependency. KargoSetu enables highly predictive Short/Medium-Term Contracts of Affreightment (CoA) paired with dual-ended port constraint optimization, maximizing fleet ROI and minimizing idle losses for the Ministry of Steel.
+</details>
 
 <hr />
 
@@ -53,33 +57,33 @@ graph TD
     %% Define Client Layer
     subgraph Client [Frontend UI - Next.js 15]
         UI[Executive Dashboard]
-        Map[MapLibre GIS]
         Charts[ECharts Data Viz]
+        TQ[TanStack React Query]
     end
 
     %% Define Server Layer
-    subgraph Backend [Backend API - Node.js / Express]
-        API[REST Router]
+    subgraph Backend [Backend API - Python / FastAPI]
+        API[FastAPI Router]
         Math[Maritime Physics Engine]
-        ML[TensorFlow.js Predictor]
-        Auth[Zod Validation Layer]
+        ML[TensorFlow / Keras Predictor]
+        Auth[Pydantic Validation Layer]
     end
 
     %% Define Data & External Layers
     subgraph Database [Persistence Layer]
         PG[(PostgreSQL)]
-        Prisma[Prisma ORM]
+        Prisma[Prisma Client Python]
     end
 
     subgraph External [External APIs]
-        YF[Yahoo Finance - BDRY]
+        YF[Yahoo Finance / FRED API]
         Meteo[Open-Meteo Marine Tide]
     end
 
     %% Connections
     UI <-->|JSON payload via TanStack Query| API
-    Map -.-> UI
     Charts -.-> UI
+    TQ -.-> UI
 
     API --> Auth
     Auth --> Math
@@ -87,7 +91,7 @@ graph TD
 
     Math <-->|Fetch Bathymetry| Prisma
     Prisma <--> PG
-    Math <-->|Live Tide Data| Meteo
+    Math <-->|Async Tide Data via httpx| Meteo
 
     ML <-->|Ingest Market Data| YF
 ```
@@ -97,20 +101,12 @@ graph TD
 ## CORE CAPABILITIES & BUSINESS IMPACT
 
 ### 1. Optimal Market Entry Timing & Quantile Forecasting
-*   **Mechanism:** Multi-horizon Quantile Regression via TensorFlow.js predicting 30, 60, and 90-day freight rate curves.
+*   **Mechanism:** Multi-horizon Quantile Regression via Python TensorFlow/Keras, processing multi-variate datasets with vectorized Pandas operations, predicting 30, 60, and 90-day freight rate curves.
 *   **Impact:** Automatically detects 12.5% rate dip windows, alerting executives to trigger optimal CoA contract bookings.
 
-### 2. Spot vs. Short/Medium-Term CoA ROI Engine
-*   **Mechanism:** Evaluates current spot contracts against 3-6 month short-term charters and 1-2 year Contracts of Affreightment.
-*   **Impact:** Calculates real-time monetary savings in **₹ Crores** for SAIL (Estimated savings: ₹35.28 Crores / year).
-
-### 3. Dual-Ended Port Infrastructure & Vessel Type Optimization
-*   **Mechanism:** Analyzes Draft, LOA, Beam, and Daily Handling Rates at both origin (e.g., Newcastle, Maputo) and destination (e.g., Paradip, Haldia).
+### 2. Dual-Ended Port Infrastructure & Vessel Type Optimization
+*   **Mechanism:** Analyzes Draft, LOA, Beam, and Daily Handling Rates at both origin (e.g., Newcastle) and destination (e.g., Haldia). Handled via asynchronous DB transactions.
 *   **Impact:** Auto-recommends Capesize, Panamax, Supramax, or calculates optimal offshore lighterage and cargo splitting thresholds.
-
-### 4. Idle Scenario Management & ESG Compliance
-*   **Mechanism:** Minimizes vessel idle loss ($25,000/day for Capesize) via triangular repositioning routes.
-*   **Impact:** Calculates VLSFO fuel consumption and IMO CO2 emission footprints ensuring strictly green, ESG-compliant logistics.
 
 <hr />
 
@@ -119,18 +115,19 @@ graph TD
 **Frontend Environment**<br/>
 ![Next.js](https://img.shields.io/badge/Next.js_15-000000?style=for-the-badge&logo=nextdotjs&logoColor=white)
 ![React](https://img.shields.io/badge/React_19-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)
+![TanStack Query](https://img.shields.io/badge/React_Query-FF4154?style=for-the-badge&logo=reactquery&logoColor=white)
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS_v4-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)
-![Zustand](https://img.shields.io/badge/Zustand-443E38?style=for-the-badge)
 
 **Backend & Physics Engine**<br/>
-![Node.js](https://img.shields.io/badge/Node.js-43853D?style=for-the-badge&logo=node.js&logoColor=white)
-![Express.js](https://img.shields.io/badge/Express.js-404D59?style=for-the-badge)
-![Prisma](https://img.shields.io/badge/Prisma_ORM-2D3748?style=for-the-badge&logo=prisma&logoColor=white)
+![Python](https://img.shields.io/badge/Python_3.11-3776AB?style=for-the-badge&logo=python&logoColor=white)
+![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white)
+![Prisma](https://img.shields.io/badge/Prisma_Python-2D3748?style=for-the-badge&logo=prisma&logoColor=white)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge&logo=postgresql&logoColor=white)
 
 **Machine Learning & Intelligence**<br/>
-![TensorFlow.js](https://img.shields.io/badge/TensorFlow.js-FF6F00?style=for-the-badge&logo=tensorflow&logoColor=white)
-![ECharts](https://img.shields.io/badge/Apache_ECharts-E43961?style=for-the-badge&logo=apache&logoColor=white)
+![TensorFlow](https://img.shields.io/badge/TensorFlow-FF6F00?style=for-the-badge&logo=tensorflow&logoColor=white)
+![Pandas](https://img.shields.io/badge/Pandas-150458?style=for-the-badge&logo=pandas&logoColor=white)
+![NumPy](https://img.shields.io/badge/NumPy-013243?style=for-the-badge&logo=numpy&logoColor=white)
 
 <hr />
 
@@ -138,49 +135,53 @@ graph TD
 
 Follow these instructions to run the enterprise platform locally.
 
-### Prerequisites
-* **Node.js:** v24.x (Required to match CI/CD pipeline constraints)
-* **PostgreSQL:** Running locally or exposed via Docker container
+<details open>
+  <summary><strong>1. Initialize the Python Backend Services</strong></summary>
+  <br/>
+  
+  The backend is built with FastAPI and runs on Python 3.11+.
 
-### 1. Clone the Repository
-```bash
-git clone https://github.com/IamNishant51/KargoSetu.git
-cd KargoSetu
-```
+  ```bash
+  # Navigate to the backend directory
+  cd backend
 
-### 2. Initialize the Backend Services
-```bash
-cd backend
-npm install
+  # Install required Python dependencies
+  pip install -r requirements.txt
 
-# Setup Prisma Database Connection
-# Ensure a .env file is present with the DATABASE_URL string
-npx prisma generate
-node prisma/seed.js
+  # Setup Prisma Database Connection
+  # Ensure a .env file is present with the DATABASE_URL string
+  prisma generate
 
-# Boot the Express API Server
-npm run dev
-```
-*The backend services will be exposed at `http://localhost:3001`*
+  # Boot the ASGI Uvicorn Server
+  uvicorn app.main:app --host 0.0.0.0 --port 7860 --reload
+  ```
+  *The backend API will be live at `http://localhost:7860`*
+</details>
 
-### 3. Initialize the Frontend Application
-```bash
-# Open a secondary terminal instance
-cd frontend
-npm install
+<details>
+  <summary><strong>2. Initialize the Next.js Frontend Application</strong></summary>
+  <br/>
 
-# Boot the Next.js development server
-npm run dev
-```
-*Access the Executive Command Center at `http://localhost:3000`*
+  ```bash
+  # Open a secondary terminal instance
+  cd frontend
+
+  # Install Node dependencies
+  npm install
+
+  # Boot the Next.js development server
+  npm run dev
+  ```
+  *Access the Executive Command Center at `http://localhost:3000`*
+</details>
 
 <hr />
 
 ## ENTERPRISE SECURITY PROTOCOLS
 This system is engineered to enterprise logistics standards:
-* **Payload Validation:** Strict `Zod` schemas enforced on both Client and Server parameters.
-* **ML Sandboxing:** Dedicated `tf.tidy()` implementations prevent memory leaks during high-load LSTM prediction sequences.
-* **Network Defense:** Backend protected via Helmet.js headers and strict CORS origin limits to prevent DoS and XSS intrusions.
+* **Payload Validation:** Strict `Pydantic` schemas enforced on the Server parameters.
+* **ML Sandboxing:** Dedicated asynchronous `asyncio.to_thread()` implementations prevent I/O blocking during high-load LSTM prediction sequences.
+* **Database Pooling:** `prisma.connect()` and `disconnect()` managed via FastAPI Lifespan Hooks to prevent zombie connections.
 
 <hr />
 
