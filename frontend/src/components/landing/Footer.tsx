@@ -143,12 +143,6 @@ export default function Footer() {
         </div>
       </div>
 
-      {/* Massive Creative Typography Watermark */}
-      <div className="w-full overflow-hidden flex justify-center pointer-events-none select-none px-4 pb-2">
-        <h1 className="text-[14vw] font-black leading-none tracking-tighter bg-clip-text text-transparent bg-gradient-to-b from-slate-200/80 to-slate-50/10 whitespace-nowrap opacity-80 mix-blend-multiply">
-          KARGOSETU
-        </h1>
-      </div>
-    </footer>
+      </footer>
   );
 }

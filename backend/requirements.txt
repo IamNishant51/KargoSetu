@@ -1,0 +1,10 @@
+fastapi
+uvicorn
+prisma
+pydantic
+pydantic-settings
+yfinance
+pandas
+numpy
+tensorflow
+httpx

@@ -17,7 +17,7 @@ export default function HeroSection() {
             {/* Tagline / Badge */}
             <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-50 text-emerald-700 font-bold text-xs tracking-widest uppercase border border-emerald-100 mb-6 sm:mb-8 shadow-[0_2px_10px_rgba(16,185,129,0.1)]">
               <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
               </span>
               AI-Powered Maritime Intelligence
@@ -26,7 +26,7 @@ export default function HeroSection() {
             {/* Main Headline */}
             <h1 className="text-5xl sm:text-6xl lg:text-[76px] font-extrabold tracking-tighter mb-6 leading-[1.05] font-sans">
               <span className="text-[#0F172A] block mb-2">Smarter Decisions.</span>
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#EA580C] to-[#f97316]">Stronger </span>
+              <span className="text-[#EA580C]">Stronger </span>
               <span className="text-[#0F172A]">Voyages.</span>
             </h1>
 
@@ -39,14 +39,14 @@ export default function HeroSection() {
             <div className="flex flex-col sm:flex-row justify-center lg:justify-start gap-4 max-w-md mx-auto lg:mx-0 mt-8">
               <Link
                 href="/dashboard"
-                className="group relative inline-flex items-center justify-center gap-2.5 rounded-xl bg-slate-900 px-8 py-4 text-sm font-semibold text-white shadow-lg shadow-slate-900/20 transition-all duration-300 hover:bg-slate-800 hover:shadow-xl hover:shadow-slate-900/30 hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-slate-900 focus:ring-offset-2 w-full sm:w-auto"
+                className="group relative inline-flex items-center justify-center gap-2.5 rounded-xl bg-slate-900 px-8 py-4 text-sm font-semibold text-white shadow-lg shadow-slate-900/20 transition-all duration-300 hover:bg-slate-800 hover:shadow-lg hover:border-slate-300  focus:outline-none focus:ring-2 focus:ring-slate-900 focus:ring-offset-2 w-full sm:w-auto"
               >
-                <User size={18} className="transition-transform group-hover:scale-110" />
+                <User size={18} className="transition-transform " />
                 <span>Get Started Free</span>
               </Link>
               <button
                 
-                className="group relative inline-flex items-center justify-center gap-2.5 rounded-xl bg-white border border-slate-200 px-8 py-4 text-sm font-semibold text-slate-700 shadow-sm transition-all duration-300 hover:bg-slate-50 hover:border-slate-300 hover:text-slate-900 hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-slate-200 focus:ring-offset-2 w-full sm:w-auto"
+                className="group relative inline-flex items-center justify-center gap-2.5 rounded-xl bg-white border border-slate-200 px-8 py-4 text-sm font-semibold text-slate-700 shadow-sm transition-all duration-300 hover:bg-slate-50 hover:border-slate-300 hover:text-slate-900  focus:outline-none focus:ring-2 focus:ring-slate-200 focus:ring-offset-2 w-full sm:w-auto"
               >
                 <Play size={18} className="text-slate-500 group-hover:text-[#EA580C] transition-colors" />
                 <span>Watch Demo</span>
@@ -70,7 +70,7 @@ export default function HeroSection() {
               </div>
 
               {/* Market Snapshot Card - Shadcn Style */}
-              <div className="mt-8 bg-white/90 backdrop-blur-md rounded-2xl p-6 shadow-xl shadow-slate-200/40 border border-slate-200/60 w-full max-w-md lg:max-w-[480px] z-20 mx-auto transition-transform duration-300 hover:-translate-y-1">
+              <div className="mt-8 bg-white/90 backdrop-blur-md rounded-2xl p-6 shadow-xl shadow-slate-200/40 border border-slate-200/60 w-full max-w-md lg:max-w-[480px] z-20 mx-auto transition-transform duration-300 ">
                 
                 {/* Snapshot Header */}
                 <div className="flex justify-between items-center mb-5">
@@ -80,7 +80,7 @@ export default function HeroSection() {
                   </div>
                   <div className="flex items-center gap-1.5 text-[10px] sm:text-xs font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-100 uppercase tracking-widest shadow-sm">
                     <span className="relative flex h-1.5 w-1.5">
-                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                      
                       <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-emerald-500"></span>
                     </span>
                     Live Data

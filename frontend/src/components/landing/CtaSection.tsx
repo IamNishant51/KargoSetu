@@ -8,9 +8,7 @@ import { User, Play, ArrowRight, ShieldCheck, Zap } from 'lucide-react';
 export default function CtaSection() {
    return (
      <section className="py-20 sm:py-24 bg-gradient-to-b from-slate-50 via-white to-slate-50 border-y border-slate-200/80 text-slate-900 relative overflow-hidden">
-      {/* Background Decorative Soft Glows */}
-      <div className="absolute top-0 right-1/4 w-96 h-96 bg-orange-100/40 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute bottom-0 left-1/4 w-96 h-96 bg-blue-100/40 rounded-full blur-3xl pointer-events-none" />
+      
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
         <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-orange-50 border border-orange-200 text-xs font-bold uppercase tracking-wider text-[#EA580C] mb-8 shadow-sm">
@@ -29,7 +27,7 @@ export default function CtaSection() {
         <div className="flex flex-col sm:flex-row justify-center items-center gap-4 max-w-xl mx-auto">
           <Link
             href="/dashboard"
-            className="w-full sm:w-auto bg-[#EA580C] hover:bg-[#C2410C] text-white px-6 py-3 rounded-xl font-bold transition-all duration-300 flex items-center justify-center gap-2 shadow-lg hover:shadow-orange-500/25 hover:-translate-y-0.5 group text-sm whitespace-nowrap"
+            className="w-full sm:w-auto bg-[#EA580C] hover:bg-[#C2410C] text-white px-6 py-3 rounded-xl font-bold transition-all duration-300 flex items-center justify-center gap-2 shadow-lg hover:shadow-orange-500/25  group text-sm whitespace-nowrap"
           >
             <User size={16} />
             <span>Launch Command Center</span>
@@ -38,7 +36,7 @@ export default function CtaSection() {
 
           <button
             
-            className="w-full sm:w-auto bg-white hover:bg-slate-50 text-slate-800 border border-slate-200 hover:border-slate-300 px-6 py-3 rounded-xl font-semibold transition-all duration-300 flex items-center justify-center gap-2 shadow-sm hover:shadow-md text-sm hover:-translate-y-0.5 group whitespace-nowrap"
+            className="w-full sm:w-auto bg-white hover:bg-slate-50 text-slate-800 border border-slate-200 hover:border-slate-300 px-6 py-3 rounded-xl font-semibold transition-all duration-300 flex items-center justify-center gap-2 shadow-sm hover:shadow-md text-sm  group whitespace-nowrap"
           >
             <Play size={16} className="text-slate-500 group-hover:text-emerald-600 transition-colors" />
             <span>Watch Live Demo</span>

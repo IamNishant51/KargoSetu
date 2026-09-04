@@ -16,7 +16,8 @@ export default function ForecastPriceChart() {
   const { data, isLoading } = useQuery<ForecastResult>({
     queryKey: ['forecast', shockMultiplier],
     queryFn: async () => {
-      const res = await fetch(`/api/v1/forecast/rates?shockMultiplier=${shockMultiplier}`);
+      const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+      const res = await fetch(`${baseUrl}/api/v1/forecast/rates?shockMultiplier=${shockMultiplier}`);
       if (!res.ok) throw new Error('Failed to fetch forecast');
       return res.json();
     },

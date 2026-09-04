@@ -80,7 +80,8 @@ export default function RequisitionsPage() {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      await axios.delete(`/api/v1/requisitions/${id}`);
+      const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+      await axios.delete(`${baseUrl}/api/v1/requisitions/${id}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["requisitions"] });
@@ -105,7 +106,8 @@ export default function RequisitionsPage() {
     if (dateRange !== "All Time") params.append("dateRange", dateRange);
     if (debouncedSearch) params.append("search", debouncedSearch);
     
-    const { data } = await axios.get(`/api/v1/requisitions?${params.toString()}`);
+    const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+    const { data } = await axios.get(`${baseUrl}/api/v1/requisitions?${params.toString()}`);
     return data;
   };
 

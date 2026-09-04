@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useMemo } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { Download, ArrowRightLeft, Calendar } from 'lucide-react';
 
@@ -27,7 +28,6 @@ type ChartDataPoint = {
 
 export default function ForecastsPage() {
   const [shock, setShock] = useState(2.0);
-  const [apiChartData, setApiChartData] = useState<ChartDataPoint[] | null>(null);
   const [days, setDays] = useState(30);
   const [currentPage, setCurrentPage] = useState(1);
 
@@ -58,39 +58,28 @@ export default function ForecastsPage() {
     a.click();
     URL.revokeObjectURL(url);
   };
-  useEffect(() => {
-    let isMounted = true;
-
-    const fetchForecast = async () => {
-      try {
-        const res = await fetch(`/api/v1/forecast/rates?shockMultiplier=${shock}`);
-        if (res.ok) {
-          const json = await res.json();
-          // The backend API returns the array directly based on the contract
-          if (isMounted && Array.isArray(json)) {
-            const mapped: ChartDataPoint[] = json.map((pt: { date: string; p10: number; p50: number; p90: number }) => {
-              const d = new Date(pt.date);
-              return {
-                date: d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' }),
-                rawDate: d,
-                p10: pt.p10,
-                p50: pt.p50,
-                p90: pt.p90,
-              };
-            });
-            setApiChartData(mapped);
-          }
-        } else {
-            console.error("Failed to fetch forecast");
-        }
-      } catch (e) {
-        console.error("API error, using mock data", e);
+  const { data: apiChartData } = useQuery({
+    queryKey: ['forecast', shock],
+    queryFn: async () => {
+      const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+      const res = await fetch(`${baseUrl}/api/v1/forecast/rates?shockMultiplier=${shock}`);
+      if (!res.ok) throw new Error("Failed to fetch forecast");
+      const json = await res.json();
+      if (Array.isArray(json)) {
+        return json.map((pt: { date: string; p10: number; p50: number; p90: number }) => {
+          const d = new Date(pt.date);
+          return {
+            date: d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' }),
+            rawDate: d,
+            p10: pt.p10,
+            p50: pt.p50,
+            p90: pt.p90,
+          };
+        });
       }
-    };
-
-    void fetchForecast();
-    return () => { isMounted = false; };
-  }, [shock]);
+      return [];
+    },
+  });
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 p-8">

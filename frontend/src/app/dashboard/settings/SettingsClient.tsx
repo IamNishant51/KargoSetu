@@ -29,7 +29,7 @@ const ToggleSwitch = ({ enabled, onChange, label }: { enabled: boolean, onChange
   </div>
 );
 
-const API_BASE = "/api/v1";
+const API_BASE = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/v1`;
 
 export default function SettingsPage() {
   const queryClient = useQueryClient();

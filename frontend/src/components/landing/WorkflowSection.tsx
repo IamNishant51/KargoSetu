@@ -67,7 +67,7 @@ export default function WorkflowSection() {
               />
             </div>
             {/* Floating decorative badge */}
-            <div className="absolute -bottom-6 -right-6 bg-white p-4 rounded-2xl shadow-xl border border-slate-200/60 hidden sm:block animate-float z-10">
+            <div className="absolute -bottom-6 -right-6 bg-white p-4 rounded-2xl shadow-xl border border-slate-200/60 hidden sm:block  z-10">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full bg-emerald-50 flex items-center justify-center">
                   <CheckCircle size={20} className="text-emerald-600" />

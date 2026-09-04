@@ -50,7 +50,8 @@ export default function DashboardPage() {
   const { data: portsData, isLoading: isLoadingPorts } = useQuery({
     queryKey: ['ports'],
     queryFn: async () => {
-      const res = await fetch('/api/v1/ports');
+      const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+      const res = await fetch(`${baseUrl}/api/v1/ports`);
       if (!res.ok) return [];
       const data = await res.json();
       return data.ports || data;
@@ -61,7 +62,8 @@ export default function DashboardPage() {
   const { data: commoditiesData, isLoading: isLoadingCommodities } = useQuery({
     queryKey: ['commodities'],
     queryFn: async () => {
-      const res = await fetch('/api/v1/commodities');
+      const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+      const res = await fetch(`${baseUrl}/api/v1/commodities`);
       if (!res.ok) return [];
       const data = await res.json();
       return data.commodities || data;
@@ -77,7 +79,8 @@ export default function DashboardPage() {
     mutationFn: async () => {
       const parsedVolume = Number(volume.replace(/,/g, ''));
       const portName = selectedPort?.name || "Haldia";
-      const res = await fetch('/api/v1/requisitions/evaluate', {
+      const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+      const res = await fetch(`${baseUrl}/api/v1/requisitions/evaluate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ volume_mt: parsedVolume, dest_port_name: portName, commodity: selectedCommodity, preferredVessel: selectedVessel !== 'Any' ? selectedVessel : undefined, laycanStart: laycanStart, laycanEnd: laycanEnd })
@@ -88,7 +91,7 @@ export default function DashboardPage() {
     }
   });
 
-  const filteredPorts = ports.filter((p: any) => 
+  const filteredPorts = ports.filter((p: { name: string; subtext: string }) => 
     p.name.toLowerCase().includes(portSearch.toLowerCase()) || 
     p.subtext.toLowerCase().includes(portSearch.toLowerCase())
   );
@@ -189,7 +192,7 @@ export default function DashboardPage() {
                       </div>
                       <ul className="max-h-60 overflow-auto py-1">
                         {filteredPorts.length > 0 ? (
-                          filteredPorts.map((port: any) => (
+                          filteredPorts.map((port: { name: string; subtext: string }) => (
                             <li 
                               key={port.name}
                               onClick={() => { setSelectedPort(port); setPortDropdownOpen(false); setPortSearch(""); }}

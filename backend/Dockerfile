@@ -1,18 +1,28 @@
-FROM node:18-bullseye
+FROM python:3.11-slim
 
 WORKDIR /app
 
-# Install native compilation tools for TensorFlow.js
-RUN apt-get update && apt-get install -y build-essential python3
+# Install required system packages for numpy/pandas/prisma
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    python3-dev \
+    gcc \
+    libssl-dev \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
 
-COPY package*.json ./
-RUN npm ci
+# Copy the requirements and install dependencies
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
 
+# Copy the rest of the application code
 COPY . .
 
-# Generate Prisma Client
-RUN npx prisma generate || true
+# Generate the Prisma Client
+RUN prisma generate
 
-EXPOSE 3001
+# Expose the API port
+EXPOSE 7860
 
-CMD ["npm", "start"]
+# Run the Uvicorn server
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "7860"]

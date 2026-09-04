@@ -81,18 +81,17 @@ export default function BentoFeatures() {
             return (
               <div
                 key={idx}
-                className={`bg-white rounded-3xl border border-slate-200/80 shadow-xl shadow-slate-200/40 hover:shadow-2xl hover:shadow-slate-200/50 hover:-translate-y-1 transition-all duration-300 relative overflow-hidden group ${
+                className={`bg-white rounded-3xl border border-slate-200/80 shadow-xl shadow-slate-200/40 hover:shadow-lg hover:shadow-slate-200/40  transition-all duration-300 relative overflow-hidden group ${
                   isLarge ? 'md:col-span-2 flex flex-col md:flex-row' : 'flex flex-col p-8 sm:p-10'
                 }`}
               >
-                {/* Top Subtle Gradient */}
-                <div className={`absolute top-0 right-0 w-64 h-64 bg-gradient-to-br ${item.color} rounded-full blur-3xl pointer-events-none z-0`} />
+                
 
                 {/* Content Side */}
                 <div className={`relative z-10 flex flex-col justify-between h-full ${isLarge ? 'p-8 sm:p-10 md:w-1/2' : ''}`}>
                   <div>
                     <div className="flex items-center justify-between gap-4 mb-6">
-                      <div className={`w-12 h-12 rounded-2xl flex items-center justify-center border ${item.accent} group-hover:scale-110 transition-transform shadow-sm`}>
+                      <div className={`w-12 h-12 rounded-2xl flex items-center justify-center border ${item.accent}  transition-transform shadow-sm`}>
                         <Icon size={22} strokeWidth={2.5} />
                       </div>
                       <span className="text-[10px] font-bold uppercase tracking-widest text-slate-500 bg-slate-100 border border-slate-200 px-3 py-1 rounded-full shadow-sm">
