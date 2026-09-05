@@ -6,7 +6,7 @@
 ---
 
 ## 9.1 Phase 1: ESG & Scope 3 Emissions Tracking (The Carbon Factor)
-**Objective:** Quantify the environmental tradeoff between direct lightering (1 Capesize) vs. multi-vessel splitting (3 Supramax). 
+**Objective:** Quantify the environmental tradeoff between direct lightering (1 Capesize) vs. multi-vessel splitting (3 Supramax).
 
 ### Technical Implementation
 

@@ -8,7 +8,7 @@ The ML model predicts the **Baltic Dry Index (BDRY)** using a highly optimized *
 
 ### How it Works (DSA & ML Optimizations):
 - **Real API Data:** It fetches 5 years of multivariate financial data (`BDRY`, `^GSPC` (S&P 500), `CL=F` (Crude Oil)) via the `yahoo-finance2` API. No mock data is used.
-- **Memory Optimized Tensors:** We avoid V8 array garbage collection overhead by compiling the entire dataset into flat `Float32Array` buffers. These are passed directly into `tf.tensor3d()`. 
+- **Memory Optimized Tensors:** We avoid V8 array garbage collection overhead by compiling the entire dataset into flat `Float32Array` buffers. These are passed directly into `tf.tensor3d()`.
 - **O(N) Preprocessing:** Time series alignment uses raw timestamp hashing (`Math.floor(date.getTime() / 86400000)`) instead of slow string manipulation. Feature bounds calculation and Technical Indicators (RSI, SMA) are strictly single-pass O(N).
 - **Direct Multi-step Forecasting:** We use a 90-neuron Dense output layer to predict the entire 90-day trajectory at once, avoiding autoregressive drift.
 - **Inference Wrapper:** `tf.tidy()` strictly manages memory during the API request cycle.
@@ -27,7 +27,7 @@ The ML model predicts the **Baltic Dry Index (BDRY)** using a highly optimized *
 ---
 
 ## 2. Maritime Constraint Solver (`backend/services/maritimeMath.js`)
-Computes deep-water physics limitations. 
+Computes deep-water physics limitations.
 
 ### Core Formulas Implemented:
 - **Fresh Water Allowance (FWA):** Adjusts vessel draft based on port brackish density.
@@ -42,7 +42,7 @@ Computes deep-water physics limitations.
 ---
 
 ## 3. PostgreSQL Database (Prisma)
-The backend requires a PostgreSQL database to hold `Port` metadata (charted depth, permissible draft, lat/lon). 
+The backend requires a PostgreSQL database to hold `Port` metadata (charted depth, permissible draft, lat/lon).
 
 **See below for DB Setup Instructions.**
 

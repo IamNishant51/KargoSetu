@@ -1,6 +1,6 @@
 # MODULE 8: SYSTEM ARCHITECTURE & FLOWCHARTS
 
-This document contains Mermaid diagrams visualizing the end-to-end architecture, user workflows, and data pipelines for KargoSetu. 
+This document contains Mermaid diagrams visualizing the end-to-end architecture, user workflows, and data pipelines for KargoSetu.
 
 ## 8.1 High-Level System Architecture
 
@@ -53,20 +53,20 @@ sequenceDiagram
     participant UI as Next.js Frontend
     participant API as Express Backend
     participant DB as PostgreSQL (PostGIS)
-    
+
     User->>UI: Input Cargo (Volume, Origin, Dest, Dates)
     UI->>API: POST /api/v1/requisitions/evaluate
     API->>DB: Query Port Constraints & Tidal Data
     DB-->>API: Return Permissible Draft, UKC, Max LOA
     API->>API: Calculate Arrival Drafts
-    
+
     alt Vessel Fits Directly
         API-->>UI: Recommend Single Vessel Class (e.g., Capesize)
     else Draft Rejected
         API->>API: Run Cargo Splitting Algorithm
         API-->>UI: Recommend Split Strategy (e.g., 3x Supramax)
     end
-    
+
     UI-->>User: Display Constraint Feedback Card
 ```
 
@@ -82,11 +82,11 @@ flowchart LR
     D --> E[P10: Optimistic Bound]
     D --> F[P50: Median Forecast]
     D --> G[P90: Pessimistic Bound]
-    
+
     E --> H((Optimal Booking <br> Window API))
     F --> H
     G --> H
-    
+
     style A fill:#26385C,stroke:#00E5FF,color:#fff
     style D fill:#101A30,stroke:#10B981,color:#fff
     style H fill:#080E1E,stroke:#F59E0B,color:#fff

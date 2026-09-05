@@ -45,7 +45,7 @@ const FLEET: VesselClass[] = [
 
 app.post("/api/v1/requisitions/evaluate", (req: Request, res: Response) => {
   const parseResult = CargoRequisitionSchema.safeParse(req.body);
-  
+
   if (!parseResult.success) {
     return res.status(400).json({ error: parseResult.error });
   }
@@ -60,33 +60,33 @@ app.post("/api/v1/requisitions/evaluate", (req: Request, res: Response) => {
   for (const v of FLEET) {
     // 1. Brackish Water Sinkage
     const delta_draft = v.laden_draft * ((1.025 - PORT_DENSITY) / PORT_DENSITY);
-    
+
     // 2. Hydrodynamic Squat
     const squat = (2 * v.block_coefficient * Math.pow(v.speed_knots, 2)) / 100;
-    
+
     // 3. Dynamic UKC
     const ukc_dynamic = dest_port_draft + TIDAL_HEIGHT - (v.laden_draft + delta_draft + squat);
-    
+
     if (ukc_dynamic >= UKC_MARGIN) {
       valid_vessels.push(v);
     }
   }
-  
+
   if (valid_vessels.length === 0) {
-    return res.json({ 
-      feasible: false, 
-      strategy: "Offshore Transshipment Required", 
-      details: "No vessel clears dynamic UKC limits." 
+    return res.json({
+      feasible: false,
+      strategy: "Offshore Transshipment Required",
+      details: "No vessel clears dynamic UKC limits."
     });
   }
-  
+
   // Sort by cost efficiency (daily_cost / capacity)
   valid_vessels.sort((a, b) => (a.daily_cost / a.capacity) - (b.daily_cost / b.capacity));
   const best_vessel = valid_vessels[0];
-  
+
   // Splitting logic
   const vessel_count = Math.ceil(volume_mt / best_vessel.capacity);
-  
+
   return res.json({
     feasible: true,
     strategy: `Split Cargo into ${vessel_count}x ${best_vessel.name}`,

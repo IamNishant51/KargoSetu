@@ -1,7 +1,7 @@
 # Comprehensive Python Backend Migration Plan for AI Agents
 
 ## Overview
-This document serves as the strictly enforced blueprint for migrating the KargoSetu backend from Node.js (Express + TensorFlow.js) to Python (FastAPI + TensorFlow/PyTorch). 
+This document serves as the strictly enforced blueprint for migrating the KargoSetu backend from Node.js (Express + TensorFlow.js) to Python (FastAPI + TensorFlow/PyTorch).
 
 ### Why Python?
 Python's native ecosystem (Pandas, NumPy, TensorFlow/PyTorch) natively handles multi-dimensional array operations in C, bypassing Node.js's V8 garbage collection overhead and single-threaded event loop limitations. It provides a robust, enterprise-grade environment suitable for heavy ML inference and financial time-series analysis, perfectly aligning with the Hugging Face Spaces deployment target.
@@ -21,10 +21,10 @@ To prevent hallucination, agents MUST use these exact libraries:
 
 ## 1.5 Frontend-Backend Connection Architecture
 To ensure a seamless connection between the Next.js frontend and the FastAPI backend, implement the following:
-1.  **CORS & Environment Variables:** 
+1.  **CORS & Environment Variables:**
     *   FastAPI MUST configure `CORSMiddleware` to strictly allow origins defined in `process.env.FRONTEND_URL` (e.g., `https://kargosetu.vercel.app`, `http://localhost:3000`).
     *   Next.js MUST define `NEXT_PUBLIC_API_URL` pointing to the Hugging Face Space URL.
-2.  **TanStack Query Integration:** 
+2.  **TanStack Query Integration:**
     *   The frontend uses TanStack Query (`@tanstack/react-query`). The backend must return HTTP 400/500 errors with standard JSON `{ "detail": "error message" }` so TanStack Query's `onError` handlers trigger correctly.
     *   Use `useQuery` for `GET /api/v1/forecast/rates` (cache data for 24h as freight rates update daily).
     *   Use `useMutation` for `POST /api/v1/requisitions/evaluate` (do not cache, as port constraints might change).
@@ -71,9 +71,9 @@ backend/
 
 ### Phase 1: Foundation & Database
 1.  **Initialize Python Project:** Create `requirements.txt` containing `fastapi`, `uvicorn`, `prisma`, `pydantic`, `yfinance`, `pandas`, `numpy`, `tensorflow`, `httpx`.
-2.  **Prisma Setup:** 
+2.  **Prisma Setup:**
     *   Retain `backend/prisma/schema.prisma`.
-    *   Change the generator to: 
+    *   Change the generator to:
         ```prisma
         generator client {
           provider = "prisma-client-py"
@@ -90,7 +90,7 @@ backend/
 ### Phase 2: Maritime Math & Constraint Solver (`maritime_math.py`)
 1.  **Translate Pure Functions:** Translate `calculateBrackishSinkage`, `calculateHydrodynamicSquat`, and `calculateDynamicUKC` maintaining exact math.
 2.  **Translate API Calls:** Replace the `fetch` call to `https://marine-api.open-meteo.com...` with an async call using `httpx.AsyncClient()`.
-3.  **Translate Logic:** Port the `evaluateRequisition` function. 
+3.  **Translate Logic:** Port the `evaluateRequisition` function.
     *   Query the DB using `await prisma.vessel.find_many()`.
     *   Apply the `CARGO_RESTRICTIONS` and `VESSEL_CLASS_ORDER` dictionaries.
     *   Calculate costs and return the exact JSON structure expected by the frontend (`feasible`, `strategy`, `calculatedDraft`, etc.).
@@ -113,17 +113,17 @@ backend/
         # Spatial feature extraction across indicators
         Conv1D(filters=64, kernel_size=3, activation='relu', input_shape=(60, num_features)),
         # Temporal sequence modeling
-        LSTM(units=64, return_sequences=False, recurrent_dropout=0.2), 
+        LSTM(units=64, return_sequences=False, recurrent_dropout=0.2),
         Dropout(0.3),
         # Dense layers with L2 regularization to prevent overfitting
         Dense(units=128, activation='relu', kernel_regularizer=l2(0.001)),
         Dropout(0.2),
         # Direct multi-step prediction (OUTLOOK_DAYS) to avoid recursive error accumulation
-        Dense(units=90, activation='linear') 
+        Dense(units=90, activation='linear')
     ])
     ```
     *   Compile using `tf.keras.losses.Huber()` loss function to handle volatile freight price spikes gracefully.
-4.  **Inference & Caching Strategy:** 
+4.  **Inference & Caching Strategy:**
     *   Load the compiled `.keras` or `.h5` model into global memory during the FastAPI `lifespan` startup.
     *   Wrap inference in a non-blocking thread using `asyncio.to_thread(model.predict, input_tensor)` to prevent heavy tensor multiplication from blocking FastAPI's async event loop.
     *   Calculate stochastic bounds (p10, p50, p90) using Numpy's vectorized math for speed.
@@ -136,7 +136,7 @@ backend/
         dest_port_name: str
         commodity: str
     ```
-2.  **Endpoints:** 
+2.  **Endpoints:**
     *   `POST /api/v1/requisitions/evaluate`: Validate with Pydantic, call `maritime_math.evaluate_requisition()`.
     *   `GET /api/v1/forecast/rates`: Accept `shockMultiplier` as a query parameter (default 1.0), call `ml_predictor.get_freight_forecast()`.
 

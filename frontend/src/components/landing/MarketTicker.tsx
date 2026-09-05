@@ -1,27 +1,23 @@
 "use client";
 
-import React from 'react';
-import { TrendingUp, TrendingDown, Loader2 } from 'lucide-react';
-import { useQuery } from '@tanstack/react-query';
-import axios from 'axios';
-
-type TickerItem = {
-  symbol: string;
-  name: string;
-  value: string;
-  delta: string;
-  isPositive?: boolean;
-  isSpecial?: boolean;
-};
+import React from "react";
+import { TrendingUp, TrendingDown, Loader2 } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
 
 export default function MarketTicker() {
-  const { data: tickerItems = [], isLoading, isError } = useQuery({
-    queryKey: ['marketTicker'],
+  const {
+    data: tickerItems = [],
+    isLoading,
+    isError,
+  } = useQuery({
+    queryKey: ["marketTicker"],
     queryFn: async () => {
-      const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
-      const res = await axios.get(`${baseUrl}/api/v1/market/ticker`);
-      return res.data as TickerItem[];
-    }
+      const baseUrl =
+        process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+      const res = await fetch(`${baseUrl}/api/v1/market/ticker`);
+      if (!res.ok) throw new Error("Network response was not ok");
+      return res.json();
+    },
   });
 
   return (
@@ -30,7 +26,6 @@ export default function MarketTicker() {
         {/* Left Badge */}
         <div className="flex-shrink-0 pr-4 z-10 flex items-center gap-2 border-r border-slate-200">
           <span className="relative flex h-2 w-2">
-            
             <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
           </span>
           <span className="text-xs font-bold uppercase tracking-wider text-slate-700 whitespace-nowrap">
@@ -42,7 +37,8 @@ export default function MarketTicker() {
         <div className="overflow-hidden flex-1 relative [mask-image:linear-gradient(to_right,transparent,black_5%,black_95%,transparent)]">
           {isLoading ? (
             <div className="flex items-center justify-center h-full text-slate-500 text-xs font-semibold gap-2">
-              <Loader2 className="animate-spin w-4 h-4" /> Loading market data...
+              <Loader2 className="animate-spin w-4 h-4" /> Loading market
+              data...
             </div>
           ) : isError ? (
             <div className="flex items-center justify-center h-full text-rose-500 text-xs font-semibold">
@@ -51,11 +47,20 @@ export default function MarketTicker() {
           ) : (
             <div className="animate-marquee flex items-center gap-8 pl-4">
               {[...tickerItems, ...tickerItems].map((item, idx) => (
-                <div key={idx} className="flex items-center gap-2 text-xs whitespace-nowrap">
-                  <span className="font-bold text-slate-900 tracking-wide">{item.symbol}</span>
-                  <span className="text-slate-500 text-[11px] hidden sm:inline">{item.name}:</span>
-                  <span className="font-mono font-bold text-slate-900">{item.value}</span>
-                  
+                <div
+                  key={idx}
+                  className="flex items-center gap-2 text-xs whitespace-nowrap"
+                >
+                  <span className="font-bold text-slate-900 tracking-wide">
+                    {item.symbol}
+                  </span>
+                  <span className="text-slate-500 text-[11px] hidden sm:inline">
+                    {item.name}:
+                  </span>
+                  <span className="font-mono font-bold text-slate-900">
+                    {item.value}
+                  </span>
+
                   {item.isSpecial ? (
                     <span className="text-[10px] font-semibold text-blue-700 bg-blue-50 px-1.5 py-0.5 rounded border border-blue-200">
                       {item.delta}
@@ -71,7 +76,7 @@ export default function MarketTicker() {
                       {item.delta}
                     </span>
                   )}
-                  
+
                   <span className="text-slate-300 mx-2">&middot;</span>
                 </div>
               ))}

@@ -8,3 +8,8 @@ pandas
 numpy
 tensorflow
 httpx
+scikit-learn
+orjson
+gunicorn
+tf2onnx
+onnxruntime

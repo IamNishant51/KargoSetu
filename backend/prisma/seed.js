@@ -78,21 +78,50 @@ async function main() {
       });
   }
 
-  console.log('Seeding Completed.');
-  console.log('Seeding initial requisitions...');
-  const initialRequisitions = [
-    { volume_mt: 145000, destPortName: "Haldia", commodity: "Iron Ore", status: "Feasible", origin: "Newcastle, Australia" },
-    { volume_mt: 75000, destPortName: "Paradip", commodity: "Coal", status: "Pending", origin: "Richards Bay, SA" },
-    { volume_mt: 200000, destPortName: "Dhamra", commodity: "Bauxite", status: "Feasible", origin: "Dampier, Australia" },
-    { volume_mt: 50000, destPortName: "Mumbai", commodity: "Grain", status: "Pending", origin: "Global" },
-    { volume_mt: 120000, destPortName: "Mundra", commodity: "Coal", status: "Feasible", origin: "Tubarão, Brazil" },
-  ];
+  console.log('Clearing old requisitions...');
+  await prisma.requisition.deleteMany({});
 
+  console.log('Generating massive mock dataset for requisitions...');
+
+  const statuses = ["Infeasible", "Pending Evaluation", "Converted", "Feasible", "Allocated"];
+  const commodities = ["Thermal Coal", "Coking Coal", "Metallurgical Coal", "Iron Ore", "Bauxite", "Grain"];
+  const origins = [
+    "Port Hedland, Australia",
+    "Newcastle, Australia",
+    "Richards Bay, South Africa",
+    "Dampier, Australia",
+    "Tubarão, Brazil",
+    "Samarinda, Indonesia",
+    "Baltimore, USA",
+    "Gladstone, Australia"
+  ];
+  const destPorts = ports.map(p => p.name);
+
+  const generateRandomDate = (start, end) => {
+    return new Date(start.getTime() + Math.random() * (end.getTime() - start.getTime()));
+  };
+
+  const mockRequisitions = [];
+  const now = new Date();
+  const twoYearsAgo = new Date(now.getFullYear() - 2, now.getMonth(), now.getDate());
+
+  for (let i = 0; i < 500; i++) {
+    mockRequisitions.push({
+      volume_mt: Math.floor(Math.random() * (200000 - 30000 + 1)) + 30000,
+      destPortName: destPorts[Math.floor(Math.random() * destPorts.length)],
+      commodity: commodities[Math.floor(Math.random() * commodities.length)],
+      status: statuses[Math.floor(Math.random() * statuses.length)],
+      origin: origins[Math.floor(Math.random() * origins.length)],
+      createdAt: generateRandomDate(twoYearsAgo, now)
+    });
+  }
+
+  console.log(`Inserting ${mockRequisitions.length} requisitions...`);
   await prisma.requisition.createMany({
-    data: initialRequisitions,
+    data: mockRequisitions,
     skipDuplicates: true
   });
-
+  console.log('Seeding Completed.');
 }
 
 main()

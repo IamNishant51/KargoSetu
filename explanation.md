@@ -5,7 +5,7 @@
 > **"It's like Uber / MakeMyTrip for Giant Cargo Ships carrying Coal & Iron Ore!"**
 
 ####  What is the problem?
-Indian Steel giants (like SAIL, RINL, NTPC) import millions of tonnes of coal and iron ore from Australia and Indonesia to East Coast Indian ports (Paradip, Vizag, Haldia). 
+Indian Steel giants (like SAIL, RINL, NTPC) import millions of tonnes of coal and iron ore from Australia and Indonesia to East Coast Indian ports (Paradip, Vizag, Haldia).
 Ship rental rates (vessel chartering) change every single day like stock prices or flight tickets. If a logistics manager books a ship on the wrong day, or rents a massive ship that is too deep for a shallow port like Haldia, the company loses **crores of rupees** in waiting fees (demurrage).
 
 ####  How our app solves it (What we build):
@@ -41,4 +41,3 @@ To run the recently migrated Python FastAPI backend locally:
    ```
 
 *The backend API will be live at `http://localhost:7860`.*
-

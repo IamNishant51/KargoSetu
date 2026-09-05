@@ -1,7 +1,6 @@
 "use client";
-import React from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { useMarketStore } from '../store/marketStore';
+import React from "react";
+import { useQuery } from "@tanstack/react-query";
 
 type ForecastResult = Array<{
   date: string;
@@ -10,38 +9,51 @@ type ForecastResult = Array<{
   p90: number;
 }>;
 
-export default function ForecastPriceChart() {
-  const { shockMultiplier, setShockMultiplier } = useMarketStore();
+const ForecastPriceChart = React.memo(function ForecastPriceChart() {
+  const [shockMultiplier, setShockMultiplier] = React.useState(1.0);
 
   const { data, isLoading } = useQuery<ForecastResult>({
-    queryKey: ['forecast', shockMultiplier],
+    queryKey: ["forecast", shockMultiplier],
     queryFn: async () => {
-      const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
-      const res = await fetch(`${baseUrl}/api/v1/forecast/rates?shockMultiplier=${shockMultiplier}`);
-      if (!res.ok) throw new Error('Failed to fetch forecast');
+      const baseUrl =
+        process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+      const res = await fetch(
+        `${baseUrl}/api/v1/forecast/rates?shockMultiplier=${shockMultiplier}`,
+      );
+      if (!res.ok) throw new Error("Failed to fetch forecast");
       return res.json();
     },
   });
 
+  const displayData = React.useMemo(() => data?.[0], [data]);
+
   return (
     <div className="p-6 bg-navy-950 border border-slate-800 rounded-xl shadow-xl">
-      <h2 className="text-xl font-bold text-white mb-6">ML Freight Forecast (90-Day)</h2>
-      
+      <h2 className="text-xl font-bold text-white mb-6">
+        ML Freight Forecast (90-Day)
+      </h2>
+
       <div className="mb-8">
         <label className="flex justify-between items-center text-slate-300 mb-3">
-          <span className="font-medium text-sm">What-If Market Shock Multiplier</span>
-          <span className="font-mono bg-navy-900 px-3 py-1 rounded border border-slate-700 text-blue-400 font-semibold">{shockMultiplier.toFixed(1)}x</span>
+          <span className="font-medium text-sm">
+            What-If Market Shock Multiplier
+          </span>
+          <span className="font-mono bg-navy-900 px-3 py-1 rounded border border-slate-700 text-blue-400 font-semibold">
+            {shockMultiplier.toFixed(1)}x
+          </span>
         </label>
-        <input 
-          type="range" 
-          min="0.5" 
-          max="3.0" 
-          step="0.1" 
-          value={shockMultiplier} 
+        <input
+          type="range"
+          min="0.5"
+          max="3.0"
+          step="0.1"
+          value={shockMultiplier}
           onChange={(e) => setShockMultiplier(parseFloat(e.target.value))}
-          className="w-full h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-navy-950 transition-all" 
+          className="w-full h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-navy-950 transition-all"
         />
-        <p className="text-xs text-slate-500 mt-2">Adjust historical volatility variance bounds in real-time.</p>
+        <p className="text-xs text-slate-500 mt-2">
+          Adjust historical volatility variance bounds in real-time.
+        </p>
       </div>
 
       {isLoading && !data && (
@@ -51,23 +63,35 @@ export default function ForecastPriceChart() {
         </div>
       )}
 
-      {data && data.length > 0 && (
+      {displayData && (
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div className="bg-navy-900 p-5 rounded-xl border-t-4 border-emerald-500 shadow-md transition-transform hover:-translate-y-1 duration-200 flex flex-col justify-center">
-            <div className="text-xs text-slate-400 uppercase font-bold tracking-wider mb-2">P10 (Optimistic)</div>
-            <div className="text-3xl font-bold text-white">${data[0].p10.toLocaleString()}</div>
+            <div className="text-xs text-slate-400 uppercase font-bold tracking-wider mb-2">
+              P10 (Optimistic)
+            </div>
+            <div className="text-3xl font-bold text-white">
+              ${displayData.p10.toLocaleString()}
+            </div>
           </div>
           <div className="bg-navy-900 p-5 rounded-xl border-t-4 border-blue-500 shadow-md transition-transform hover:-translate-y-1 duration-200 flex flex-col justify-center">
-            <div className="text-xs text-slate-400 uppercase font-bold tracking-wider mb-2">P50 (Median)</div>
-            <div className="text-3xl font-bold text-white">${data[0].p50.toLocaleString()}</div>
+            <div className="text-xs text-slate-400 uppercase font-bold tracking-wider mb-2">
+              P50 (Median)
+            </div>
+            <div className="text-3xl font-bold text-white">
+              ${displayData.p50.toLocaleString()}
+            </div>
           </div>
           <div className="bg-navy-900 p-5 rounded-xl border-t-4 border-orange-500 shadow-md transition-transform hover:-translate-y-1 duration-200 flex flex-col justify-center">
-            <div className="text-xs text-slate-400 uppercase font-bold tracking-wider mb-2">P90 (Pessimistic)</div>
-            <div className="text-3xl font-bold text-white">${data[0].p90.toLocaleString()}</div>
+            <div className="text-xs text-slate-400 uppercase font-bold tracking-wider mb-2">
+              P90 (Pessimistic)
+            </div>
+            <div className="text-3xl font-bold text-white">
+              ${displayData.p90.toLocaleString()}
+            </div>
           </div>
         </div>
       )}
-      
+
       {data && (
         <div className="mt-6 flex items-center justify-end text-xs font-medium text-slate-400">
           <span className="relative flex h-2.5 w-2.5 mr-2">
@@ -79,4 +103,6 @@ export default function ForecastPriceChart() {
       )}
     </div>
   );
-}
+});
+
+export default ForecastPriceChart;

@@ -40,16 +40,15 @@ These are the reusable LEGO blocks used to build the dashboard.
 ---
 
 ## 2. The Backend (`backend/` folder)
-This is the invisible "engine" running on the server. It does all the heavy math and AI prediction. It is built in pure JavaScript using Express.js.
+This is the invisible "engine" running on the server. It handles all the heavy math and AI predictions. **New Update:** It has been completely migrated to a hyper-optimized **Python** stack using **FastAPI**!
 
 ### The Brain
-* **`index.js`**: The **Server Entry Point**. Think of this as a traffic cop. It utilizes `helmet`, `morgan`, and global error handlers to secure and direct traffic to the modular router files.
-* **`routes/` folder**: Contains specific API endpoints modularized by feature (`health.js`, `requisitions.js`, `forecast.js`) to keep the codebase maintainable.
-* **`middleware/` folder**: Contains the global error handler (`errorHandler.js`) and rate limiters to protect the ML endpoints.
-* **`package.json`**: A simple list of the tools the backend needs to run (like Express and TensorFlow).
+* **`main.py`**: The **Server Entry Point**. Think of this as a traffic cop. It uses FastAPI for ultra-fast routing. When running in production, it is managed by **Gunicorn** with Uvicorn workers to handle heavy concurrent traffic without breaking a sweat. We also utilize **ORJSON** here for the fastest possible JSON response serialization.
+* **`api/` folder**: Contains specific API endpoints modularized by feature (`health`, `requisitions`, `forecast`) to keep the codebase maintainable.
+* **`requirements.txt`**: A simple list of the tools the backend needs to run (like FastAPI, Prisma, and ONNX Runtime).
 ### The Services (`services/` folder)
-* **`maritimeMath.js`**: The **Calculator**. This file handles the physical physics of ships. It calculates "Squat" and "Sinkage" to ensure a ship won't scrape the ocean floor. **New Update:** It now dynamically fetches critical port constraints (like `chartedDepth` and `brackishDensity`) directly from the PostgreSQL database, fully removing hardcoded fallback values.
-* **`mlPredictor.js`**: The **Crystal Ball**. This is our Artificial Intelligence (AI) file. It downloads live stock market data (`yahoo-finance2`), computes historical daily volatility, and feeds it into a neural network (`TensorFlow.js`). It includes a resilient fallback to generate statistically valid baseline data if Yahoo Finance rate-limits us.
+* **`maritimeMath.py`**: The **Calculator**. This file handles the physical physics of ships. It calculates "Squat" and "Sinkage" to ensure a ship won't scrape the ocean floor. It dynamically fetches critical port constraints directly from the PostgreSQL database.
+* **`mlPredictor.py`**: The **Crystal Ball**. This is our Artificial Intelligence (AI) file. **New Update:** We migrated off TensorFlow.js! We now export our Python LSTM models to **ONNX** format. The predictor uses **ONNX Runtime** for bare-metal C++ inference speeds, drastically reducing prediction latency and memory overhead.
 ---
 
 ### The Database (`prisma/` folder)
@@ -68,11 +67,10 @@ These files are strictly for reading. They contain the official rules and planni
 
 ## 4. Core Best Practices & Security
 If you are writing code for KargoSetu, you MUST follow these rules (detailed fully in Doc 10):
-* **Frontend:** Use React Server Components by default. Use `"use client"` only when necessary. We strictly use **Zustand** (e.g., `marketStore.ts`) for global state and **TanStack Query** (via `<Providers>`) for API calls.
-* **Backend:** Keep the Express routes thin. Do the heavy math in the `services/` folder. Use **Zod** for strict input validation on every single API route.
-* **ML & DB:** Wrap all TensorFlow.js operations in `tf.tidy()` to prevent memory leaks. Use Prisma for all database queries to prevent SQL injection.
-* **Security:** Never expose `.env` variables to the frontend. The backend must use Helmet.js, strict CORS policies, and Rate Limiting to prevent CPU-exhaustion attacks on the AI engine.
-
+* **Frontend:** Use React Server Components by default. Use `"use client"` only when necessary. **New Update:** We are leveraging Next.js 15 with the **React Compiler**, which automatically memoizes components—you do not need to manually write `useMemo` or `useCallback` anymore! We strictly enforce **ESLint** and **WCAG Accessibility** standards to keep the UI bug-free and inclusive.
+* **Backend:** Keep the FastAPI routes thin. Do the heavy math in the `services/` folder. Use **Pydantic** for strict input validation on every single API route. Utilize **ORJSON** for serialization to maintain high throughput.
+* **ML & DB:** Run **ONNX Runtime** in asynchronous threads (`asyncio.to_thread()`) to prevent I/O blocking during inference. Use Prisma for all database queries to prevent SQL injection.
+* **DevOps & Security:** Never expose `.env` variables to the frontend. The entire application is deployed using **multi-stage Docker builds** to ensure minimal image sizes and a secure, hardened runtime environment. The backend must use strict CORS policies and Rate Limiting.
 ---
 
 ### A Note for Developers and AI Agents:

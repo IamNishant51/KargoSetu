@@ -1,0 +1,20 @@
+<type>(<scope>): <subject>
+
+<body>
+
+<footer>
+
+# ---------------------------------------------------------
+# Conventional Commits Instructions
+# ---------------------------------------------------------
+# Subject line format: <type>(<scope>): <subject>
+# Body format: Explain the motivation, context, and what changed.
+# Footer format: Reference related issues (e.g., Closes #123) or BREAKING CHANGES.
+#
+# Valid types:
+# - feat: A new feature
+# - fix: A bug fix
+# - docs: Documentation only changes
+# - chore: Routine tasks, build processes, or maintenance
+# - refactor: A code change that neither fixes a bug nor adds a feature
+# - test: Adding or modifying tests

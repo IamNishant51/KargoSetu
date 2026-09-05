@@ -1,0 +1,5 @@
+* @kargosetu-core
+/frontend/ @kargosetu-frontend
+/backend/ @kargosetu-backend
+/backend/app/services/ml_predictor.py @kargosetu-data-science
+*.onnx @kargosetu-data-science

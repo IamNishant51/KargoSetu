@@ -1,10 +1,19 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
-import Link from 'next/link';
-import Image from 'next/image';
-import { Menu, X, User, ChevronDown, BarChart3, Ship, PackageOpen, ArrowRight, Play } from 'lucide-react';
-
+import React, { useState, useEffect } from "react";
+import Link from "next/link";
+import Image from "next/image";
+import {
+  Menu,
+  X,
+  User,
+  ChevronDown,
+  BarChart3,
+  Ship,
+  PackageOpen,
+  ArrowRight,
+  Play,
+} from "lucide-react";
 
 export default function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -15,42 +24,43 @@ export default function Navbar() {
     const handleScroll = () => {
       setScrolled(window.scrollY > 20);
     };
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   return (
-    <header className={`sticky top-0 z-40 transition-all duration-200 ${
-      scrolled 
-        ? 'bg-white/95 backdrop-blur-md shadow-xs border-b border-slate-200/90' 
-        : 'bg-white/90 backdrop-blur-sm border-b border-slate-200/60'
-    }`}>
+    <header
+      className={`sticky top-0 z-40 transition-all duration-200 ${
+        scrolled
+          ? "bg-white/95 backdrop-blur-md shadow-xs border-b border-slate-200/90"
+          : "bg-white/90 backdrop-blur-sm border-b border-slate-200/60"
+      }`}
+    >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-20">
-          
           {/* Brand Logo & Name */}
-          <Link 
-            href="/" 
+          <Link
+            href="/"
             className="flex-shrink-0 flex items-center gap-3 sm:gap-4 overflow-visible"
             onClick={(e) => {
-              // If we are already on the landing page, smoothly scroll to top
-              if (window.location.pathname === '/') {
+// If we are already on the landing page, smoothly scroll to top
+              if (window.location.pathname === "/") {
                 e.preventDefault();
-                window.scrollTo({ top: 0, behavior: 'smooth' });
+                window.scrollTo({ top: 0, behavior: "smooth" });
               }
             }}
           >
-            {/* 
+            {/*
               Creative frontend trick: We increase the container size to exactly fit the 80px height (h-16 is 64px, leaving 8px top/bottom),
-              and we use a subtle scale transform on the image to make it pop past any baked-in transparent padding 
+              and we use a subtle scale transform on the image to make it pop past any baked-in transparent padding
               without pushing the navbar's physical boundaries.
             */}
             <div className="relative w-12 h-12 sm:w-16 sm:h-16 flex items-center justify-center">
-              <Image 
-                src="/logo-ks.png" 
-                alt="KargoSetu Logo" 
-                fill 
-                className="object-contain scale-[1.15] drop-shadow-sm" 
+              <Image
+                src="/logo-ks.png"
+                alt="KargoSetu Logo"
+                fill
+                className="object-contain scale-[1.15] drop-shadow-sm"
                 priority
               />
             </div>
@@ -63,25 +73,33 @@ export default function Navbar() {
           <nav className="hidden md:flex space-x-8 items-center font-medium text-slate-600">
             {/* Home Link with active bottom indicator */}
             <div className="relative py-2">
-              <Link href="#" className="text-slate-900 font-semibold transition-colors">
+              <Link
+                href="#"
+                className="text-slate-900 font-semibold transition-colors"
+              >
                 Home
               </Link>
               <span className="absolute bottom-0 left-0 right-0 h-[2.5px] bg-[#0F172A] rounded-full" />
             </div>
 
             {/* Solutions Dropdown Menu */}
-            <div 
+            <div
               className="relative py-2"
               onMouseEnter={() => setSolutionsOpen(true)}
               onMouseLeave={() => setSolutionsOpen(false)}
             >
-              <button 
+              <button
+                type="button"
+                aria-haspopup="true"
                 onClick={() => setSolutionsOpen(!solutionsOpen)}
                 className="hover:text-slate-900 transition-colors flex items-center gap-1.5 cursor-pointer text-slate-600 font-medium py-1"
                 aria-expanded={solutionsOpen}
               >
                 Solutions
-                <ChevronDown size={14} className={`transition-transform duration-200 ${solutionsOpen ? 'rotate-180 text-slate-900' : 'text-slate-400'}`} />
+                <ChevronDown
+                  size={14}
+                  className={`transition-transform duration-200 ${solutionsOpen ? "rotate-180 text-slate-900" : "text-slate-400"}`}
+                />
               </button>
 
               {/* Dropdown Panel */}
@@ -97,8 +115,12 @@ export default function Navbar() {
                         <BarChart3 size={18} />
                       </div>
                       <div>
-                        <div className="text-sm font-semibold text-slate-900 group-hover:text-blue-600 transition-colors">Market Intelligence</div>
-                        <p className="text-xs text-slate-500">Real-time Baltic index & 90-day LSTM forecasts</p>
+                        <div className="text-sm font-semibold text-slate-900 group-hover:text-blue-600 transition-colors">
+                          Market Intelligence
+                        </div>
+                        <p className="text-xs text-slate-500">
+                          Real-time Baltic index & 90-day LSTM forecasts
+                        </p>
                       </div>
                     </Link>
 
@@ -111,8 +133,12 @@ export default function Navbar() {
                         <Ship size={18} />
                       </div>
                       <div>
-                        <div className="text-sm font-semibold text-slate-900 group-hover:text-orange-600 transition-colors">Charter & Freight</div>
-                        <p className="text-xs text-slate-500">Dual-ended port bathymetry & cargo splitting</p>
+                        <div className="text-sm font-semibold text-slate-900 group-hover:text-orange-600 transition-colors">
+                          Charter & Freight
+                        </div>
+                        <p className="text-xs text-slate-500">
+                          Dual-ended port bathymetry & cargo splitting
+                        </p>
                       </div>
                     </Link>
 
@@ -125,16 +151,22 @@ export default function Navbar() {
                         <PackageOpen size={18} />
                       </div>
                       <div>
-                        <div className="text-sm font-semibold text-slate-900 group-hover:text-emerald-600 transition-colors">Operations Hub</div>
-                        <p className="text-xs text-slate-500">Dynamic Open-Meteo tide & Sandheads transshipment</p>
+                        <div className="text-sm font-semibold text-slate-900 group-hover:text-emerald-600 transition-colors">
+                          Operations Hub
+                        </div>
+                        <p className="text-xs text-slate-500">
+                          Dynamic Open-Meteo tide & Sandheads transshipment
+                        </p>
                       </div>
                     </Link>
                   </div>
 
                   <div className="mt-2 pt-2 border-t border-slate-100 flex items-center justify-between px-2 text-xs">
-                    <span className="text-slate-400 font-medium">SIH 2026 Problem SIH26006</span>
-                    <Link 
-                      href="#sandbox" 
+                    <span className="text-slate-400 font-medium">
+                      SIH 2026 Problem SIH26006
+                    </span>
+                    <Link
+                      href="#sandbox"
                       onClick={() => setSolutionsOpen(false)}
                       className="text-[#EA580C] font-semibold hover:underline flex items-center gap-1"
                     >
@@ -145,16 +177,27 @@ export default function Navbar() {
               )}
             </div>
 
-            <Link href="#features" className="hover:text-slate-900 transition-colors py-2">
+            <Link
+              href="#features"
+              className="hover:text-slate-900 transition-colors py-2"
+            >
               Features
             </Link>
 
-            <Link href="#sandbox" className="hover:text-slate-900 transition-colors py-2 flex items-center gap-1.5">
+            <Link
+              href="#sandbox"
+              className="hover:text-slate-900 transition-colors py-2 flex items-center gap-1.5"
+            >
               <span>Simulator</span>
-              <span className="text-[10px] uppercase font-bold tracking-wider bg-orange-100 text-orange-700 px-1.5 py-0.5 rounded-md">Live</span>
+              <span className="text-[10px] uppercase font-bold tracking-wider bg-orange-100 text-orange-700 px-1.5 py-0.5 rounded-md">
+                Live
+              </span>
             </Link>
 
-            <Link href="#ports" className="hover:text-slate-900 transition-colors py-2">
+            <Link
+              href="#ports"
+              className="hover:text-slate-900 transition-colors py-2"
+            >
               Ports
             </Link>
           </nav>
@@ -162,15 +205,16 @@ export default function Navbar() {
           {/* Desktop Right Action CTA */}
           <div className="hidden md:flex items-center space-x-3">
             <button
-              
+              type="button"
+              aria-label="Contact Sales"
               className="text-slate-600 hover:text-slate-900 font-medium text-sm px-3.5 py-2 rounded-lg hover:bg-slate-100 transition-colors flex items-center gap-1.5 cursor-pointer"
             >
               <Play size={16} className="text-slate-500" />
               Watch Demo
             </button>
 
-            <Link 
-              href="/dashboard" 
+            <Link
+              href="/dashboard"
               className="bg-[#0F172A] hover:bg-[#1E293B] text-white px-5 py-2.5 rounded-xl font-medium transition-all flex items-center gap-2 shadow-sm text-sm"
             >
               <User size={17} />
@@ -180,8 +224,9 @@ export default function Navbar() {
 
           {/* Mobile Menu Hamburger Button */}
           <div className="flex items-center md:hidden">
-            <button 
-              type="button" 
+            <button
+              type="button"
+              aria-expanded={mobileMenuOpen}
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               className="p-2 text-slate-700 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
               aria-label="Toggle navigation menu"
@@ -196,49 +241,51 @@ export default function Navbar() {
       {mobileMenuOpen && (
         <div className="md:hidden border-b border-slate-200 bg-white/98 backdrop-blur-xl px-4 pt-3 pb-6 space-y-4 shadow-xl animate-in slide-in-from-top duration-200">
           <div className="space-y-1">
-            <Link 
-              href="#" 
+            <Link
+              href="#"
               onClick={() => setMobileMenuOpen(false)}
               className="block px-3 py-2.5 rounded-lg text-base font-semibold text-slate-900 bg-slate-50"
             >
               Home
             </Link>
 
-            <Link 
-              href="#solutions" 
+            <Link
+              href="#solutions"
               onClick={() => setMobileMenuOpen(false)}
               className="block px-3 py-2.5 rounded-lg text-base font-medium text-slate-700 hover:bg-slate-50 hover:text-slate-900"
             >
               Solutions
             </Link>
 
-            <Link 
-              href="#features" 
+            <Link
+              href="#features"
               onClick={() => setMobileMenuOpen(false)}
               className="block px-3 py-2.5 rounded-lg text-base font-medium text-slate-700 hover:bg-slate-50 hover:text-slate-900"
             >
               Features
             </Link>
 
-            <Link 
-              href="#sandbox" 
+            <Link
+              href="#sandbox"
               onClick={() => setMobileMenuOpen(false)}
               className="flex items-center justify-between px-3 py-2.5 rounded-lg text-base font-medium text-slate-700 hover:bg-slate-50 hover:text-slate-900"
             >
               <span>Interactive Simulator</span>
-              <span className="text-[10px] uppercase font-bold tracking-wider bg-orange-100 text-orange-700 px-1.5 py-0.5 rounded-md">Live</span>
+              <span className="text-[10px] uppercase font-bold tracking-wider bg-orange-100 text-orange-700 px-1.5 py-0.5 rounded-md">
+                Live
+              </span>
             </Link>
 
-            <Link 
-              href="#ports" 
+            <Link
+              href="#ports"
               onClick={() => setMobileMenuOpen(false)}
               className="block px-3 py-2.5 rounded-lg text-base font-medium text-slate-700 hover:bg-slate-50 hover:text-slate-900"
             >
               East Coast Ports Corridor
             </Link>
 
-            <Link 
-              href="#faq" 
+            <Link
+              href="#faq"
               onClick={() => setMobileMenuOpen(false)}
               className="block px-3 py-2.5 rounded-lg text-base font-medium text-slate-700 hover:bg-slate-50 hover:text-slate-900"
             >
@@ -248,7 +295,7 @@ export default function Navbar() {
 
           {/* Mobile CTAs */}
           <div className="pt-3 border-t border-slate-100 space-y-2">
-            <Link 
+            <Link
               href="/dashboard"
               onClick={() => setMobileMenuOpen(false)}
               className="w-full bg-[#0F172A] hover:bg-[#1E293B] text-white py-3 rounded-xl font-semibold transition-all flex items-center justify-center gap-2 shadow-sm text-sm"
@@ -258,9 +305,10 @@ export default function Navbar() {
             </Link>
 
             <button
+              type="button"
+              aria-label="Contact Sales mobile"
               onClick={() => {
                 setMobileMenuOpen(false);
-                ;
               }}
               className="w-full bg-white border border-slate-200 hover:bg-slate-50 text-slate-800 py-3 rounded-xl font-semibold transition-all flex items-center justify-center gap-2 shadow-2xs text-sm cursor-pointer"
             >

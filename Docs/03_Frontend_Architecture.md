@@ -127,7 +127,7 @@ export function PortFairwayMap() {
 
   useEffect(() => {
     if (!mapContainer.current) return;
-    
+
     const map = new maplibregl.Map({
       container: mapContainer.current,
       style: {
@@ -151,7 +151,7 @@ export function PortFairwayMap() {
       center: [88.06, 22.02], // Haldia Port Coordinates
       zoom: 10
     });
-    
+
     return () => map.remove();
   }, []);
 

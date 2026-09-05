@@ -15,7 +15,7 @@ function engineerFeatures(historicalData) {
     // Returning normalized tensors for training
     const features = [];
     const labels = [];
-    
+
     for (let i = 14; i < historicalData.length; i++) {
         // Simplified feature extraction (Lag and Current Value)
         features.push([
@@ -25,7 +25,7 @@ function engineerFeatures(historicalData) {
         ]);
         labels.push(historicalData[i]); // Target
     }
-    
+
     return {
         X: tf.tensor2d(features),
         y: tf.tensor2d(labels, [labels.length, 1])
@@ -34,11 +34,11 @@ function engineerFeatures(historicalData) {
 
 async function trainModel(X, y) {
     const model = tf.sequential();
-    
+
     // LSTM layer for time-series memory
     model.add(tf.layers.dense({ units: 32, activation: 'relu', inputShape: [3] }));
     model.add(tf.layers.dense({ units: 16, activation: 'relu' }));
-    
+
     // Output layer (Single prediction value - P50 equivalent)
     model.add(tf.layers.dense({ units: 1 }));
 
@@ -66,10 +66,10 @@ async function generateForecast(model, latestFeatures) {
     const inputTensor = tf.tensor2d([latestFeatures]);
     const prediction = model.predict(inputTensor);
     const p50_value = await prediction.data();
-    
+
     // Naive confidence bounds calculation for blueprint
     const variance = p50_value[0] * 0.15; // 15% arbitrary variance band
-    
+
     return {
         P10: (p50_value[0] - variance).toFixed(2),
         P50: p50_value[0].toFixed(2),
@@ -80,14 +80,14 @@ async function generateForecast(model, latestFeatures) {
 async function runPipeline() {
     // Simulated historical BDI/BDRY index data
     const mockHistoricalData = Array.from({length: 200}, () => Math.random() * 50 + 1500);
-    
+
     const { X, y } = engineerFeatures(mockHistoricalData);
     const model = await trainModel(X, y);
-    
+
     // Predict using latest known lags [t-1, t-7, t-14]
     const latestKnown = [1540.2, 1510.5, 1490.8];
     const forecast = await generateForecast(model, latestKnown);
-    
+
     console.log("90-Day Outlook Projection Bounds:", forecast);
 }
 

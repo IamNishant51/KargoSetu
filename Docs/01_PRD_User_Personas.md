@@ -1,13 +1,13 @@
 # MODULE 1: PRODUCT REQUIREMENTS DOCUMENT (PRD) & USER PERSONAS
 
 ## 1.1 Executive Summary & Value Proposition
-KargoSetu transforms overseas dry bulk cargo procurement for Indian Public Sector Undertakings (SAIL, RINL, NMDC, NTPC) from a reactive, spot-market dependency into a deterministic, predictive pipeline. 
+KargoSetu transforms overseas dry bulk cargo procurement for Indian Public Sector Undertakings (SAIL, RINL, NMDC, NTPC) from a reactive, spot-market dependency into a deterministic, predictive pipeline.
 **Core ROI Metrics:**
 *   **Freight Savings:** 8%–15% reduction in annual freight expenditure via ML-driven market timing.
 *   **Demurrage Elimination:** 100% mitigation of physical port mismatch, eliminating grounding risks and saving $15,000–$35,000/day in demurrage penalties.
 
 ## 1.2 User Personas & Workflows
-*   **Persona A: Central Procurement & Chartering GM (SAIL)** 
+*   **Persona A: Central Procurement & Chartering GM (SAIL)**
     *   *Goal:* High-level budget allocation, contract approvals, risk tolerance settings.
     *   *Workflow:* Reviews macro predictive trends; approves transition from spot fixtures to multi-voyage Contracts of Affreightment (CoA) during predicted rate dips.
 *   **Persona B: Port Logistics & Marine Operations Officer (Haldia/Paradip)**

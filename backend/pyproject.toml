@@ -1,0 +1,9 @@
+[project]
+name = "kargosetu-backend"
+version = "1.0.0"
+
+[tool.black]
+line-length = 88
+
+[tool.pytest.ini_options]
+pythonpath = "."

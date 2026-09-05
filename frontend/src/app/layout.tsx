@@ -14,19 +14,56 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "KargoSetu | AI-Powered Maritime Intelligence & Freight Forecasting",
-  description: "Empowering maritime leaders and Indian PSUs with real-time port constraints, AI-driven freight rate forecasting, and zero-demurrage voyage optimization.",
+  title: {
+    template: "%s | KargoSetu",
+    default:
+      "KargoSetu | AI-Powered Maritime Intelligence & Freight Forecasting",
+  },
+  description:
+    "Empowering maritime leaders and Indian PSUs with real-time port constraints, AI-driven freight rate forecasting, and zero-demurrage voyage optimization.",
+  keywords: [
+    "Maritime",
+    "Freight Forecasting",
+    "Indian PSUs",
+    "Port Constraints",
+    "Voyage Optimization",
+    "Demurrage",
+  ],
+  authors: [{ name: "KargoSetu Team" }],
+  openGraph: {
+    title: "KargoSetu | Maritime Intelligence",
+    description:
+      "AI-driven freight rate forecasting and zero-demurrage voyage optimization.",
+    url: "https://kargosetu.com",
+    siteName: "KargoSetu",
+    locale: "en_IN",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "KargoSetu | Maritime Intelligence",
+    description:
+      "AI-driven freight rate forecasting and zero-demurrage voyage optimization.",
+  },
   icons: {
     icon: "/KargoSetu-LOGO.png",
-  }
+  },
+  alternates: {
+    canonical: "https://kargosetu.com",
+  },
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <html
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
       suppressHydrationWarning
+      data-scroll-behavior="smooth"
     >
       <body className="min-h-full flex flex-col" suppressHydrationWarning>
         <Providers>{children}</Providers>

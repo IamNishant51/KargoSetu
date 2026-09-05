@@ -2,7 +2,7 @@
 
 ## 2.1 Design System & Visual Tokens
 *   **Theme:** Enterprise Maritime Dark Mode (Primary).
-*   **Color Palette:** 
+*   **Color Palette:**
     *   Primary: Deep Nautical Navy `#080E1E`
     *   Accent: Cyan `#00E5FF`
     *   Success: Emerald `#10B981` (Clearance approved)

@@ -67,7 +67,7 @@ VESSEL_CLASSES = {
     "Handysize": {"dwt_range": (15000, 35000), "draft_m": 10.0},
     "Supramax":  {"dwt_range": (50000, 60000), "draft_m": 11.5},
     "Panamax":   {"dwt_range": (65000, 80000), "draft_m": 14.0},
-    "Capesize":  {"dwt_range": (150000, 180000), "draft_m": 18.0} 
+    "Capesize":  {"dwt_range": (150000, 180000), "draft_m": 18.0}
 }
 ```
 
@@ -112,8 +112,8 @@ Don't overcomplicate the AI. A reliable Time-Series model beats a broken Deep Le
 ```python
 # The perfect feature matrix for your model
 features = [
-    "BDI_trailing_30_days", 
-    "coking_coal_price_current", 
+    "BDI_trailing_30_days",
+    "coking_coal_price_current",
     "bunker_fuel_price_current",
     "distance_nautical_miles",
     "month_of_year" # captures monsoon seasonality

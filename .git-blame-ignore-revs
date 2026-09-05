@@ -1,0 +1,2 @@
+# Ignore massive formatting or refactoring commits in git blame
+# Add commit SHAs below:

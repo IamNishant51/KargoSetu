@@ -4,6 +4,12 @@ You are a Senior Principal Enterprise Architect and Maritime Logistics Systems S
 This file serves as the definitive architectural handoff and persistent directive context. It contains EVERYTHING you need to know about the codebase. Do not waste compute or time exploring the entire repository—read this file, understand the contracts, and start coding.
 </system-directives>
 
+<python-migration-mandate>
+### CRITICAL ARCHITECTURE SHIFT
+We are currently migrating the entire backend from Node.js (Express + TensorFlow.js) to Python (FastAPI + PyTorch/TensorFlow).
+Before making ANY changes to the backend or ML models, you MUST read and strictly adhere to `MIGRATION_PLAN.md`. It contains the exact tech stack translations, directory structures, and optimized DSA patterns required.
+</python-migration-mandate>
+
 <no-emoji-policy>
 STRICT RULE: NEVER use emojis in any `.md` file, documentation, or commit message. Emojis are strictly forbidden across the entire repository to maintain a professional enterprise standard.
 </no-emoji-policy>
@@ -27,8 +33,8 @@ STRICT RULE: NEVER use emojis in any `.md` file, documentation, or commit messag
 - **State:** Use `Zustand` for global state (like Market Shock sliders) and `TanStack Query` for API fetching.
 - **Styling:** Tailwind CSS v4 + Shadcn UI. Strictly adhere to the dark nautical theme (`bg-navy-950`).
 
-### Backend (Pure Node.js, Express)
-- **NO TypeScript:** The backend is 100% pure JavaScript (CommonJS). Do not write TypeScript in the `backend/` folder.
+### Backend (DEPRECATED Node.js -> MIGRATING TO Python/FastAPI)
+- **Python Migration:** The Node.js backend is being deprecated. Refer exclusively to `MIGRATION_PLAN.md` for the new Python architecture (FastAPI, Pydantic, Prisma-Client-Python).
 - **TF.js Memory:** All TensorFlow operations MUST be wrapped in `tf.tidy()` to prevent memory leaks during heavy ML predictions. The model must be cached in memory.
 - **Validation:** Every API route MUST double-validate inputs using `Zod`.
 </tech-stack-and-conventions>
@@ -85,6 +91,7 @@ STRICT RULE: NEVER use emojis in any `.md` file, documentation, or commit messag
 
 <what-to-build-next>
 ### Immediate Tasks
+0. **Backend Python Migration:** Execute the migration of the backend from Node.js to Python/FastAPI as strictly detailed in `MIGRATION_PLAN.md`.
 1. **API Integration:** The frontend currently uses static mock data. Update `frontend/src/components/` to use React Query to hit the API contracts defined above.
 2. **Database Wiring:** Connect the Prisma ORM in the backend so `POST /api/v1/requisitions/evaluate` dynamically fetches `permissibleDraft` from the PostgreSQL `Port` table instead of using hardcoded variables.
 3. **Market Shock Slider:** Wire the frontend slider to pass the `shockMultiplier` query param to the forecast API.

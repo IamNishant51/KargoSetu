@@ -1,11 +1,18 @@
 # Node & Next.js
 frontend/node_modules/
+node_modules/
+frontend/.next/
+frontend/playwright-report/
+frontend/test-results/
 
 # Python & Pycache
 backend/__pycache__/
 backend/services/__pycache__/
+backend/.pytest_cache/
+backend/model.onnx
 *.pyc
 .venv/
+.opencode/goals/state.json.sessions/
 
 # System & IDE
 .DS_Store

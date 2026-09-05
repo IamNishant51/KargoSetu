@@ -1,0 +1,10 @@
+.git
+node_modules
+npm-debug.log
+.next
+out
+build
+dist
+.env*.local
+.vercel
+*.tsbuildinfo
