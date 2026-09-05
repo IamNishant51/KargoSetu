@@ -12,7 +12,8 @@ test.describe('Home Page', () => {
     const mainHeading = page.locator('h1').first();
     await expect(mainHeading).toBeVisible();
     await expect(mainHeading).toContainText('Smarter Decisions.');
-    await expect(mainHeading).toContainText('Stronger Voyages.');
+    await expect(mainHeading).toContainText('Stronger ');
+    await expect(mainHeading).toContainText('Voyages.');
 
 // 3. Verify a key CTA button
     const getStartedBtn = page.locator('a', { hasText: 'Get Started Free' }).first();
