@@ -223,7 +223,7 @@ export default function ForecastsPage() {
                         key={i}
                         className="flex-1 rounded-t-sm"
                         style={{
-                          height: `${40 + Math.sin(i * 0.2) * 20 + (i % 5) * 2}%`,
+                          height: `${[48, 56, 42, 63, 51, 69, 45, 58, 52, 66][i % 10]}%`,
                         }}
                       />
                     ))}

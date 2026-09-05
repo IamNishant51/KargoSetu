@@ -17,7 +17,7 @@ export const metadata: Metadata = {
   title: {
     template: "%s | KargoSetu",
     default:
-      "KargoSetu | AI-Powered Maritime Intelligence & Freight Forecasting",
+      "KargoSetu | Maritime Operations Intelligence",
   },
   description:
     "Empowering maritime leaders and Indian PSUs with real-time port constraints, AI-driven freight rate forecasting, and zero-demurrage voyage optimization.",

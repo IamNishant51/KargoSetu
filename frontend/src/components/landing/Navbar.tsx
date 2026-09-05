@@ -60,6 +60,7 @@ export default function Navbar() {
                 src="/logo-ks.png"
                 alt="KargoSetu Logo"
                 fill
+                sizes="(max-width: 640px) 48px, 64px"
                 className="object-contain scale-[1.15] drop-shadow-sm"
                 priority
               />

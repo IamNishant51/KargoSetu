@@ -201,8 +201,8 @@ export default function InteractiveSandbox() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header */}
         <div className="text-center max-w-3xl mx-auto mb-12 sm:mb-16">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-orange-50 border border-orange-200 text-orange-700 text-xs font-bold uppercase tracking-wider mb-3">
-            <Sparkles size={13} />
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-100 border border-slate-200 text-slate-600 text-xs font-bold uppercase tracking-wider mb-3">
+            <Sparkles size={13} className="text-[#A44B2A]" />
             Interactive Intelligence Sandbox
           </div>
           <h2 className="text-3xl sm:text-4xl font-extrabold text-[#0F172A] tracking-tight mb-4">
@@ -256,12 +256,7 @@ export default function InteractiveSandbox() {
                   : "text-slate-600 hover:text-slate-900"
               }`}
             >
-              <TrendingUp
-                size={16}
-                className={
-                  activeTab === "forecast" ? "text-blue-600" : "text-slate-400"
-                }
-              />
+              <TrendingUp size={16} className="text-slate-500" />
               <span>2. ML 90-Day Rate Forecaster</span>
             </button>
 
@@ -277,12 +272,7 @@ export default function InteractiveSandbox() {
                   : "text-slate-600 hover:text-slate-900"
               }`}
             >
-              <IndianRupee
-                size={16}
-                className={
-                  activeTab === "roi" ? "text-emerald-600" : "text-slate-400"
-                }
-              />
+              <IndianRupee size={16} className="text-slate-500" />
               <span>3. SAIL / PSU Savings Calculator</span>
             </button>
           </div>
@@ -546,7 +536,7 @@ export default function InteractiveSandbox() {
                     <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">
                       Shock Multiplier
                     </label>
-                    <span className="font-mono font-bold text-blue-700 bg-blue-50 px-2.5 py-1 rounded-md text-sm border border-blue-200">
+                    <span className="font-mono font-bold text-slate-700 bg-slate-100 px-2.5 py-1 rounded-md text-sm border border-slate-200">
                       {shockMultiplier.toFixed(1)}x Volatility
                     </span>
                   </div>
@@ -557,7 +547,7 @@ export default function InteractiveSandbox() {
                     step="0.1"
                     value={shockMultiplier}
                     onChange={(e) => setShockMultiplier(Number(e.target.value))}
-                    className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
+                    className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-[#A44B2A]"
                   />
                   <div className="flex justify-between text-[11px] text-slate-400 mt-1">
                     <span>0.5x (Calm Trade)</span>
@@ -568,7 +558,7 @@ export default function InteractiveSandbox() {
 
                 <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-2 text-xs text-slate-600">
                   <div className="font-bold text-slate-900 flex items-center gap-1.5">
-                    <Info size={14} className="text-blue-600" />
+                    <Info size={14} className="text-[#A44B2A]" />
                     <span>Multi-Horizon Quantile Model (LSTM)</span>
                   </div>
                   <p className="leading-relaxed">
@@ -596,7 +586,7 @@ export default function InteractiveSandbox() {
                         : `Spot Rate: $${formatNum(baseRate)} / Day`}
                     </h4>
                   </div>
-                  <span className="px-2.5 py-1 rounded-full text-xs font-bold text-emerald-700 bg-emerald-50 border border-emerald-200">
+                  <span className="px-2.5 py-1 rounded-full text-xs font-bold text-[#7A3B24] bg-[#F5E9E2] border border-[#E3C2B1]">
                     Dip Window Detected
                   </span>
                 </div>
@@ -604,7 +594,7 @@ export default function InteractiveSandbox() {
                 {/* Probabilistic Quantile Boxes */}
                 <div className="grid grid-cols-3 gap-3">
                   <div
-                    className={`bg-slate-50 p-4 rounded-xl border border-slate-200 border-t-4 border-t-emerald-500 text-center ${forecastLoading ? "animate-pulse" : ""}`}
+                    className={`bg-slate-50 p-4 rounded-xl border border-slate-200 border-t-4 border-t-[#B86A45] text-center ${forecastLoading ? "animate-pulse" : ""}`}
                   >
                     <div className="text-[11px] text-slate-500 font-semibold uppercase mb-1">
                       P10 (Optimistic)
@@ -615,13 +605,13 @@ export default function InteractiveSandbox() {
                     >
                       ${forecastLoading ? "---" : formatNum(p10)}
                     </div>
-                    <div className="text-[10px] text-emerald-700 font-medium mt-1">
+                    <div className="text-[10px] text-slate-500 font-medium mt-1">
                       Best Entry Window
                     </div>
                   </div>
 
                   <div
-                    className={`bg-slate-50 p-4 rounded-xl border border-slate-200 border-t-4 border-t-blue-500 text-center ${forecastLoading ? "animate-pulse" : ""}`}
+                    className={`bg-slate-50 p-4 rounded-xl border border-slate-200 border-t-4 border-t-slate-500 text-center ${forecastLoading ? "animate-pulse" : ""}`}
                   >
                     <div className="text-[11px] text-slate-500 font-semibold uppercase mb-1">
                       P50 (Median Base)
@@ -632,13 +622,13 @@ export default function InteractiveSandbox() {
                     >
                       ${forecastLoading ? "---" : formatNum(p50)}
                     </div>
-                    <div className="text-[10px] text-blue-700 font-medium mt-1">
+                    <div className="text-[10px] text-slate-500 font-medium mt-1">
                       Projected Median
                     </div>
                   </div>
 
                   <div
-                    className={`bg-slate-50 p-4 rounded-xl border border-slate-200 border-t-4 border-t-rose-500 text-center ${forecastLoading ? "animate-pulse" : ""}`}
+                    className={`bg-slate-50 p-4 rounded-xl border border-slate-200 border-t-4 border-t-slate-300 text-center ${forecastLoading ? "animate-pulse" : ""}`}
                   >
                     <div className="text-[11px] text-slate-500 font-semibold uppercase mb-1">
                       P90 (Pessimistic)
@@ -649,21 +639,21 @@ export default function InteractiveSandbox() {
                     >
                       ${forecastLoading ? "---" : formatNum(p90)}
                     </div>
-                    <div className="text-[10px] text-rose-700 font-medium mt-1">
+                    <div className="text-[10px] text-slate-500 font-medium mt-1">
                       Spot Ceiling Risk
                     </div>
                   </div>
                 </div>
 
                 {/* Recommendation Notice */}
-                <div className="bg-blue-50/70 border border-blue-200 rounded-xl p-4 text-xs sm:text-sm text-blue-900 space-y-1">
-                  <div className="font-bold flex items-center gap-1.5 text-blue-800">
-                    <TrendingUp size={15} />
+                <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 text-xs sm:text-sm text-slate-700 space-y-1">
+                  <div className="font-bold flex items-center gap-1.5 text-slate-900">
+                    <TrendingUp size={15} className="text-[#A44B2A]" />
                     <span>Executive Fixture Recommendation</span>
                   </div>
                   <p className="leading-relaxed">
                     Historical quantile dip projected in Week 3–4. Securing a{" "}
-                    <strong className="text-blue-950 font-bold">
+                    <strong className="text-slate-900 font-bold">
                       6-Month Contract of Affreightment (CoA)
                     </strong>{" "}
                     now mitigates a potential {dipSavings}% rate spike, locking

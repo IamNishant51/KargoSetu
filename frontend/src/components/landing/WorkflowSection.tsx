@@ -62,24 +62,9 @@ export default function WorkflowSection() {
                 src="/workflow-ship.png"
                 alt="Vessel Physics & Draft Constraints"
                 fill
+                sizes="(max-width: 1024px) 100vw, 58vw"
                 className="object-cover"
               />
-            </div>
-            {/* Floating decorative badge */}
-            <div className="absolute -bottom-6 -right-6 bg-white p-4 rounded-2xl shadow-xl border border-slate-200/60 hidden sm:block  z-10">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-emerald-50 flex items-center justify-center">
-                  <CheckCircle size={20} className="text-emerald-600" />
-                </div>
-                <div>
-                  <p className="text-[10px] text-slate-500 font-bold uppercase tracking-wider">
-                    Physics Engine
-                  </p>
-                  <p className="text-sm font-extrabold text-slate-900 tracking-tight">
-                    Clearance Verified
-                  </p>
-                </div>
-              </div>
             </div>
           </div>
 
@@ -87,26 +72,20 @@ export default function WorkflowSection() {
           <div className="lg:col-span-5 flex flex-col gap-4">
             {STEPS.map((item, idx) => {
               const Icon = item.icon;
-              const isActive = idx === 1; // Highlight the physics step to match image
+              const isActive = idx === 1;
               return (
                 <div
                   key={idx}
-                  className={`p-5 sm:p-6 rounded-2xl border transition-all duration-300 flex gap-4 ${
+                  className={`group p-5 sm:p-6 rounded-2xl border transition-all duration-300 flex gap-4 ${
                     isActive
-                      ? "bg-white shadow-xl shadow-slate-200/40 border-[#EA580C]/30 relative overflow-hidden"
+                      ? "bg-white shadow-md shadow-slate-200/40 border-[#A44B2A]/30 relative overflow-hidden"
                       : "bg-white/60 shadow-sm border-slate-200/60 hover:bg-white hover:shadow-md hover:border-slate-300"
                   }`}
                 >
                   {isActive && (
                     <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-[#EA580C]" />
                   )}
-                  <div
-                    className={`w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 border ${
-                      isActive
-                        ? "bg-orange-50 text-[#EA580C] border-orange-200 shadow-sm"
-                        : "bg-slate-50 text-slate-500 border-slate-200"
-                    }`}
-                  >
+                  <div className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 border bg-slate-100 text-slate-700 border-slate-200 transition-transform duration-300 group-hover:-translate-y-0.5">
                     <Icon size={22} />
                   </div>
                   <div>

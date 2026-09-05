@@ -44,7 +44,7 @@ export default function SolutionsSection({
             {/* Card 1: Market Intelligence */}
             <div className="bg-white p-7 sm:p-8 rounded-2xl shadow-xl shadow-slate-200/40 border border-slate-200/60 hover:shadow-lg hover:shadow-slate-200/40  transition-all duration-300 flex flex-col justify-between group relative overflow-hidden">
               <div className="relative z-10">
-                <div className="w-12 h-12 bg-blue-50 border border-blue-100 text-blue-600 rounded-xl flex items-center justify-center mb-6  group-hover:bg-blue-600 group-hover:text-white transition-all duration-300 shadow-sm">
+                <div className="w-12 h-12 bg-slate-100 border border-slate-200 text-slate-700 rounded-xl flex items-center justify-center mb-6 transition-transform duration-300 group-hover:-translate-y-0.5 shadow-sm">
                   <BarChart3 size={22} strokeWidth={2} />
                 </div>
                 <h3 className="text-xl font-bold text-slate-900 mb-3 tracking-tight">
@@ -57,7 +57,7 @@ export default function SolutionsSection({
               <Link
                 href="#sandbox"
                 onClick={() => onSelectSolution && onSelectSolution("forecast")}
-                className="text-slate-900 font-semibold inline-flex items-center gap-1.5 text-sm group-hover:text-blue-600 transition-colors relative z-10 w-fit"
+                className="text-slate-900 font-semibold inline-flex items-center gap-1.5 text-sm group-hover:text-[#A44B2A] transition-colors relative z-10 w-fit"
               >
                 <span>Learn More</span>
                 <ArrowRight
@@ -70,7 +70,7 @@ export default function SolutionsSection({
             {/* Card 2: Charter & Freight */}
             <div className="bg-white p-7 sm:p-8 rounded-2xl shadow-xl shadow-slate-200/40 border border-slate-200/60 hover:shadow-lg hover:shadow-slate-200/40  transition-all duration-300 flex flex-col justify-between group relative overflow-hidden">
               <div className="relative z-10">
-                <div className="w-12 h-12 bg-orange-50 border border-orange-100 text-orange-600 rounded-xl flex items-center justify-center mb-6  group-hover:bg-[#EA580C] group-hover:text-white transition-all duration-300 shadow-sm">
+                <div className="w-12 h-12 bg-slate-100 border border-slate-200 text-slate-700 rounded-xl flex items-center justify-center mb-6 transition-transform duration-300 group-hover:-translate-y-0.5 shadow-sm">
                   <Ship size={22} strokeWidth={2} />
                 </div>
                 <h3 className="text-xl font-bold text-slate-900 mb-3 tracking-tight">
@@ -85,7 +85,7 @@ export default function SolutionsSection({
                 onClick={() =>
                   onSelectSolution && onSelectSolution("constraint")
                 }
-                className="text-slate-900 font-semibold inline-flex items-center gap-1.5 text-sm group-hover:text-[#EA580C] transition-colors relative z-10 w-fit"
+                className="text-slate-900 font-semibold inline-flex items-center gap-1.5 text-sm group-hover:text-[#A44B2A] transition-colors relative z-10 w-fit"
               >
                 <span>Learn More</span>
                 <ArrowRight
@@ -98,7 +98,7 @@ export default function SolutionsSection({
             {/* Card 3: Operations Hub */}
             <div className="bg-white p-7 sm:p-8 rounded-2xl shadow-xl shadow-slate-200/40 border border-slate-200/60 hover:shadow-lg hover:shadow-slate-200/40  transition-all duration-300 flex flex-col justify-between group relative overflow-hidden">
               <div className="relative z-10">
-                <div className="w-12 h-12 bg-emerald-50 border border-emerald-100 text-emerald-600 rounded-xl flex items-center justify-center mb-6  group-hover:bg-emerald-600 group-hover:text-white transition-all duration-300 shadow-sm">
+                <div className="w-12 h-12 bg-slate-100 border border-slate-200 text-slate-700 rounded-xl flex items-center justify-center mb-6 transition-transform duration-300 group-hover:-translate-y-0.5 shadow-sm">
                   <PackageOpen size={22} strokeWidth={2} />
                 </div>
                 <h3 className="text-xl font-bold text-slate-900 mb-3 tracking-tight">
@@ -113,7 +113,7 @@ export default function SolutionsSection({
                 onClick={() =>
                   onSelectSolution && onSelectSolution("operations")
                 }
-                className="text-slate-900 font-semibold inline-flex items-center gap-1.5 text-sm group-hover:text-[#EA580C] transition-colors"
+                className="text-slate-900 font-semibold inline-flex items-center gap-1.5 text-sm group-hover:text-[#A44B2A] transition-colors"
               >
                 <span>Learn More</span>
                 <ArrowRight
