@@ -17,7 +17,7 @@ GOOGLE_CLIENT_ID = "YOUR_GOOGLE_CLIENT_ID" # This should ideally be in env vars
 # In MIGRATION_PLAN.md it says use prisma.connect() in lifespan and import prisma
 # Let's assume a global prisma client or we can import it.
 # Wait, MIGRATION_PLAN: "Use prisma.connect() in FastAPI's @asynccontextmanager lifespan... Ensure all database operations are explicitly awaited (e.g., await prisma.port.find_unique(...))."
-# Let's import the global client from a place, or just instantiate it. Wait, Prisma Client is usually instantiated in prisma\.py or main.py. Let's use `from prisma import Prisma; db = Prisma()` pattern, but since it's async, we might need the one initialized in main.py.
+# Let's import the global client from a place, or just instantiate it. Wait, Prisma Client is usually instantiated in prisma.py or main.py. Let's use `from prisma import Prisma; db = Prisma()` pattern, but since it's async, we might need the one initialized in main.py.
 # Actually, the standard Prisma Python way is:
 from app.api.dependencies import prisma
 
