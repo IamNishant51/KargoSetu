@@ -27,7 +27,7 @@ export default function CtaSection() {
           forecasts.
         </p>
 
-        <div className="flex flex-col sm:flex-row justify-center items-center gap-4 max-w-xl mx-auto">
+        <div className="flex flex-col sm:flex-row justify-center items-center gap-4 max-w-xl mx-auto mt-10">
           <Link
             href="/dashboard"
             className="w-full sm:w-auto bg-[#EA580C] hover:bg-[#C2410C] text-white px-6 py-3 rounded-xl font-bold transition-all duration-300 flex items-center justify-center gap-2 shadow-lg hover:shadow-orange-500/25  group text-sm whitespace-nowrap"

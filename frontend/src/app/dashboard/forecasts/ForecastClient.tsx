@@ -1,4 +1,5 @@
 "use client";
+import { useLanguage } from "@/i18n/LanguageContext";
 
 import React, { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
@@ -16,6 +17,7 @@ import { Download, ArrowRightLeft, Calendar } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export default function ForecastsPage() {
+  const { t } = useLanguage();
   const [shock, setShock] = useState(2.0);
   const [debouncedShock, setDebouncedShock] = useState(2.0);
   const [days, setDays] = useState(30);
@@ -92,8 +94,8 @@ export default function ForecastsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 p-8">
-      <div className="max-w-6xl mx-auto space-y-6">
+    <div className="">
+      <div className="max-w-7xl mx-auto space-y-6">
         {/* Header & Controls */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
@@ -182,7 +184,7 @@ export default function ForecastsPage() {
         {/* Chart Card */}
         <div className="bg-white p-6 border border-slate-200 rounded-xl shadow-sm">
           <h2 className="font-semibold text-slate-900 mb-6">
-            Freight Rate Forecast (USD per Day)
+            {t("freight_forecast")}
           </h2>
 
           <div className="h-[400px] w-full">

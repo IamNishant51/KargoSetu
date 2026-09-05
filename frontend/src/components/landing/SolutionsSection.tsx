@@ -30,6 +30,7 @@ export default function SolutionsSection({
             </p>
             <Link
               href="#sandbox"
+              onClick={(e) => { e.preventDefault(); document.getElementById("sandbox")?.scrollIntoView({behavior: "smooth"}); }}
               className="group inline-flex items-center gap-2.5 bg-slate-900 text-white px-6 py-3 rounded-xl font-semibold text-sm hover:bg-slate-800 hover:shadow-lg transition-all duration-300 w-fit"
             >
               <span>Explore Solutions</span>
@@ -56,7 +57,7 @@ export default function SolutionsSection({
               </div>
               <Link
                 href="#sandbox"
-                onClick={() => onSelectSolution && onSelectSolution("forecast")}
+                onClick={(e) => { e.preventDefault(); document.getElementById("sandbox")?.scrollIntoView({behavior: "smooth"}); if(onSelectSolution) onSelectSolution("forecast"); }}
                 className="text-slate-900 font-semibold inline-flex items-center gap-1.5 text-sm group-hover:text-[#A44B2A] transition-colors relative z-10 w-fit"
               >
                 <span>Learn More</span>

@@ -594,7 +594,7 @@ export default function InteractiveSandbox() {
                 {/* Probabilistic Quantile Boxes */}
                 <div className="grid grid-cols-3 gap-3">
                   <div
-                    className={`bg-slate-50 p-4 rounded-xl border border-slate-200 border-t-4 border-t-[#B86A45] text-center ${forecastLoading ? "animate-pulse" : ""}`}
+                    className={`bg-slate-50 p-4 rounded-xl border border-slate-200 text-center ${forecastLoading ? "animate-pulse" : ""}`}
                   >
                     <div className="text-[11px] text-slate-500 font-semibold uppercase mb-1">
                       P10 (Optimistic)
@@ -611,7 +611,7 @@ export default function InteractiveSandbox() {
                   </div>
 
                   <div
-                    className={`bg-slate-50 p-4 rounded-xl border border-slate-200 border-t-4 border-t-slate-500 text-center ${forecastLoading ? "animate-pulse" : ""}`}
+                    className={`bg-slate-50 p-4 rounded-xl border border-slate-200 text-center ${forecastLoading ? "animate-pulse" : ""}`}
                   >
                     <div className="text-[11px] text-slate-500 font-semibold uppercase mb-1">
                       P50 (Median Base)
@@ -628,7 +628,7 @@ export default function InteractiveSandbox() {
                   </div>
 
                   <div
-                    className={`bg-slate-50 p-4 rounded-xl border border-slate-200 border-t-4 border-t-slate-300 text-center ${forecastLoading ? "animate-pulse" : ""}`}
+                    className={`bg-slate-50 p-4 rounded-xl border border-slate-200 text-center ${forecastLoading ? "animate-pulse" : ""}`}
                   >
                     <div className="text-[11px] text-slate-500 font-semibold uppercase mb-1">
                       P90 (Pessimistic)

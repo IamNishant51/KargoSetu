@@ -24,7 +24,7 @@ export default function HeroSection() {
             </h1>
 
             {/* CTA Buttons */}
-            <div className="flex flex-col sm:flex-row justify-center lg:justify-start gap-4 max-w-md mx-auto lg:mx-0 mt-8">
+            <div className="flex flex-col sm:flex-row justify-center lg:justify-start gap-4 max-w-md mx-auto lg:mx-0 mt-14">
               <Link
                 href="/dashboard"
                 className="group relative inline-flex items-center justify-center gap-2.5 rounded-xl bg-slate-900 px-8 py-4 text-sm font-semibold text-white shadow-lg shadow-slate-900/20 transition-all duration-300 hover:bg-slate-800 hover:shadow-lg hover:border-slate-300  focus:outline-none focus:ring-2 focus:ring-slate-900 focus:ring-offset-2 w-full sm:w-auto"

@@ -12,7 +12,9 @@ import {
   Bell,
   LogOut,
   User,
+  Globe,
 } from "lucide-react";
+import { useLanguage } from "@/i18n/LanguageContext";
 import { useQuery } from "@tanstack/react-query";
 import { useSidebar } from "./SidebarContext";
 
@@ -31,10 +33,12 @@ function getRelativeTime(dateStr: string) {
 
 export function TopHeader() {
   const { setSidebarOpen } = useSidebar();
+  const { t, language, setLanguage } = useLanguage();
   const pathname = usePathname();
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [allRead, setAllRead] = useState(false);
+  const [langOpen, setLangOpen] = useState(false);
 
   const { data: notificationsData, isLoading: isLoadingNotifications } =
     useQuery({
@@ -55,6 +59,7 @@ export function TopHeader() {
 
   const notifRef = useRef<HTMLDivElement>(null);
   const profileRef = useRef<HTMLDivElement>(null);
+  const langRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -128,12 +133,12 @@ export function TopHeader() {
           {notificationsOpen && (
             <div className="absolute right-0 mt-2 w-80 rounded-xl border border-slate-200 bg-white shadow-lg overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200 z-50">
               <div className="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
-                <h3 className="font-semibold text-slate-800">Notifications</h3>
+                <h3 className="font-semibold text-slate-800">{t("notifications")}</h3>
                 <span
                   onClick={() => setAllRead(true)}
                   className="text-xs font-medium text-blue-600 cursor-pointer hover:text-blue-700"
                 >
-                  Mark all as read
+                  {t("mark_read")}
                 </span>
               </div>
               <div className="max-h-[300px] overflow-auto">
@@ -201,6 +206,45 @@ export function TopHeader() {
         </div>
 
         {/* Profile Dropdown */}
+        {/* Language Selector */}
+        <div className="relative mr-2 sm:mr-4" ref={langRef}>
+          <button
+            onClick={() => setLangOpen(!langOpen)}
+            className="p-2 text-slate-500 hover:text-slate-700 hover:bg-slate-100 rounded-full transition-colors flex items-center"
+            title="Change Language"
+          >
+            <Globe className="w-5 h-5" />
+          </button>
+
+          {langOpen && (
+            <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-slate-200 overflow-hidden z-50">
+              <ul className="py-1">
+                {[
+                  { code: "en", label: "English" },
+                  { code: "hi", label: "हिन्दी" },
+                  { code: "bn", label: "বাংলা" },
+                  { code: "mr", label: "मराठी" },
+                  { code: "ta", label: "தமிழ்" },
+                  { code: "te", label: "తెలుగు" },
+                  { code: "gu", label: "ગુજરાતી" },
+                ].map((l) => (
+                  <li key={l.code}>
+                    <button
+                      className={`w-full text-left px-4 py-2 text-sm transition-colors hover:bg-slate-50 ${language === l.code ? "text-orange-600 font-semibold bg-orange-50/50" : "text-slate-700"}`}
+                      onClick={() => {
+                        setLanguage(l.code as "en" | "hi" | "bn" | "mr" | "ta" | "te" | "gu");
+                        setLangOpen(false);
+                      }}
+                    >
+                      {l.label}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
+
         <div
           className="relative border-l border-slate-200 pl-3 sm:pl-6"
           ref={profileRef}
