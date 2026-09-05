@@ -62,3 +62,14 @@ model MLModel {
   rmse      Float
   isActive  Boolean
 }
+
+model User {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  passwordHash String?  // Optional for Google login
+  name         String?
+  googleId     String?  @unique
+  avatarUrl    String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}

@@ -13,3 +13,7 @@ orjson
 gunicorn
 tf2onnx
 onnxruntime
+google-auth
+pyjwt
+passlib
+bcrypt
