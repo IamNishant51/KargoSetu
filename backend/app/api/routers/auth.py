@@ -36,25 +36,25 @@ async def get_current_user(token: str = Depends(oauth2_scheme)) -> UserResponse:
     except jwt.PyJWTError:
         raise credentials_exception
     
-    if not prisma\.is_connected():
-        await prisma\.connect()
+    if not prisma.is_connected():
+        await prisma.connect()
         
-    user = await prisma\.user.find_unique(where={"email": email})
+    user = await prisma.user.find_unique(where={"email": email})
     if user is None:
         raise credentials_exception
     return user
 
 @router.post("/register", response_model=Token)
 async def register(user_in: UserCreate):
-    if not prisma\.is_connected():
-        await prisma\.connect()
+    if not prisma.is_connected():
+        await prisma.connect()
         
-    existing_user = await prisma\.user.find_unique(where={"email": user_in.email})
+    existing_user = await prisma.user.find_unique(where={"email": user_in.email})
     if existing_user:
         raise HTTPException(status_code=400, detail="Email already registered")
     
     hashed_password = get_password_hash(user_in.password)
-    user = await prisma\.user.create(
+    user = await prisma.user.create(
         data={
             "email": user_in.email,
             "passwordHash": hashed_password,
@@ -66,10 +66,10 @@ async def register(user_in: UserCreate):
 
 @router.post("/login", response_model=Token)
 async def login(user_in: UserLogin):
-    if not prisma\.is_connected():
-        await prisma\.connect()
+    if not prisma.is_connected():
+        await prisma.connect()
         
-    user = await prisma\.user.find_unique(where={"email": user_in.email})
+    user = await prisma.user.find_unique(where={"email": user_in.email})
     if not user or not user.passwordHash:
         raise HTTPException(status_code=400, detail="Incorrect email or password")
     
@@ -92,12 +92,12 @@ async def google_login(google_in: GoogleLogin):
         if not email:
             raise HTTPException(status_code=400, detail="Google token missing email")
             
-        if not prisma\.is_connected():
-            await prisma\.connect()
+        if not prisma.is_connected():
+            await prisma.connect()
             
-        user = await prisma\.user.find_unique(where={"email": email})
+        user = await prisma.user.find_unique(where={"email": email})
         if not user:
-            user = await prisma\.user.create(
+            user = await prisma.user.create(
                 data={
                     "email": email,
                     "name": name,
@@ -107,7 +107,7 @@ async def google_login(google_in: GoogleLogin):
             )
         elif not user.googleId:
             # Link existing account to google
-            user = await prisma\.user.update(
+            user = await prisma.user.update(
                 where={"email": email},
                 data={"googleId": google_id, "avatarUrl": avatar_url}
             )
