@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { useLanguage } from "@/i18n/LanguageContext";
 
 export default function Error({
   error,
@@ -9,26 +10,28 @@ export default function Error({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
+  const { t } = useLanguage();
   useEffect(() => {
     console.error(error);
   }, [error]);
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-[400px] p-6 text-center rounded-xl border border-red-200 bg-red-50">
-      <h2 className="text-xl font-semibold text-red-800 mb-2">
-        Something went wrong!
-      </h2>
-      <p className="text-sm text-red-600 mb-4">
-        {error.message || "An unexpected error occurred in the dashboard."}
-      </p>
-      <button
-        type="button"
-        aria-label="Try again"
-        onClick={() => reset()}
-        className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
-      >
-        Try again
-      </button>
+    <div className="max-w-7xl mx-auto">
+      <div className="flex flex-col items-center justify-center min-h-[400px] p-8 text-center rounded-2xl border border-[#F3C2C2] bg-[#FDECEC]">
+        <p className="mono-label text-[#B42318]">{t("err_kicker")}</p>
+        <h2 className="mt-2 font-display font-black text-2xl tracking-tight text-[#0A2342]">
+          {t("err_title")}
+        </h2>
+        <p className="mt-2 text-sm text-[#3D4F68] max-w-md">
+          {error.message || t("err_default")}
+        </p>
+        <button
+          type="button"
+          aria-label="Try again"
+          onClick={() => reset()}
+          className="mt-6 px-6 py-3 rounded-xl bg-[#D95D0F] text-white text-sm font-bold hover:bg-[#B45309] transition-colors shadow-[0_2px_0_#0A2342]"
+        >{t("try_again")}</button>
+      </div>
     </div>
   );
 }

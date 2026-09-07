@@ -1,70 +1,31 @@
 "use client";
-
 import React from "react";
 import Link from "next/link";
-import { User, Play, ArrowRight, ShieldCheck, Zap } from "lucide-react";
+import { ArrowUpRight } from "lucide-react";
 
 export default function CtaSection() {
   return (
-    <section className="py-20 sm:py-24 bg-gradient-to-b from-slate-50 via-white to-slate-50 border-y border-slate-200/80 text-slate-900 relative overflow-hidden">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
-        <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-orange-50 border border-orange-200 text-xs font-bold uppercase tracking-wider text-[#EA580C] mb-8 shadow-sm">
-          <Zap size={14} />
-          <span>Smart India Hackathon 2026 &middot; Problem SIH26006</span>
-        </div>
-
-        <h2 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-[#0F172A] tracking-tighter mb-6 max-w-4xl mx-auto leading-[1.1] font-sans">
-          Ready to Modernize India&apos;s{" "}
-          <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 to-[#EA580C]">
-            Maritime
-          </span>{" "}
-          Bulk Supply Chain?
-        </h2>
-
-        <p className="text-slate-500 text-base sm:text-lg max-w-2xl mx-auto mb-10 leading-relaxed font-medium">
-          Join leading maritime logistics teams and eliminate costly demurrage
-          penalties with real-time constraint solving and deep learning freight
-          forecasts.
-        </p>
-
-        <div className="flex flex-col sm:flex-row justify-center items-center gap-4 max-w-xl mx-auto mt-10">
-          <Link
-            href="/dashboard"
-            className="w-full sm:w-auto bg-[#EA580C] hover:bg-[#C2410C] text-white px-6 py-3 rounded-xl font-bold transition-all duration-300 flex items-center justify-center gap-2 shadow-lg hover:shadow-orange-500/25  group text-sm whitespace-nowrap"
-          >
-            <User size={16} />
-            <span>Launch Command Center</span>
-            <ArrowRight
-              size={15}
-              className="transition-transform group-hover:translate-x-1"
-            />
-          </Link>
-          <button
-            type="button"
-            aria-label="Contact Sales"
-            className="w-full sm:w-auto bg-white hover:bg-slate-50 text-slate-800 border border-slate-200 hover:border-slate-300 px-6 py-3 rounded-xl font-semibold transition-all duration-300 flex items-center justify-center gap-2 shadow-sm hover:shadow-md text-sm  group whitespace-nowrap"
-          >
-            <Play
-              size={16}
-              className="text-slate-500 group-hover:text-emerald-600 transition-colors"
-            />
-            <span>Watch Live Demo</span>
-          </button>
-        </div>
-
-        {/* Feature Checkpoints */}
-        <div className="mt-14 pt-10 border-t border-slate-200/80 flex flex-wrap justify-center items-center gap-6 sm:gap-10 text-[11px] sm:text-xs text-slate-500 font-bold uppercase tracking-wider">
-          <div className="flex items-center gap-2">
-            <ShieldCheck size={18} className="text-emerald-600" />
-            <span>Zero-Grounding Safety</span>
+    <section className="bg-white py-14 sm:py-20">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="relative overflow-hidden rounded-2xl bg-[#0A2342] text-white px-6 py-10 sm:p-12 lg:p-14">
+          <div aria-hidden className="absolute inset-0 opacity-20" style={{ backgroundImage: "linear-gradient(to right, rgba(255,255,255,0.25) 1px, transparent 1px)", backgroundSize: "44px 44px" }} />
+          <div className="relative grid lg:grid-cols-12 gap-8 items-end">
+            <div className="lg:col-span-8">
+              <p className="font-mono text-[11px] uppercase tracking-[0.16em] text-[#F5B98A]">Final entry — SIH26006 · 5-minute demo</p>
+              <h2 className="mt-3 font-display font-black text-4xl sm:text-5xl lg:text-6xl leading-[1.0]">Bring one indent.<br />Leave with a verdict.</h2>
+              <p className="mt-4 max-w-xl text-[15px] sm:text-base leading-relaxed text-white/75">150,000 MT to Haldia is pre-loaded in the simulator. Press split, read the slip, show the jury the money.</p>
+            </div>
+            <div className="lg:col-span-4 flex flex-col sm:flex-row lg:flex-col gap-3">
+              <Link href="/dashboard" className="inline-flex items-center justify-center gap-2 rounded-lg bg-[#E76F1A] px-6 py-4 text-[15px] font-bold text-white hover:bg-[#c85f13] transition-colors">
+                Open command board <ArrowUpRight size={17} />
+              </Link>
+              <Link href="#sandbox" className="inline-flex items-center justify-center gap-2 rounded-lg border border-white/30 px-6 py-4 text-[15px] font-bold text-white hover:bg-white/10 transition-colors">
+                Replay the split
+              </Link>
+            </div>
           </div>
-          <div className="flex items-center gap-2">
-            <ShieldCheck size={18} className="text-emerald-600" />
-            <span>Dynamic Tide Ingestion</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <ShieldCheck size={18} className="text-emerald-600" />
-            <span>MeitY Enterprise Cloud</span>
+          <div className="relative mt-8 pt-6 border-t border-white/15 flex flex-wrap gap-x-8 gap-y-2 font-mono text-[10.5px] uppercase tracking-[0.14em] text-white/60">
+            <span>Zero-grounding rule</span><span>Live tide</span><span>₹-ledger attached</span>
           </div>
         </div>
       </div>

@@ -1,107 +1,57 @@
 "use client";
-
 import React from "react";
 import Image from "next/image";
-import { ClipboardCheck, Cpu, Anchor, CheckCircle } from "lucide-react";
 
 const STEPS = [
-  {
-    step: "01",
-    title: "Ingest Bulk Requisition",
-    desc: "Procurement teams enter cargo tonnage, commodity grade, laycan dates, and target East Coast destination port into KargoSetu.",
-    icon: ClipboardCheck,
-    badge: "Step 1",
-  },
-  {
-    step: "02",
-    title: "Hydrodynamic Physics Check",
-    desc: "The system fetches live Open-Meteo tide levels and port bathymetry to calculate dynamic vessel squat, draft, and UKC safety clearance.",
-    icon: Anchor,
-    badge: "Step 2",
-  },
-  {
-    step: "03",
-    title: "Neural Rate Dip Detection",
-    desc: "Auto-regressive LSTM neural networks predict 90-day freight rate curves, identifying seasonal market dips to time Contract of Affreightment fixtures.",
-    icon: Cpu,
-    badge: "Step 3",
-  },
-  {
-    step: "04",
-    title: "Automated Allocation & Execution",
-    desc: "Generates optimal vessel pairing (Direct vs. 3x Split) with guaranteed fairway clearance and complete zero-demurrage assurance.",
-    icon: CheckCircle,
-    badge: "Step 4",
-  },
+  { n: "01", t: "Drop the indent", d: "Tonnage, coal grade, laycan, destination. Thirty seconds, no manual." },
+  { n: "02", t: "River does the maths", d: "Live tide + channel soundings vs squat and UKC. Pass or split — stated plainly." },
+  { n: "03", t: "Market picks the week", d: "P10–P90 bands mark the cheap window. Sign the CoA there." },
+  { n: "04", t: "Sail with a receipt", d: "Berth or split slip with drafts, barges and rupees saved. File it." },
 ];
 
 export default function WorkflowSection() {
   return (
-    <section className="py-20 sm:py-24 bg-[#F8FAFC]">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Section Header */}
-        <div className="text-center max-w-3xl mx-auto mb-16">
-          <p className="text-[#EA580C] font-bold tracking-wider text-xs sm:text-sm mb-3 uppercase">
-            END-TO-END AUTOMATION
-          </p>
-          <h2 className="text-3xl sm:text-4xl font-extrabold text-[#0F172A] tracking-tight mb-4">
-            How KargoSetu Secures Every Voyage
-          </h2>
-          <p className="text-slate-500 text-base sm:text-lg">
-            From raw procurement requisition to safe dockside berthing in four
-            deterministic steps.
-          </p>
+    <section className="bg-white py-14 sm:py-20">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid lg:grid-cols-12 gap-10 items-start">
+        <div className="lg:col-span-5">
+          <p className="mono-label text-[#B45309]">Passage plan — 4 fixes</p>
+          <h2 className="mt-2 text-4xl sm:text-5xl font-bold text-[#0A2342]">Indent to berth, no fog.</h2>
+          <ol className="mt-8 space-y-0 border-t border-[#E2E6EB]">
+            {STEPS.map((s) => (
+              <li key={s.n} className="flex gap-4 py-5 border-b border-[#E2E6EB]">
+                <span className="text-[13px] font-semibold text-[#D95D0F] pt-1 shrink-0 w-7">{s.n}</span>
+                <div>
+                  <h3 className="text-[19px] font-bold text-[#0A2342]">{s.t}</h3>
+                  <p className="mt-1 text-[14px] leading-relaxed text-[#3D4F68]">{s.d}</p>
+                </div>
+              </li>
+            ))}
+          </ol>
         </div>
-
-        {/* Main Content: Split Layout */}
-        <div className="lg:grid lg:grid-cols-12 lg:gap-12 items-center">
-          {/* Left Column: Image */}
-          <div className="lg:col-span-7 mb-12 lg:mb-0 relative">
-            <div className="relative w-full aspect-[4/3] rounded-3xl overflow-hidden shadow-2xl shadow-slate-200/50 border border-slate-200/80 bg-white">
+        <div className="lg:col-span-7 lg:sticky lg:top-24">
+          <figure className="card-hard rounded-2xl overflow-hidden bg-white">
+            <div className="flex items-center justify-between gap-2 border-b border-[#E2E6EB] px-5 py-3">
+              <span className="truncate text-[10.5px] font-semibold uppercase tracking-[0.12em] text-[#6B7D99]">
+                Fig. B — split at Sandheads
+              </span>
+              <span className="shrink-0 rounded bg-[#0A2342] px-2.5 py-1 text-[10.5px] font-semibold uppercase tracking-[0.12em] text-white">
+                150k MT · Split
+              </span>
+            </div>
+            <div className="relative aspect-[16/9] w-full bg-[#FAF7F1]">
               <Image
-                src="/workflow-ship.png"
-                alt="Vessel Physics & Draft Constraints"
+                src="/workflow-ship-v2.png"
+                alt="Supramax bulk carrier splitting discharge to barges at Sandheads anchorage"
                 fill
-                sizes="(max-width: 1024px) 100vw, 58vw"
-                className="object-cover"
+                sizes="(max-width: 1024px) 100vw, 640px"
+                className="object-contain p-4 sm:p-5"
               />
             </div>
-          </div>
-
-          {/* Right Column: Vertical Steps */}
-          <div className="lg:col-span-5 flex flex-col gap-4">
-            {STEPS.map((item, idx) => {
-              const Icon = item.icon;
-              const isActive = idx === 1;
-              return (
-                <div
-                  key={idx}
-                  className={`group p-5 sm:p-6 rounded-2xl border transition-all duration-300 flex gap-4 ${
-                    isActive
-                      ? "bg-white shadow-md shadow-slate-200/40 border-[#A44B2A]/30 relative overflow-hidden"
-                      : "bg-white/60 shadow-sm border-slate-200/60 hover:bg-white hover:shadow-md hover:border-slate-300"
-                  }`}
-                >
-                  {isActive && (
-                    <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-[#EA580C]" />
-                  )}
-                  <div className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 border bg-slate-100 text-slate-700 border-slate-200 transition-transform duration-300 group-hover:-translate-y-0.5">
-                    <Icon size={22} />
-                  </div>
-                  <div>
-                    <h3
-                      className={`text-base sm:text-lg font-bold mb-1.5 tracking-tight ${isActive ? "text-slate-900" : "text-slate-700"}`}
-                    >
-                      {item.title}
-                    </h3>
-                    <p className="text-xs sm:text-sm text-slate-500 leading-relaxed font-medium">
-                      {item.desc}
-                    </p>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+            <figcaption className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 bg-white border-t border-[#E2E6EB] px-5 py-3.5">
+              <span className="text-[10.5px] font-semibold uppercase tracking-[0.12em] text-[#6B7D99]">Lighterage plan</span>
+              <span className="text-[12px] font-semibold text-[#0E7A3D]">3× Supramax · UKC safe · ₹2.1 Cr saved</span>
+            </figcaption>
+          </figure>
         </div>
       </div>
     </section>

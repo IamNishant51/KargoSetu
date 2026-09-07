@@ -1,93 +1,40 @@
 "use client";
-
 import React, { useState } from "react";
-import { ChevronDown, HelpCircle } from "lucide-react";
+import { Plus } from "lucide-react";
 
 const FAQS = [
-  {
-    q: "How does KargoSetu prevent vessel groundings at draft-constrained ports like Haldia?",
-    a: "KargoSetu implements a dual-ended hydrodynamic physics engine (Squat, Forward Water Allowance, Under Keel Clearance). It pulls live tidal curves directly from Open-Meteo API. If a laden Capesize vessel arrival draft exceeds the safe permissible depth (7.5m at Haldia), the system immediately halts direct berthing and computes an optimal cargo split into 3x Supramax vessels with Sandheads offshore transshipment.",
-  },
-  {
-    q: "What machine learning architecture powers the 90-day freight price forecasting?",
-    a: "We utilize an auto-regressive Long Short-Term Memory (LSTM) recurrent neural network built in TensorFlow.js. The model ingests multi-year historical Baltic Dry Index (BDI), BDRY ETF volatility, and bunker fuel indices. It outputs 30, 60, and 90-day probabilistic quantile bounds (P10 optimistic, P50 median, P90 pessimistic), enabling executives to time market entries during 12%+ rate dip windows.",
-  },
-  {
-    q: "How does KargoSetu save money for Public Sector Undertakings like SAIL?",
-    a: "By shifting procurement from purely reactive single spot market contracts to strategically timed Contracts of Affreightment (CoA) and mitigating vessel idle loss ($25,000/day for Capesize) via triangular repositioning. Our live financial simulations demonstrate estimated savings of ₹35.28 Crores annually for typical 3.5M MT coking coal import operations.",
-  },
-  {
-    q: "Can KargoSetu integrate with existing enterprise ERPs (SAP / Oracle)?",
-    a: "Yes. KargoSetu exposes standard, enterprise-grade REST APIs secured with Zod schema validation, Helmet.js headers, and strict CORS boundaries. Requisitions can be pushed via automated webhooks, and evaluated fixture recommendations can be ingested directly back into SAP Material Management (MM) modules.",
-  },
-  {
-    q: "How does KargoSetu manage idle fleet repositioning and ESG decarbonization?",
-    a: "Rather than allowing chartered vessels to return in ballast (empty voyages), KargoSetu calculates triangular backhaul routes across East Coast and Indian Ocean corridors. This cuts empty sailing days by up to 40% and automatically generates IMO EEXI-compliant carbon reduction metrics.",
-  },
+  { q: "Haldia is 7.5 m. My Capesize needs 18 m. What exactly happens?", a: "The solver refuses direct berthing, splits the parcel into Supramax lots (~50k MT each), routes them via Sandheads lighterage, and shows arrival draft vs tide vs UKC so the refusal is auditable." },
+  { q: "Where does the tide number come from?", a: "Open-Meteo marine feed, pulled at evaluation time. No static tide table — the +3.2 m window in the demo is live data, and the UKC margin recomputes with it." },
+  { q: "What is P10 / P50 / P90 in plain words?", a: "Cheap case, middle case, expensive case for the daily hire over the next 90 days. Fix the CoA near P10, budget at P50, keep P90 as the risk line for finance." },
+  { q: "Does this plug into SAP?", a: "Yes — requisition in, fixture slip out, over REST with schema validation. The jury build uses the same /requisitions/evaluate contract the dashboard calls." },
+  { q: "What do we show the SIH jury in 5 minutes?", a: "Set 150,000 MT → Haldia, watch it split. Flip to Dhamra, watch it go direct. Drag the shock slider to 2.0× and watch P90 scream. Three moves, thesis proven." },
 ];
 
 export default function FaqSection() {
-  const [openIndex, setOpenIndex] = useState<number | null>(0);
-
-  const toggleFaq = (index: number) => {
-    setOpenIndex(openIndex === index ? null : index);
-  };
-
+  const [open, setOpen] = useState<number | null>(0);
   return (
-    <section id="faq" className="py-20 sm:py-24 bg-[#F8FAFC]">
+    <section id="faq" className="bg-[#FAF7F1] border-y border-[#E2E6EB] py-14 sm:py-20 scroll-mt-20 sm:scroll-mt-24">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Section Header */}
-        <div className="text-center mb-16">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100 border border-slate-200 text-slate-700 text-xs font-bold uppercase tracking-wider mb-3">
-            <HelpCircle size={13} />
-            Frequently Asked Questions
-          </div>
-          <h2 className="text-3xl sm:text-4xl font-extrabold text-[#0F172A] tracking-tight mb-4">
-            Everything You Need to Know
-          </h2>
-          <p className="text-slate-500 text-base sm:text-lg">
-            Answers to common questions about KargoSetu&apos;s algorithms,
-            datasets, and SIH 26006 problem specifications.
-          </p>
-        </div>
-
-        {/* Accordion List */}
-        <div className="space-y-3.5">
-          {FAQS.map((faq, idx) => {
-            const isOpen = openIndex === idx;
+        <p className="mono-label text-[#B45309]">Signal book — straight answers</p>
+        <h2 className="mt-2 font-display font-black text-4xl sm:text-5xl text-[#0A2342]">Asked on every demo.</h2>
+        <div className="mt-8 divide-y divide-[#E2E6EB] border-y border-[#E2E6EB] bg-white rounded-2xl overflow-hidden">
+          {FAQS.map((f, i) => {
+            const isOpen = open === i;
             return (
-              <div
-                key={idx}
-                className="bg-white rounded-2xl border border-slate-200/80 shadow-2xs overflow-hidden transition-all duration-200"
-              >
+              <div key={f.q}>
                 <button
                   type="button"
-                  aria-controls={`faq-answer-${idx}`}
-                  id={`faq-question-${idx}`}
-                  onClick={() => toggleFaq(idx)}
-                  className="w-full text-left px-6 py-5 flex items-center justify-between gap-4 cursor-pointer hover:bg-slate-50/70 transition-colors"
+                  onClick={() => setOpen(isOpen ? null : i)}
                   aria-expanded={isOpen}
+                  className="w-full flex items-center gap-4 text-left px-5 sm:px-6 py-4 sm:py-5 hover:bg-[#FAF7F1] transition-colors"
                 >
-                  <span className="font-bold text-slate-900 text-base sm:text-lg">
-                    {faq.q}
+                  <span className="font-mono text-[12px] text-[#6B7D99] shrink-0 w-7">Q{i + 1}</span>
+                  <span className="flex-1 font-bold text-[15px] sm:text-base text-[#0A2342]">{f.q}</span>
+                  <span className={`w-8 h-8 rounded-full border flex items-center justify-center shrink-0 transition-transform ${isOpen ? "bg-[#0A2342] text-white border-[#0A2342] rotate-45" : "border-[#E2E6EB] text-[#0A2342]"}`}>
+                    <Plus size={16} />
                   </span>
-                  <div
-                    className={`w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center flex-shrink-0 text-slate-600 transition-transform duration-200 ${isOpen ? "rotate-180 bg-slate-200 text-slate-900" : ""}`}
-                  >
-                    <ChevronDown size={16} />
-                  </div>
                 </button>
-
-                {isOpen && (
-                  <div
-                    id={`faq-answer-${idx}`}
-                    role="region"
-                    aria-labelledby={`faq-question-${idx}`}
-                    className="px-6 pb-6 pt-1 text-slate-600 text-sm sm:text-base leading-relaxed border-t border-slate-100 animate-in fade-in duration-150"
-                  >
-                    {faq.a}
-                  </div>
-                )}
+                {isOpen && <p className="px-5 sm:px-6 pb-5 pl-[52px] sm:pl-[60px] text-[14px] sm:text-[15px] leading-relaxed text-[#3D4F68]">{f.a}</p>}
               </div>
             );
           })}

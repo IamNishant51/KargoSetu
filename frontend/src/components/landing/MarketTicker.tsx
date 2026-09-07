@@ -1,87 +1,52 @@
 "use client";
-
 import React from "react";
-import { TrendingUp, TrendingDown, Loader2 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 
+const FALLBACK = [
+  { symbol: "BDI", value: "1,842", delta: "+2.1%" },
+  { symbol: "BCI CAPESIZE", value: "$18,650/d", delta: "+1.4%" },
+  { symbol: "HALDIA TIDE", value: "+3.2 m", delta: "HW 14:20" },
+  { symbol: "SANDHEADS", value: "22 m+", delta: "Open" },
+  { symbol: "VLSFO", value: "$612/t", delta: "-0.8%" },
+];
+
 export default function MarketTicker() {
-  const {
-    data: tickerItems = [],
-    isLoading,
-    isError,
-  } = useQuery({
+  const { data } = useQuery({
     queryKey: ["marketTicker"],
     queryFn: async () => {
-      const baseUrl =
-        process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
-      const res = await fetch(`${baseUrl}/api/v1/market/ticker`);
-      if (!res.ok) throw new Error("Network response was not ok");
+      const base = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+      const res = await fetch(`${base}/api/v1/market/ticker`);
+      if (!res.ok) throw new Error("ticker");
       return res.json();
     },
+    retry: false,
+    refetchOnWindowFocus: false,
   });
 
+  const items = Array.isArray(data) && data.length ? data.slice(0, 8) : FALLBACK;
+
   return (
-    <div className="w-full bg-white text-slate-800 py-3 overflow-hidden border-y border-slate-200/80 shadow-2xs select-none">
-      <div className="flex items-center max-w-7xl mx-auto px-4">
-        {/* Left Badge */}
-        <div className="flex-shrink-0 pr-4 z-10 flex items-center gap-2 border-r border-slate-200">
-          <span className="relative flex h-2 w-2">
-            <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-          </span>
-          <span className="text-xs font-bold uppercase tracking-wider text-slate-700 whitespace-nowrap">
-            Live Telemetry
-          </span>
+    <div className="bg-[#0A2342] text-white overflow-hidden select-none" aria-label="Harbour telemetry">
+      <div className="flex items-stretch">
+        <div className="shrink-0 flex items-center gap-2 px-4 sm:px-6 py-2.5 border-r border-white/15 bg-[#D95D0F]">
+          <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
+          <span className="font-mono text-[10px] sm:text-[11px] font-semibold tracking-[0.16em] uppercase">Desk wire</span>
         </div>
-
-        {/* Marquee Ticker Container */}
-        <div className="overflow-hidden flex-1 relative [mask-image:linear-gradient(to_right,transparent,black_5%,black_95%,transparent)]">
-          {isLoading ? (
-            <div className="flex items-center justify-center h-full text-slate-500 text-xs font-semibold gap-2">
-              <Loader2 className="animate-spin w-4 h-4" /> Loading market
-              data...
-            </div>
-          ) : isError ? (
-            <div className="flex items-center justify-center h-full text-rose-500 text-xs font-semibold">
-              Failed to load market data
-            </div>
-          ) : (
-            <div className="animate-marquee flex items-center gap-8 pl-4">
-              {[...tickerItems, ...tickerItems].map((item, idx) => (
-                <div
-                  key={idx}
-                  className="flex items-center gap-2 text-xs whitespace-nowrap"
-                >
-                  <span className="font-bold text-slate-900 tracking-wide">
-                    {item.symbol}
+        <div className="overflow-hidden flex-1 [mask-image:linear-gradient(to_right,transparent,black_6%,black_94%,transparent)]">
+          <div className="animate-marquee flex w-max will-change-transform py-2.5 font-mono text-[11.5px] sm:text-[12.5px]">
+            {[0, 1].map((copy) => (
+              <div key={copy} aria-hidden={copy === 1} className="flex shrink-0 items-center">
+                {items.map((it: { symbol: string; value: string; delta: string }, i: number) => (
+                  <span key={i} className="flex items-center gap-2 whitespace-nowrap pl-6">
+                    <span className="font-semibold tracking-[0.1em] text-white/60">{it.symbol}</span>
+                    <span className="font-semibold text-white">{it.value}</span>
+                    <span className="text-[#F5B98A]">{it.delta}</span>
+                    <span className="ml-6 text-white/25">/</span>
                   </span>
-                  <span className="text-slate-500 text-[11px] hidden sm:inline">
-                    {item.name}:
-                  </span>
-                  <span className="font-mono font-bold text-slate-900">
-                    {item.value}
-                  </span>
-
-                  {item.isSpecial ? (
-                    <span className="text-[10px] font-semibold text-blue-700 bg-blue-50 px-1.5 py-0.5 rounded border border-blue-200">
-                      {item.delta}
-                    </span>
-                  ) : item.isPositive ? (
-                    <span className="text-[10px] font-semibold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded flex items-center border border-emerald-200">
-                      <TrendingUp size={11} className="mr-0.5" />
-                      {item.delta}
-                    </span>
-                  ) : (
-                    <span className="text-[10px] font-semibold text-rose-700 bg-rose-50 px-1.5 py-0.5 rounded flex items-center border border-rose-200">
-                      <TrendingDown size={11} className="mr-0.5" />
-                      {item.delta}
-                    </span>
-                  )}
-
-                  <span className="text-slate-300 mx-2">&middot;</span>
-                </div>
-              ))}
-            </div>
-          )}
+                ))}
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </div>

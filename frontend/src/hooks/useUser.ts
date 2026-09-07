@@ -12,8 +12,11 @@ export interface User {
 }
 
 export function useUser() {
+  // Read once per render so the query key tracks the active session —
+  // a different token after re-login can never reuse the old user's cache.
+  const token = typeof window !== "undefined" ? Cookies.get("auth_token") : undefined;
   return useQuery<User>({
-    queryKey: ["user"],
+    queryKey: ["user", token ?? null],
     queryFn: async () => {
       const token = Cookies.get("auth_token");
       if (!token) {
@@ -36,6 +39,6 @@ export function useUser() {
     // Don't retry if it fails (e.g., due to invalid token)
     retry: false,
     // Only run this query if the token actually exists in cookies
-    enabled: !!Cookies.get("auth_token"),
+    enabled: !!token,
   });
 }

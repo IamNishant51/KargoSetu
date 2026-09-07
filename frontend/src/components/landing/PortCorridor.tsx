@@ -1,142 +1,81 @@
 "use client";
-
 import React from "react";
-import { Anchor } from "lucide-react";
+import Image from "next/image";
 
 const PORTS = [
-  {
-    name: "Haldia Dock Complex (HDC)",
-    location: "West Bengal · Hooghly River Channel",
-    draft: "7.5m",
-    tideRange: "+2.8m to +4.2m",
-    status: "Riverine & Tide-Dependent",
-    vesselsAllowed: "Supramax Only (Direct)",
-    challenges:
-      "Heavy siltation; requires tidal navigation window and Sandheads transshipment splitting.",
-    isRestricted: true,
-  },
-  {
-    name: "Paradip Port",
-    location: "Odisha · Bay of Bengal",
-    draft: "14.5m",
-    tideRange: "+1.2m to +2.4m",
-    status: "Deepwater All-Weather Port",
-    vesselsAllowed: "Panamax / Baby Capesize",
-    challenges:
-      "Mechanized coal handling; requires precise laycan synchronization to avoid berth congestion.",
-    isRestricted: false,
-  },
-  {
-    name: "Dhamra Port",
-    location: "Odisha · Deep Sea Fairway",
-    draft: "16.0m",
-    tideRange: "+1.5m to +2.8m",
-    status: "Capesize Compliant Terminal",
-    vesselsAllowed: "Fully Laden Capesize (180k DWT)",
-    challenges:
-      "High-throughput bulk handling; primary hub for heavy coking coal import fixtures.",
-    isRestricted: false,
-  },
-  {
-    name: "Sandheads Anchorage",
-    location: "Bay of Bengal · Deepwater Roads",
-    draft: "22.0m+",
-    tideRange: "Open Ocean Tides",
-    status: "Offshore Lighterage Zone",
-    vesselsAllowed: "All Classes (Transshipment)",
-    challenges:
-      "Deep-sea lighterage operations; automated barge & Supramax shuttle scheduling.",
-    isRestricted: false,
-  },
+  { n: "01", name: "Haldia", sub: "Hooghly river · tide-bound", draft: "7.5 m", tide: "+2.8 – 4.2 m", ship: "Supramax direct", note: "Heavy siltation. The reason splits exist.", flag: "Watch" },
+  { n: "02", name: "Paradip", sub: "Bay of Bengal · all-weather", draft: "14.5 m", tide: "+1.2 – 2.4 m", ship: "Panamax / baby Cape", note: "Mechanised coal berths. Laycan discipline matters.", flag: "Open" },
+  { n: "03", name: "Dhamra", sub: "Deep-sea fairway", draft: "16.0 m", tide: "+1.5 – 2.8 m", ship: "Full Capesize 180k", note: "Coking-coal front door when Haldia chokes.", flag: "Open" },
+  { n: "04", name: "Sandheads", sub: "Offshore roads · lighterage", draft: "22 m+", tide: "Open ocean", ship: "All classes", note: "Where big ships break bulk into shuttles.", flag: "Hub" },
 ];
 
 export default function PortCorridor() {
   return (
-    <section
-      id="ports"
-      className="py-20 sm:py-24 bg-white border-b border-slate-200/80"
-    >
+    <section id="ports" className="bg-[#FAF7F1] border-y border-[#E2E6EB] py-14 sm:py-20 scroll-mt-20 sm:scroll-mt-24">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Section Header */}
-        <div className="text-center max-w-3xl mx-auto mb-16">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 border border-blue-200 text-blue-700 text-xs font-bold uppercase tracking-wider mb-3">
-            <Anchor size={13} />
-            Strategic Indian Port Telemetry
+        <p className="mono-label text-[#B45309]">Chart 02 — the corridor</p>
+        <div className="mt-2 flex flex-col lg:flex-row lg:items-end justify-between gap-3">
+          <h2 className="font-display font-black text-4xl sm:text-5xl text-[#0A2342] max-w-xl">Four stops. One honest draft table.</h2>
+          <p className="font-mono text-[11.5px] uppercase tracking-[0.14em] text-[#6B7D99]">Soundings in metres · tide added</p>
+        </div>
+
+        <figure className="mt-8 card-hard rounded-2xl overflow-hidden bg-white">
+          <div className="flex items-center justify-between gap-2 border-b border-[#E2E6EB] px-5 py-3">
+            <span className="truncate text-[10.5px] font-semibold uppercase tracking-[0.12em] text-[#6B7D99]">
+              Fig. C — corridor chart
+            </span>
+            <span className="shrink-0 rounded bg-[#0A2342] px-2.5 py-1 text-[10.5px] font-semibold uppercase tracking-[0.12em] text-white">
+              4 stops
+            </span>
           </div>
-          <h2 className="text-4xl sm:text-5xl font-extrabold text-[#0F172A] tracking-tighter mb-4 leading-[1.1]">
-            East Coast Maritime Corridor
-          </h2>
-          <p className="text-slate-500 text-base sm:text-lg max-w-2xl mx-auto leading-relaxed font-medium">
-            KargoSetu monitors dynamic bathymetry, fairway siltation, and tidal
-            curves across key ports serving SAIL and Indian steel plants.
-          </p>
+          <div className="relative aspect-[16/9] w-full bg-[#FAF7F1]">
+            <Image
+              src="/corridor-map.png"
+              alt="Schematic chart of the Haldia Sandheads Paradip Dhamra corridor with drafts"
+              fill
+              sizes="(max-width: 1280px) 100vw, 1152px"
+              className="object-contain p-4 sm:p-5"
+            />
+          </div>
+          <figcaption className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 bg-white border-t border-[#E2E6EB] px-5 py-3.5">
+            <span className="text-[10.5px] font-semibold uppercase tracking-[0.12em] text-[#6B7D99]">Soundings in metres</span>
+            <span className="text-[12px] font-semibold text-[#0E7A3D]">Haldia 7.5 m · Sandheads 22 m+ · Paradip 14.5 m · Dhamra 16.0 m</span>
+          </figcaption>
+        </figure>
+
+        <div className="mt-8 overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0">
+          <table className="w-full min-w-[760px] border-collapse bg-white rounded-2xl overflow-hidden border border-[#E2E6EB]">
+            <thead>
+              <tr className="font-mono text-[10.5px] uppercase tracking-[0.14em] text-[#6B7D99] border-b border-[#E2E6EB] bg-white">
+                <th className="text-left font-semibold px-5 py-3">Port</th>
+                <th className="text-left font-semibold px-5 py-3">Draft</th>
+                <th className="text-left font-semibold px-5 py-3">Tide</th>
+                <th className="text-left font-semibold px-5 py-3">Takes</th>
+                <th className="text-left font-semibold px-5 py-3">Pilot&apos;s note</th>
+                <th className="text-right font-semibold px-5 py-3">State</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-[#E2E6EB]">
+              {PORTS.map((p) => (
+                <tr key={p.n} className="hover:bg-[#FAF7F1] transition-colors">
+                  <td className="px-5 py-4">
+                    <span className="font-mono text-[11px] text-[#6B7D99] mr-2">{p.n}</span>
+                    <span className="font-bold text-[15px] text-[#0A2342]">{p.name}</span>
+                    <span className="block text-[12.5px] text-[#6B7D99] mt-0.5">{p.sub}</span>
+                  </td>
+                  <td className="px-5 py-4 font-mono font-semibold text-[15px] text-[#0A2342]">{p.draft}</td>
+                  <td className="px-5 py-4 font-mono text-[13px] text-[#0E7A3D]">{p.tide}</td>
+                  <td className="px-5 py-4 text-[13.5px] font-semibold text-[#3D4F68]">{p.ship}</td>
+                  <td className="px-5 py-4 text-[13px] text-[#3D4F68] max-w-[260px]">{p.note}</td>
+                  <td className="px-5 py-4 text-right">
+                    <span className={`inline-block font-mono text-[10px] uppercase tracking-[0.12em] px-2 py-1 rounded border ${p.flag === "Watch" ? "bg-[#FDF1E7] text-[#B45309] border-[#F0D3B8]" : "bg-[#E9F5EE] text-[#0E7A3D] border-[#BFE3CD]"}`}>{p.flag}</span>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
-
-        {/* Ports Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {PORTS.map((port, idx) => (
-            <div
-              key={idx}
-              className="bg-[#F8FAFC] rounded-2xl p-6 border border-slate-200/80 hover:border-slate-300 hover:shadow-lg transition-all duration-200 flex flex-col justify-between group"
-            >
-              <div>
-                <div className="flex items-center justify-between gap-2 mb-3">
-                  <span className="text-xs font-mono font-bold text-slate-400">
-                    PORT #{idx + 1}
-                  </span>
-                  <span
-                    className={`text-[10px] font-bold uppercase px-2 py-0.5 rounded-full ${
-                      port.isRestricted
-                        ? "bg-amber-100 text-amber-800"
-                        : "bg-emerald-100 text-emerald-800"
-                    }`}
-                  >
-                    {port.isRestricted ? "Draft Restricted" : "Deep Water"}
-                  </span>
-                </div>
-
-                <h3 className="text-lg font-bold text-slate-900 mb-1 group-hover:text-[#EA580C] transition-colors">
-                  {port.name}
-                </h3>
-                <p className="text-xs text-slate-500 mb-4">{port.location}</p>
-
-                {/* Draft Metrics */}
-                <div className="bg-white p-3.5 rounded-xl border border-slate-200/70 space-y-2 mb-4">
-                  <div className="flex justify-between items-center text-xs">
-                    <span className="text-slate-500">Permissible Draft:</span>
-                    <span className="font-mono font-bold text-slate-900 text-sm">
-                      {port.draft}
-                    </span>
-                  </div>
-                  <div className="flex justify-between items-center text-xs">
-                    <span className="text-slate-500">Tidal Window:</span>
-                    <span className="font-mono font-semibold text-emerald-600">
-                      {port.tideRange}
-                    </span>
-                  </div>
-                  <div className="flex justify-between items-center text-xs">
-                    <span className="text-slate-500">Max Direct Vessel:</span>
-                    <span className="font-semibold text-slate-800">
-                      {port.vesselsAllowed}
-                    </span>
-                  </div>
-                </div>
-
-                <p className="text-xs text-slate-500 leading-relaxed">
-                  {port.challenges}
-                </p>
-              </div>
-
-              <div className="pt-4 mt-4 border-t border-slate-200/70 flex items-center justify-between text-xs text-slate-600">
-                <span className="font-medium">{port.status}</span>
-                <span className="text-emerald-500 flex items-center gap-1 font-semibold">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                  Active
-                </span>
-              </div>
-            </div>
-          ))}
-        </div>
+        <p className="mt-3 font-mono text-[10.5px] uppercase tracking-[0.14em] text-[#6B7D99]">Swipe sideways on mobile · figures from port circulars + live tide</p>
       </div>
     </section>
   );

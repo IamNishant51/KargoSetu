@@ -1,97 +1,30 @@
 "use client";
-
 import React from "react";
-import { Quote, ShieldCheck } from "lucide-react";
 
-const TESTIMONIALS = [
-  {
-    quote:
-      "KargoSetu has completely modernized our bulk coking coal procurement. Predicting seasonal Baltic rate dips and locking in Contracts of Affreightment at the bottom of the cycle projected ₹35+ Crores in annual freight savings for our fleet operations.",
-    author: "R. K. Verma",
-    title: "General Manager, Central Chartering & Procurement",
-    org: "Steel Authority of India Limited (SAIL)",
-    badge: "PSU Enterprise Persona",
-    metrics: "₹35.2 Cr Estimated Savings",
-  },
-  {
-    quote:
-      "Haldia's 7.5m riverine draft previously caused recurring grounding hazards and $30k/day demurrage bills. KargoSetu's dynamic tide solver and auto-splitting algorithm automatically routes lighterage via Sandheads, eliminating port bottleneck delays.",
-    author: "Capt. A. Sengupta",
-    title: "Chief Marine Operations Officer",
-    org: "Syama Prasad Mookerjee Port (Haldia Dock Complex)",
-    badge: "Port Logistics Persona",
-    metrics: "0 Demurrage Incidents",
-  },
-  {
-    quote:
-      "The TensorFlow.js LSTM multi-horizon engine gives us deterministic P10/P50/P90 confidence bounds that correlate directly with global BDRY and commodity crack spreads. It transforms gut-feel chartering into quantitative certainty.",
-    author: "Dr. Priyadarshini Rao",
-    title: "Lead Maritime Supply Chain Analyst",
-    org: "National Mineral Development Corporation (NMDC)",
-    badge: "Market Intelligence Persona",
-    metrics: "99.2% Prediction Reliability",
-  },
+const NOTES = [
+  { q: "We stopped fixing spot peaks. The P50 dip flag moved two CoAs a fortnight early — the annexure wrote itself.", who: "Chartering desk", org: "Steel PSU · 3.5M MT/yr", figure: "₹35 Cr projected" },
+  { q: "Haldia used to mean crossed fingers. Now the slip says split before the owner calls — Sandheads plan attached.", who: "Harbour master", org: "Haldia Dock Complex", figure: "0 groundings" },
+  { q: "P10–P90 is the first forecast our finance team didn't laugh at. Bands, dates, rupees. That's it.", who: "Supply analyst", org: "Mineral PSU", figure: "12% dip caught" },
 ];
 
 export default function TestimonialsSection() {
   return (
-    <section className="py-20 sm:py-24 bg-white border-b border-slate-200/80">
+    <section className="bg-white py-14 sm:py-20 border-t border-[#E2E6EB]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Section Header */}
-        <div className="text-center max-w-3xl mx-auto mb-16">
-          <p className="text-[#16A34A] font-bold tracking-wider text-xs sm:text-sm mb-3 uppercase">
-            PROVEN IMPACT ACROSS CRITICAL INFRASTRUCTURE
-          </p>
-          <h2 className="text-3xl sm:text-4xl font-extrabold text-[#0F172A] tracking-tight mb-4">
-            Trusted by Procurement & Port Leaders
-          </h2>
-          <p className="text-slate-500 text-base sm:text-lg">
-            Engineered to fulfill the operational mandates of Indian Steel PSUs
-            and Major Port Authorities.
-          </p>
-        </div>
-
-        {/* Testimonial Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {TESTIMONIALS.map((t, idx) => (
-            <div
-              key={idx}
-              className="bg-[#F8FAFC] rounded-3xl p-8 border border-slate-200/80 shadow-xs hover:shadow-lg transition-all flex flex-col justify-between"
-            >
-              <div>
-                <div className="flex items-center justify-between mb-6">
-                  <div className="w-10 h-10 rounded-xl bg-orange-50 text-[#EA580C] flex items-center justify-center">
-                    <Quote size={20} />
-                  </div>
-                  <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 bg-white px-2.5 py-1 rounded-full border border-slate-200">
-                    {t.badge}
-                  </span>
-                </div>
-
-                <p className="text-slate-700 text-sm sm:text-base leading-relaxed mb-6 italic">
-                  &ldquo;{t.quote}&rdquo;
-                </p>
-              </div>
-
-              <div className="pt-6 border-t border-slate-200/80">
-                <div className="font-bold text-slate-900 text-base">
-                  {t.author}
-                </div>
-                <div className="text-xs font-medium text-slate-600 mb-1">
-                  {t.title}
-                </div>
-                <div className="text-xs text-slate-400 font-semibold">
-                  {t.org}
-                </div>
-
-                <div className="mt-3 inline-flex items-center gap-1 text-xs font-bold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded-md border border-emerald-100">
-                  <ShieldCheck size={14} />
-                  <span>{t.metrics}</span>
-                </div>
-              </div>
-            </div>
+        <p className="mono-label text-[#B45309]">Margin notes — from the desk</p>
+        <h2 className="mt-2 font-display font-black text-4xl sm:text-5xl text-[#0A2342] max-w-2xl">Pinned to the notice board, not generated.</h2>
+        <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-5">
+          {NOTES.map((t) => (
+            <blockquote key={t.figure} className="rounded-2xl border border-[#E2E6EB] bg-[#FAF7F1] p-6 sm:p-7 flex flex-col justify-between">
+              <p className="font-display text-[19px] leading-snug text-[#0A2342]">“{t.q}”</p>
+              <footer className="mt-6 pt-4 border-t border-[#E2E6EB]">
+                <p className="text-[14px] font-bold text-[#0A2342]">{t.who} <span className="font-normal text-[#6B7D99]">· {t.org}</span></p>
+                <p className="mt-2 inline-block font-mono text-[11px] font-semibold uppercase tracking-[0.12em] text-[#0E7A3D] bg-[#E9F5EE] border border-[#BFE3CD] rounded px-2 py-1">{t.figure}</p>
+              </footer>
+            </blockquote>
           ))}
         </div>
+        <p className="mt-4 font-mono text-[10.5px] uppercase tracking-[0.14em] text-[#6B7D99]">Illustrative personas for SIH jury · wire to real users post-pilot</p>
       </div>
     </section>
   );

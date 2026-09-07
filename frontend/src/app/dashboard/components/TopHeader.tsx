@@ -13,54 +13,41 @@ import {
   LogOut,
   User,
   Globe,
+  RotateCcw,
 } from "lucide-react";
 import { useLanguage } from "@/i18n/LanguageContext";
-import { useQuery } from "@tanstack/react-query";
 import { useUser } from "@/hooks/useUser";
+import { useNotifications, relativeTime } from "@/hooks/useNotifications";
 import Cookies from "js-cookie";
 import { useRouter } from "next/navigation";
 import { useSidebar } from "./SidebarContext";
+import { clearSessionAndRedirect } from "@/lib/auth";
 
-function getRelativeTime(dateStr: string) {
-  const d = new Date(dateStr);
-  const now = new Date();
-  const diffInMinutes = Math.floor((now.getTime() - d.getTime()) / 60000);
-
-  if (diffInMinutes < 1) return `Just now`;
-  if (diffInMinutes < 60) return `${diffInMinutes}m ago`;
-  const diffInHours = Math.floor(diffInMinutes / 60);
-  if (diffInHours < 24) return `${diffInHours}h ago`;
-  const diffInDays = Math.floor(diffInHours / 24);
-  return `${diffInDays}d ago`;
-}
+const CRUMBS = [
+  { match: (p: string) => p === "/dashboard", icon: LayoutDashboard, key: "dashboard" },
+  { match: (p: string) => p.includes("/requisitions"), icon: FileText, key: "requisitions" },
+  { match: (p: string) => p.includes("/forecasts"), icon: TrendingUp, key: "forecasts" },
+  { match: (p: string) => p.includes("/settings"), icon: Settings, key: "settings" },
+];
 
 export function TopHeader() {
   const { setSidebarOpen } = useSidebar();
   const { t, language, setLanguage } = useLanguage();
   const pathname = usePathname();
   const router = useRouter();
-  const { data: user, isLoading: isUserLoading } = useUser();
+  const { data: user } = useUser();
+  const {
+    notifications,
+    unreadCount,
+    isLoading: isLoadingNotifications,
+    isError: notifError,
+    refetch: refetchNotifs,
+    markAllAsRead,
+  } = useNotifications();
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
-  const [allRead, setAllRead] = useState(false);
   const [langOpen, setLangOpen] = useState(false);
-
-  const { data: notificationsData, isLoading: isLoadingNotifications } =
-    useQuery({
-      queryKey: ["notifications"],
-      queryFn: async () => {
-        const baseUrl =
-          process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
-        const res = await fetch(`${baseUrl}/api/v1/notifications`);
-        if (!res.ok) return [];
-        return res.json();
-      },
-    });
-
-  const unreadCount = allRead
-    ? 0
-    : notificationsData?.filter((n: { unread: boolean }) => n.unread)?.length ||
-      0;
+  const [notifTab, setNotifTab] = useState<"all" | "unread">("all");
 
   const notifRef = useRef<HTMLDivElement>(null);
   const profileRef = useRef<HTMLDivElement>(null);
@@ -75,154 +62,145 @@ export function TopHeader() {
         !profileRef.current.contains(event.target as Node)
       )
         setProfileOpen(false);
+      if (langRef.current && !langRef.current.contains(event.target as Node))
+        setLangOpen(false);
     }
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  const crumb = CRUMBS.find((c) => c.match(pathname));
+  const visibleNotifs = notifTab === "unread" ? notifications.filter((n) => n.unread) : notifications;
+
   return (
-    <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-4 sm:px-8 z-30 sticky top-0 shrink-0">
-      <div className="flex items-center text-slate-600">
+    <header className="h-16 bg-white border-b border-[#E2E6EB] flex items-center justify-between px-4 sm:px-8 z-30 sticky top-0 shrink-0">
+      <div className="flex items-center text-[#3D4F68]">
         <button
           type="button"
-          aria-label="Open Sidebar"
-          className="md:hidden p-2 mr-2 -ml-2 text-slate-500 hover:text-slate-700 hover:bg-slate-100 rounded-md transition-colors"
+          aria-label={t("open_sidebar")}
+          className="md:hidden p-2 mr-2 -ml-2 text-[#6B7D99] hover:text-[#0A2342] hover:bg-[#FAF7F1] rounded-lg transition-colors"
           onClick={() => setSidebarOpen(true)}
         >
           <Menu className="w-5 h-5" />
         </button>
-        {pathname === "/dashboard" && (
+        {crumb && (
           <>
-            <LayoutDashboard className="hidden sm:block w-5 h-5 mr-2" />
-            <span className="text-sm font-medium">Dashboard</span>
-          </>
-        )}
-        {pathname.includes("/requisitions") && (
-          <>
-            <FileText className="hidden sm:block w-5 h-5 mr-2" />
-            <span className="text-sm font-medium">Requisitions</span>
-          </>
-        )}
-        {pathname.includes("/forecasts") && (
-          <>
-            <TrendingUp className="hidden sm:block w-5 h-5 mr-2" />
-            <span className="text-sm font-medium">Forecasts</span>
-          </>
-        )}
-        {pathname.includes("/settings") && (
-          <>
-            <Settings className="hidden sm:block w-5 h-5 mr-2" />
-            <span className="text-sm font-medium">Settings</span>
+            <crumb.icon size={17} className="hidden sm:block mr-2 text-[#B45309]" />
+            <span className="mono-label text-[#3D4F68]">{t(crumb.key)}</span>
           </>
         )}
       </div>
 
-      <div className="flex items-center space-x-3 sm:space-x-6">
+      <div className="flex items-center space-x-2 sm:space-x-4">
         {/* Notifications Dropdown */}
         <div className="relative" ref={notifRef}>
           <button
             type="button"
-            aria-label="Toggle notifications"
+            aria-label={t("notifications")}
             aria-expanded={notificationsOpen}
             onClick={() => setNotificationsOpen(!notificationsOpen)}
-            className={`relative p-2 rounded-full transition-colors focus:outline-none ${notificationsOpen ? "bg-slate-100 text-slate-800" : "text-slate-400 hover:text-slate-600 hover:bg-slate-50"}`}
+            className={`relative p-2 rounded-full transition-colors focus:outline-none ${notificationsOpen ? "bg-[#FAF7F1] text-[#0A2342]" : "text-[#6B7D99] hover:text-[#0A2342] hover:bg-[#FAF7F1]"}`}
           >
             <Bell className="w-5 h-5" />
             {unreadCount > 0 && (
-              <span className="absolute top-1.5 right-1.5 w-4 h-4 bg-red-500 text-white text-[10px] font-bold flex items-center justify-center rounded-full border-2 border-white">
+              <span className="absolute top-1 right-1 w-4 h-4 bg-[#D95D0F] text-white text-[10px] font-bold flex items-center justify-center rounded-full border-2 border-white">
                 {unreadCount}
               </span>
             )}
           </button>
 
           {notificationsOpen && (
-            <div className="absolute right-0 mt-2 w-80 rounded-xl border border-slate-200 bg-white shadow-lg overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200 z-50">
-              <div className="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
-                <h3 className="font-semibold text-slate-800">{t("notifications")}</h3>
-                <span
-                  onClick={() => setAllRead(true)}
-                  className="text-xs font-medium text-blue-600 cursor-pointer hover:text-blue-700"
-                >
-                  {t("mark_read")}
-                </span>
+            <div className="absolute right-0 mt-2 w-80 rounded-xl border border-[#E2E6EB] bg-white shadow-[4px_4px_0_rgba(10,35,66,0.08)] overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200 z-50">
+              <div className="px-4 pt-4 pb-3 border-b border-[#E2E6EB] bg-[#FAF7F1]">
+                <div className="flex items-center justify-between">
+                  <h3 className="font-bold text-[#0A2342] text-[15px]">{t("notifications")}</h3>
+                  <span
+                    onClick={markAllAsRead}
+                    className="text-xs font-bold text-[#B45309] cursor-pointer hover:text-[#0A2342]"
+                  >
+                    {t("mark_read")}
+                  </span>
+                </div>
+                <div className="mt-3 inline-flex rounded-lg border border-[#E2E6EB] bg-white p-0.5">
+                  {(["all", "unread"] as const).map((tab) => (
+                    <button
+                      key={tab}
+                      type="button"
+                      onClick={() => setNotifTab(tab)}
+                      className={`px-3 py-1.5 text-[12px] font-bold rounded-md transition-colors ${
+                        notifTab === tab ? "bg-[#0A2342] text-white" : "text-[#6B7D99] hover:text-[#0A2342]"
+                      }`}
+                    >
+                      {t(tab === "all" ? "notif_all" : "notif_unread")}
+                      {tab === "unread" && unreadCount > 0 && ` · ${unreadCount}`}
+                    </button>
+                  ))}
+                </div>
               </div>
               <div className="max-h-[300px] overflow-auto">
                 {isLoadingNotifications ? (
-                  <div className="p-4 text-center text-sm text-slate-500">
-                    Loading notifications...
+                  <div className="p-4 text-center text-sm text-[#6B7D99]">
+                    {t("notif_loading")}
                   </div>
-                ) : notificationsData?.length === 0 ? (
-                  <div className="p-4 text-center text-sm text-slate-500">
-                    No new notifications
+                ) : notifError ? (
+                  <div className="p-5 text-center">
+                    <p className="text-sm font-medium text-[#3D4F68]">{t("notif_error")}</p>
+                    <button
+                      type="button"
+                      onClick={() => refetchNotifs()}
+                      className="mt-3 inline-flex items-center gap-1.5 rounded-lg bg-[#FDF1E7] border border-[#D95D0F]/30 px-3.5 py-2 text-[12.5px] font-bold text-[#B45309] hover:text-[#0A2342] transition-colors"
+                    >
+                      <RotateCcw size={13} />
+                      {t("retry")}
+                    </button>
+                  </div>
+                ) : visibleNotifs.length === 0 ? (
+                  <div className="p-4 text-center text-sm text-[#6B7D99]">
+                    {notifTab === "unread" ? t("notif_empty") : t("notif_empty_all")}
                   </div>
                 ) : (
-                  notificationsData?.map(
-                    (
-                      notif: {
-                        id: string;
-                        title: string;
-                        desc: string;
-                        time: string;
-                        unread: boolean;
-                      },
-                      i: number,
-                    ) => {
-                      const isUnread = allRead ? false : notif.unread;
-                      return (
+                  visibleNotifs.map((notif) => (
+                    <div
+                      key={notif.id}
+                      className={`p-4 border-b border-[#E2E6EB] transition-colors hover:bg-[#FAF7F1] flex gap-3 ${notif.unread ? "bg-[#FDF1E7]/60" : ""}`}
+                    >
+                      <div className="mt-1.5">
                         <div
-                          key={notif.id || i}
-                          className={`p-4 border-b border-slate-50 cursor-pointer transition-colors hover:bg-slate-50 flex gap-3 ${isUnread ? "bg-blue-50/30" : ""}`}
-                        >
-                          <div className="mt-0.5">
-                            <div
-                              className={`w-2 h-2 rounded-full ${isUnread ? "bg-blue-500" : "bg-transparent"}`}
-                            ></div>
-                          </div>
-                          <div>
-                            <p
-                              className={`text-sm ${isUnread ? "font-semibold text-slate-900" : "font-medium text-slate-900"}`}
-                            >
-                              {notif.title}
-                            </p>
-                            <p className="text-xs text-slate-500 mt-0.5">
-                              {notif.desc}
-                            </p>
-                            <p className="text-[10px] text-slate-400 mt-1">
-                              {getRelativeTime(notif.time)}
-                            </p>
-                          </div>
-                        </div>
-                      );
-                    },
-                  )
+                          className={`w-2 h-2 rounded-full ${notif.unread ? "bg-[#D95D0F]" : "bg-transparent"}`}
+                        ></div>
+                      </div>
+                      <div>
+                        <p className="text-sm font-bold text-[#0A2342]">
+                          {notif.title}
+                        </p>
+                        <p className="text-xs text-[#6B7D99] mt-0.5">
+                          {notif.desc}
+                        </p>
+                        <p className="font-mono text-[10px] uppercase tracking-wider text-[#6B7D99] mt-1">
+                          {relativeTime(notif.time, t)}
+                        </p>
+                      </div>
+                    </div>
+                  ))
                 )}
-              </div>
-              <div className="p-3 text-center border-t border-slate-100 bg-slate-50">
-                <button
-                  type="button"
-                  aria-label="View all notifications"
-                  className="text-sm font-medium text-slate-600 hover:text-slate-800 transition-colors"
-                >
-                  View all notifications
-                </button>
               </div>
             </div>
           )}
         </div>
 
-        {/* Profile Dropdown */}
         {/* Language Selector */}
-        <div className="relative mr-2 sm:mr-4" ref={langRef}>
+        <div className="relative" ref={langRef}>
           <button
             onClick={() => setLangOpen(!langOpen)}
-            className="p-2 text-slate-500 hover:text-slate-700 hover:bg-slate-100 rounded-full transition-colors flex items-center"
-            title="Change Language"
+            className="p-2 text-[#6B7D99] hover:text-[#0A2342] hover:bg-[#FAF7F1] rounded-full transition-colors flex items-center"
+            title={t("change_language")}
+            aria-label={t("change_language")}
           >
             <Globe className="w-5 h-5" />
           </button>
 
           {langOpen && (
-            <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-slate-200 overflow-hidden z-50">
+            <div className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-[4px_4px_0_rgba(10,35,66,0.08)] border border-[#E2E6EB] overflow-hidden z-50">
               <ul className="py-1">
                 {[
                   { code: "en", label: "English" },
@@ -235,7 +213,7 @@ export function TopHeader() {
                 ].map((l) => (
                   <li key={l.code}>
                     <button
-                      className={`w-full text-left px-4 py-2 text-sm transition-colors hover:bg-slate-50 ${language === l.code ? "text-orange-600 font-semibold bg-orange-50/50" : "text-slate-700"}`}
+                      className={`w-full text-left px-4 py-2 text-sm transition-colors hover:bg-[#FAF7F1] ${language === l.code ? "text-[#B45309] font-bold bg-[#FDF1E7]" : "text-[#3D4F68]"}`}
                       onClick={() => {
                         setLanguage(l.code as "en" | "hi" | "bn" | "mr" | "ta" | "te" | "gu");
                         setLangOpen(false);
@@ -251,7 +229,7 @@ export function TopHeader() {
         </div>
 
         <div
-          className="relative border-l border-slate-200 pl-3 sm:pl-6"
+          className="relative border-l border-[#E2E6EB] pl-2 sm:pl-4"
           ref={profileRef}
         >
           <div
@@ -259,21 +237,21 @@ export function TopHeader() {
             className="flex items-center cursor-pointer group"
           >
             <div className="text-right mr-3 hidden lg:block">
-              <p className="text-sm font-medium text-slate-800 group-hover:text-blue-600 transition-colors">
+              <p className="text-[13.5px] font-bold text-[#0A2342] group-hover:text-[#B45309] transition-colors">
                 {user?.name || "KargoSetu User"}
               </p>
-              <p className="text-xs text-slate-500">{user?.email || "Admin"}</p>
+              <p className="text-xs text-[#6B7D99]">{user?.email || t("admin")}</p>
             </div>
-            
+
             {user?.avatarUrl ? (
-              <img 
+              <img
                 src={user.avatarUrl}
                 alt={user.name || "Avatar"}
-                className={`w-8 h-8 sm:w-9 sm:h-9 rounded-full shrink-0 border transition-all ${profileOpen ? "border-blue-500 ring-2 ring-blue-500/20" : "border-slate-200 group-hover:border-blue-300"}`}
+                className={`w-8 h-8 sm:w-9 sm:h-9 rounded-full shrink-0 border transition-all ${profileOpen ? "border-[#D95D0F] ring-2 ring-[#D95D0F]/20" : "border-[#E2E6EB] group-hover:border-[#D95D0F]"}`}
               />
             ) : (
               <div
-                className={`w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-orange-500 text-white flex items-center justify-center font-bold text-sm shrink-0 overflow-hidden transition-all shadow-sm ${profileOpen ? "ring-2 ring-blue-500/20" : ""}`}
+                className={`w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-[#D95D0F] text-white flex items-center justify-center font-bold text-sm shrink-0 overflow-hidden transition-all ${profileOpen ? "ring-2 ring-[#D95D0F]/20" : ""}`}
               >
                 {user?.name?.substring(0, 2).toUpperCase() || "U"}
               </div>
@@ -281,43 +259,44 @@ export function TopHeader() {
           </div>
 
           {profileOpen && (
-            <div className="absolute right-0 mt-3 w-56 rounded-xl border border-slate-200 bg-white shadow-lg overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200 z-50">
-              <div className="p-4 border-b border-slate-100 bg-slate-50">
-                <p className="text-sm font-semibold text-slate-800">
+            <div className="absolute right-0 mt-3 w-56 rounded-xl border border-[#E2E6EB] bg-white shadow-[4px_4px_0_rgba(10,35,66,0.08)] overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200 z-50">
+              <div className="p-4 border-b border-[#E2E6EB] bg-[#FAF7F1]">
+                <p className="text-sm font-bold text-[#0A2342]">
                   {user?.name || "KargoSetu User"}
                 </p>
-                <p className="text-xs text-slate-500 mt-0.5">
-                  {user?.email || "Admin"}
+                <p className="text-xs text-[#6B7D99] mt-0.5">
+                  {user?.email || t("admin")}
                 </p>
               </div>
               <div className="p-2">
                 <Link
                   href="/dashboard/settings"
-                  className="flex items-center px-3 py-2 text-sm font-medium text-slate-700 rounded-md hover:bg-slate-100 transition-colors"
+                  className="flex items-center px-3 py-2 text-sm font-medium text-[#3D4F68] rounded-lg hover:bg-[#FAF7F1] hover:text-[#0A2342] transition-colors"
                 >
-                  <User className="w-4 h-4 mr-3 text-slate-400" />
-                  My Profile
+                  <User size={15} className="mr-3 text-[#6B7D99]" />
+                  {t("profile_title")}
                 </Link>
                 <Link
                   href="/dashboard/settings"
-                  className="flex items-center px-3 py-2 text-sm font-medium text-slate-700 rounded-md hover:bg-slate-100 transition-colors"
+                  className="flex items-center px-3 py-2 text-sm font-medium text-[#3D4F68] rounded-lg hover:bg-[#FAF7F1] hover:text-[#0A2342] transition-colors"
                 >
-                  <Settings className="w-4 h-4 mr-3 text-slate-400" />
-                  Account Settings
+                  <Settings size={15} className="mr-3 text-[#6B7D99]" />
+                  {t("account_settings")}
                 </Link>
               </div>
-              <div className="p-2 border-t border-slate-100">
+              <div className="p-2 border-t border-[#E2E6EB]">
                 <button
                   type="button"
                   onClick={() => {
                     Cookies.remove("auth_token", { path: '/' });
+                    clearSessionAndRedirect();
                     router.push('/login');
                   }}
-                  aria-label="Sign out"
-                  className="w-full flex items-center px-3 py-2 text-sm font-medium text-red-600 rounded-md hover:bg-red-50 transition-colors"
+                  aria-label={t("sign_out")}
+                  className="w-full flex items-center px-3 py-2 text-sm font-bold text-[#B42318] rounded-lg hover:bg-[#FDECEC] transition-colors"
                 >
-                  <LogOut className="w-4 h-4 mr-3 text-red-500" />
-                  Sign Out
+                  <LogOut size={15} className="mr-3" />
+                  {t("sign_out")}
                 </button>
               </div>
             </div>

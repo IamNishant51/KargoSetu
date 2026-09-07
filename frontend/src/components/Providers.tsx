@@ -8,6 +8,7 @@ import {
 } from "@tanstack/react-query";
 import { ReactQueryStreamedHydration } from "@tanstack/react-query-next-experimental";
 import { GoogleOAuthProvider } from "@react-oauth/google";
+import { LanguageProvider } from "@/i18n/LanguageContext";
 
 function makeQueryClient() {
   return new QueryClient({
@@ -37,7 +38,9 @@ export default function Providers({ children }: { children: React.ReactNode }) {
   return (
     <GoogleOAuthProvider clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || "placeholder"}>
       <QueryClientProvider client={queryClient}>
-        <ReactQueryStreamedHydration>{children}</ReactQueryStreamedHydration>
+        <ReactQueryStreamedHydration>
+          <LanguageProvider>{children}</LanguageProvider>
+        </ReactQueryStreamedHydration>
       </QueryClientProvider>
     </GoogleOAuthProvider>
   );

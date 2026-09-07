@@ -1,19 +1,19 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
-import Image from "next/image";
 import { Mail, Lock, User, ArrowRight, Eye, EyeOff } from "lucide-react";
 import { GoogleLogin, CredentialResponse } from "@react-oauth/google";
-import Cookies from "js-cookie";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useLanguage } from "@/i18n/LanguageContext";
+import { persistSessionAndRedirect } from "@/lib/auth";
+import AuthShell from "@/components/auth/AuthShell";
 
 export default function RegisterPage() {
-  const router = useRouter();
+  const { t } = useLanguage();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -35,17 +35,16 @@ export default function RegisterPage() {
 
       if (!res.ok) {
         const data = await res.json();
-        throw new Error(data.detail || "Failed to register");
+        throw new Error(data.detail || t("err_register"));
       }
 
       const data = await res.json();
-      Cookies.set("auth_token", data.access_token, { expires: 7, path: "/" });
-      router.push("/dashboard");
+      persistSessionAndRedirect(data.access_token);
     } catch (err: unknown) {
       if (err instanceof Error) {
         setError(err.message);
       } else {
-        setError("An unknown error occurred");
+        setError(t("err_unknown"));
       }
     } finally {
       setLoading(false);
@@ -59,154 +58,127 @@ export default function RegisterPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ token: credentialResponse.credential }),
       });
-      if (!res.ok) throw new Error("Google registration failed");
-      
+      if (!res.ok) throw new Error(t("err_google_reg"));
+
       const data = await res.json();
-      Cookies.set("auth_token", data.access_token, { expires: 7, path: "/" });
-      router.push("/dashboard");
+      persistSessionAndRedirect(data.access_token);
     } catch (err: unknown) {
       if (err instanceof Error) {
         setError(err.message);
       } else {
-        setError("An unknown error occurred");
+        setError(t("err_unknown"));
       }
     }
   };
 
   return (
-    <div className="min-h-screen w-full bg-[#F8FAFC] font-sans selection:bg-orange-100 selection:text-orange-900 flex flex-col items-center justify-center p-4 relative overflow-hidden">
-      
-      {/* Subtle Background Elements */}
-      <div className="absolute inset-0 bg-[linear-gradient(rgba(15,23,42,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(15,23,42,0.02)_1px,transparent_1px)] bg-[size:64px_64px] pointer-events-none" />
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-2xl h-64 bg-[#EA580C]/5 blur-[120px] rounded-full pointer-events-none" />
+    <AuthShell
+      eyebrow={t("reg_eyebrow")}
+      title={<>{t("reg_title_a")}<span className="text-[#D95D0F]">{t("reg_title_b")}</span></>}
+      sub={t("reg_sub")}
+    >
+      <p className="mono-label text-[#B45309]">{t("reg_kicker")}</p>
+      <h2 className="mt-2 font-display font-black text-[30px] sm:text-[34px] tracking-[-0.025em] text-[#0A2342]">{t("reg_form_title")}</h2>
+      <p className="mt-2 text-[14px] leading-relaxed text-[#3D4F68]">
+        {t("reg_form_sub")}
+      </p>
 
-      {/* Main Card */}
-      <div className="w-full max-w-[440px] bg-white rounded-[28px] shadow-2xl shadow-slate-200/50 border border-slate-100 p-6 sm:p-10 relative z-10 my-4">
-        
-        {/* Brand Header */}
-        <div className="flex flex-col items-center justify-center mb-6">
-          <Link href="/" className="group flex flex-col items-center gap-2">
-            <div className="relative w-16 h-16 sm:w-20 sm:h-20 flex items-center justify-center transition-transform duration-300 group-hover:scale-105">
-              <Image
-                src="/logo-ks.png"
-                alt="KargoSetu Logo"
-                fill
-                sizes="80px"
-                className="object-contain drop-shadow-md"
-                priority
+      <form onSubmit={handleRegister} className="mt-7 space-y-5">
+        {error && (
+          <div className="rounded-xl border border-[#F3C2C2] bg-[#FDECEC] px-4 py-3 text-[13.5px] font-semibold text-[#B42318]">
+            {error}
+          </div>
+        )}
+
+        <div className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="name" className="mono-label text-[#3D4F68]">{t("full_name")}</Label>
+            <div className="relative">
+              <User size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-[#6B7D99] pointer-events-none" />
+              <Input
+                id="name"
+                type="text"
+                placeholder="John Doe"
+                required
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className="h-12 rounded-xl border-[#E2E6EB] bg-white pl-11 text-[15px] text-[#0A2342] placeholder:text-[#6B7D99]/70 focus-visible:border-[#D95D0F] focus-visible:ring-[#D95D0F]/30"
               />
             </div>
-            <span className="font-extrabold text-3xl sm:text-[32px] tracking-tighter text-[#0F172A] font-sans leading-none mt-1">
-              KargoSetu<span className="text-[#EA580C]">.</span>
-            </span>
-          </Link>
-          <p className="text-slate-500 font-medium text-center mt-2 text-sm">
-            Create an enterprise account
-          </p>
-        </div>
-
-        {/* Form */}
-        <form onSubmit={handleRegister} className="space-y-5">
-          {error && (
-            <div className="p-3 rounded-lg bg-red-50 border border-red-100 text-red-600 text-sm font-medium text-center">
-              {error}
-            </div>
-          )}
-          
-          <div className="space-y-4">
-            <div className="space-y-1.5">
-              <Label htmlFor="name">Full Name</Label>
-              <div className="relative">
-                <User className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
-                <Input
-                  id="name"
-                  type="text"
-                  placeholder="John Doe"
-                  required
-                  className="pl-12 h-11"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                />
-              </div>
-            </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="email">Email</Label>
-              <div className="relative">
-                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
-                <Input
-                  id="email"
-                  type="email"
-                  placeholder="name@company.com"
-                  required
-                  className="pl-12 h-11"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                />
-              </div>
-            </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="password">Password</Label>
-              <div className="relative flex items-center">
-                <Lock className="absolute left-4 h-5 w-5 text-slate-400" />
-                <Input
-                  id="password"
-                  type={showPassword ? "text" : "password"}
-                  placeholder="Create a strong password"
-                  required
-                  minLength={8}
-                  className="pl-12 pr-12 h-11"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-4 p-1 text-slate-400 hover:text-slate-600 focus:outline-none transition-colors"
-                  aria-label={showPassword ? "Hide password" : "Show password"}
-                >
-                  {showPassword ? (
-                    <EyeOff className="h-5 w-5" />
-                  ) : (
-                    <Eye className="h-5 w-5" />
-                  )}
-                </button>
-              </div>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="email" className="mono-label text-[#3D4F68]">{t("email")}</Label>
+            <div className="relative">
+              <Mail size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-[#6B7D99] pointer-events-none" />
+              <Input
+                id="email"
+                type="email"
+                placeholder="name@company.com"
+                required
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="h-12 rounded-xl border-[#E2E6EB] bg-white pl-11 text-[15px] text-[#0A2342] placeholder:text-[#6B7D99]/70 focus-visible:border-[#D95D0F] focus-visible:ring-[#D95D0F]/30"
+              />
             </div>
           </div>
-
-          <Button type="submit" className="w-full h-12 text-base" disabled={loading}>
-            {loading ? "Creating account..." : "Sign up"}
-            {!loading && <ArrowRight className="ml-2 h-4 w-4" />}
-          </Button>
-        </form>
-
-        <div className="relative my-6">
-          <div className="absolute inset-0 flex items-center">
-            <span className="w-full border-t border-slate-200" />
-          </div>
-          <div className="relative flex justify-center text-[11px] uppercase font-bold tracking-wider">
-            <span className="bg-white px-4 text-slate-400">Or register with</span>
+          <div className="space-y-2">
+            <Label htmlFor="password" className="mono-label text-[#3D4F68]">{t("password")}</Label>
+            <div className="relative flex items-center">
+              <Lock size={18} className="absolute left-4 text-[#6B7D99] pointer-events-none" />
+              <Input
+                id="password"
+                type={showPassword ? "text" : "password"}
+                placeholder="Create a strong password"
+                required
+                minLength={8}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="h-12 rounded-xl border-[#E2E6EB] bg-white pl-11 pr-12 text-[15px] text-[#0A2342] placeholder:text-[#6B7D99]/70 focus-visible:border-[#D95D0F] focus-visible:ring-[#D95D0F]/30"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-4 p-1 text-[#6B7D99] hover:text-[#0A2342] transition-colors"
+                aria-label={showPassword ? "Hide password" : "Show password"}
+              >
+                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
+            </div>
           </div>
         </div>
 
-        <div className="flex justify-center w-full">
-          <GoogleLogin
-            onSuccess={handleGoogleSuccess}
-            onError={() => setError("Google Registration failed")}
-            theme="outline"
-            size="large"
-            width="100%"
-            shape="rectangular"
-          />
-        </div>
+        <Button
+          type="submit"
+          disabled={loading}
+          className="w-full h-auto rounded-xl bg-[#D95D0F] px-6 py-4 text-[15px] font-bold text-white hover:bg-[#B45309] transition-colors shadow-[0_3px_0_#0A2342] ring-1 ring-[#0A2342]/10"
+        >
+          {loading ? t("creating_acc") : t("sign_up")}
+          {!loading && <ArrowRight size={16} className="ml-2" />}
+        </Button>
+      </form>
 
-        <p className="mt-6 text-center text-sm font-medium text-slate-600">
-          Already have an account?{" "}
-          <Link href="/login" className="font-bold text-[#EA580C] hover:text-[#C2410C] hover:underline transition-all">
-            Sign in
-          </Link>
-        </p>
+      <div className="relative my-6">
+        <div className="harbour-rule absolute inset-x-0 top-1/2" />
+        <div className="relative flex justify-center">
+          <span className="bg-white px-4 mono-label text-[#6B7D99]">{t("or_register")}</span>
+        </div>
       </div>
-    </div>
+
+      <div className="flex justify-center">
+        <GoogleLogin
+          onSuccess={handleGoogleSuccess}
+          onError={() => setError("Google Registration failed")}
+          theme="outline"
+          size="large"
+          width="320"
+          shape="rectangular"
+        />
+      </div>
+
+      <p className="mt-7 text-center text-[14px] font-medium text-[#3D4F68]">
+        {t("have_account")}{" "}
+        <Link href="/login" className="font-bold text-[#B45309] hover:text-[#0A2342] transition-colors">{t("signin_link")}</Link>
+      </p>
+    </AuthShell>
   );
 }

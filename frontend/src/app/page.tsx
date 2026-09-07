@@ -26,14 +26,13 @@ const DemoModal = dynamic(() => import("@/components/landing/DemoModal"));
 
 export default function Home() {
   return (
-    <div className="min-h-screen bg-[#F8FAFC] font-sans selection:bg-orange-100 selection:text-orange-900 text-slate-900 flex flex-col">
+    <div className="min-h-screen bg-white text-[#0A2342] flex flex-col">
       <Navbar />
-
       <main className="flex-1">
         <HeroSection />
+        <MarketTicker />
         <SocialProofLogos />
         <SolutionsSection />
-        <MarketTicker />
         <InteractiveSandbox />
         <BentoFeatures />
         <PortCorridor />
@@ -42,7 +41,6 @@ export default function Home() {
         <FaqSection />
         <CtaSection />
       </main>
-
       <Footer />
       <DemoModal />
     </div>

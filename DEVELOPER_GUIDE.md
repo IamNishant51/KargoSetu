@@ -12,6 +12,15 @@ This is everything the user sees and interacts with in their browser. It is buil
 * **`app/layout.tsx`**: The **App Wrapper**. This file sets up application metadata, fonts, and global client providers.
 * **`app/dashboard/page.tsx`**: The **Command Center**. When you click "Launch Dashboard", this is the page that loads. **New Update:** The static mock UI has been completely wired up using TanStack React Query to display real-time live calculations from the backend!
 
+### Dashboard Shell & Theme (`app/dashboard/` folder)
+The whole command center speaks the landing page's harbour language: light paper background `#FAF7F1`, white cards on `#E2E6EB` hairlines, Inter everywhere, mono-label eyebrows over display-black titles, cargo-orange `#D95D0F` primary buttons, leaf/sea/cargo status chips. There is no dark surface anywhere — the old `bg-navy-950` chart and `#0A1727` buttons are gone. **`components/Sidebar.tsx`** (white rail, cargo active link, live Haldia draft slip, paper profile card) and **`components/TopHeader.tsx`** (mono crumb, cargo notification dot, language + profile menus) form the shell. Status colors: Feasible = leaf wash, Pending = cargo wash, Infeasible = dossier red, Converted = sea wash. If you add a new dashboard page, copy a page header (eyebrow + `font-display font-black` h1) and use the same tokens.
+
+### Languages & Notifications (`i18n/`, `hooks/useNotifications.ts`, backend `routers/notifications.py`)
+Every user-facing string in the dashboard, auth pages, and shell lives in `src/i18n/translations/` — 7 dictionaries (en/hi/bn/mr/ta/te/gu) with enforced key parity. Always add a new key to **all seven files** (short functional copy only). Dynamic values use `{n}`/`{a}`/`{b}`/`{c}` templates filled with `.replace()` since `t()` has no interpolation. Critical rule: filter and select **values stay English** — only display labels translate (see `STATUS_OPTS`/`COMMODITY_OPTS`/`ORIGIN_OPTS`/`RANGE_OPTS` in RequisitionsClient and the `value=` attributes on settings `<option>`s), otherwise API queries break on language switch. Commodity names, ports, units, currencies, model versions, and timezones intentionally stay English (desk convention). Notifications come from the live FastAPI feed (latest requisitions + draft alerts + newest ML model, fault-isolated per source); the frontend polls every 30s, keeps read receipts in localStorage by notification id, and shows All/Unread tabs with retry on failure.
+
+### Reload persistence (`lib/storage.ts` + per-page keys)
+Reloads must never lose desk state. The rule: **lazy `useState` initializers rehydrate, effects only write to localStorage** (never `setState` in effects). Keys: `kargosetu_lang` (language, single lazy init — never a restore effect), `kargosetu_eval_v1` (solver form + last answer + unit), `kargosetu_req_view_v1` (register filters + page + search), `kargosetu_req_draft_v1` (unsent indent, auto-cleared on create), `kargosetu_fc_view_v1` (shock + horizon + table page), `kargosetu_notif_read` (read receipts). `loadJSON` merges over defaults so corrupt blobs degrade, never crash. Ephemeral UI (open modals/dropdowns, spinners, sidebar) intentionally resets.
+
 ### Landing Page Components (`components/landing/` folder)
 * **`Navbar.tsx`**: Sticky responsive navigation with desktop solutions dropdown and mobile drawer.
 * **`HeroSection.tsx`**: Hero section with Indian tricolor arch ship artwork and floating live Market Snapshot card.
@@ -27,6 +36,9 @@ This is everything the user sees and interacts with in their browser. It is buil
 * **`CtaSection.tsx`**: Conversion call-to-action banner for launching the Executive Command Center.
 * **`Footer.tsx`**: Complete enterprise footer with port corridors, SIH 26006 problem badge, and system status.
 * **`DemoModal.tsx`**: Interactive 4-chapter guided walkthrough modal triggered by Watch Demo buttons.
+
+### Auth Pages (`app/login/`, `app/register/`, `components/auth/` folder)
+Both pages share one shell so they always look like the same office. **`AuthShell.tsx`** renders the top bar (wordmark + SIH tag + back link), the hard-shadow card, a quiet navy panel on the left (eyebrow, headline, one sub-line, SIH footnote — deliberately minimal), and the white form desk on the right. The login and register pages only pass different copy (eyebrow, title, sub) plus their own form fields. All auth logic is untouched: forms POST to the FastAPI backend and `persistSessionAndRedirect` in `lib/auth.ts` hard-navigates to `/dashboard` so the middleware sees the cookie. If you change one auth page, mirror the copy shape in the other.
 
 ### UI Components (`components/` folder)
 These are the reusable LEGO blocks used to build the dashboard.

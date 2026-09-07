@@ -4,7 +4,6 @@ import React, { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import {
   TrendingUp,
-  Sparkles,
   Layers,
   Info,
   IndianRupee,
@@ -196,28 +195,25 @@ export default function InteractiveSandbox() {
   return (
     <section
       id="sandbox"
-      className="py-20 sm:py-24 bg-white border-b border-slate-200/80"
+      className="py-14 sm:py-20 bg-[#FAF7F1] border-y border-[#E2E6EB] scroll-mt-20 sm:scroll-mt-24"
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Section Header */}
-        <div className="text-center max-w-3xl mx-auto mb-12 sm:mb-16">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-slate-100 border border-slate-200 text-slate-600 text-xs font-bold uppercase tracking-wider mb-3">
-            <Sparkles size={13} className="text-[#A44B2A]" />
-            Interactive Intelligence Sandbox
-          </div>
-          <h2 className="text-3xl sm:text-4xl font-extrabold text-[#0F172A] tracking-tight mb-4">
-            Test KargoSetu Algorithms Live
+        {/* Section Header — desk slip, not SaaS */}
+        <div className="max-w-3xl mb-8 sm:mb-10">
+          <p className="mono-label text-[#B45309]">Slip 04 — try it with your numbers</p>
+          <h2 className="mt-2 font-display font-black text-4xl sm:text-5xl text-[#0A2342] tracking-tight">
+            Move the sliders. Watch the verdict flip.
           </h2>
-          <p className="text-slate-500 text-base sm:text-lg">
-            Experience our hydrodynamic constraint solver, auto-regressive LSTM
-            forecaster, and PSU financial ROI models in real-time.
+          <p className="mt-3 text-[#3D4F68] text-[15px] sm:text-base leading-relaxed">
+            Same solver the dashboard uses. Push Haldia past 55,000 MT and it splits —
+            that&apos;s the whole thesis, live.
           </p>
         </div>
 
         {/* Tab Navigation Controls */}
-        <div className="flex justify-center mb-8">
+        <div className="flex justify-start mb-6 overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0">
           <div
-            className="inline-flex p-1.5 bg-slate-100 rounded-2xl border border-slate-200 max-w-full overflow-x-auto"
+            className="inline-flex p-1 bg-white rounded-xl border border-[#0A2342]/15 max-w-full"
             role="tablist"
             aria-label="Sandbox Tabs"
           >

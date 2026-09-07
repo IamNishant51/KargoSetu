@@ -20,6 +20,7 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { loadJSON, saveJSON } from "@/lib/storage";
 
 interface Requisition {
   id: string;
@@ -33,13 +34,34 @@ interface Requisition {
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 
+const VIEW_KEY = "kargosetu_req_view_v1";
+const DRAFT_KEY = "kargosetu_req_draft_v1";
+const DEFAULT_VIEW = {
+  statusFilter: "All Statuses",
+  commodityFilter: "All Commodities",
+  originFilter: "All Origins",
+  dateRange: "All Time",
+  page: 1,
+  search: "",
+};
+const DEFAULT_DRAFT = {
+  volume_mt: "",
+  commodity: "Iron Ore",
+  origin: "Newcastle, Australia",
+  dest_port: "Haldia",
+};
+
 export default function RequisitionsPage() {
   const { t } = useLanguage();
-  const [search, setSearch] = useState("");
-  const [debouncedSearch, setDebouncedSearch] = useState("");
-  const [page, setPage] = useState(1);
+  const [savedView] = useState(() => loadJSON(VIEW_KEY, DEFAULT_VIEW));
+  const [savedDraft] = useState(() => loadJSON(DRAFT_KEY, DEFAULT_DRAFT));
+  const [search, setSearch] = useState(savedView.search);
+  const [debouncedSearch, setDebouncedSearch] = useState(savedView.search);
+  const [page, setPage] = useState(
+    Number.isInteger(savedView.page) && savedView.page >= 1 ? savedView.page : 1,
+  );
 
-  const [dateRange, setDateRange] = useState("All Time");
+  const [dateRange, setDateRange] = useState(savedView.dateRange);
   const [dateRangeOpen, setDateRangeOpen] = useState(false);
   const dateRangeRef = useRef<HTMLDivElement>(null);
 
@@ -48,12 +70,7 @@ export default function RequisitionsPage() {
     useState<Requisition | null>(null);
 
   const [isNewRequisitionOpen, setIsNewRequisitionOpen] = useState(false);
-  const [newReqForm, setNewReqForm] = useState({
-    volume_mt: "",
-    commodity: "Iron Ore",
-    origin: "Newcastle, Australia",
-    dest_port: "Haldia",
-  });
+  const [newReqForm, setNewReqForm] = useState(savedDraft);
 
   const createMutation = useMutation({
     mutationFn: async (newReq: Record<string, unknown>) => {
@@ -96,17 +113,70 @@ export default function RequisitionsPage() {
     return () => clearTimeout(handler);
   }, [search]);
 
-  const [statusFilter, setStatusFilter] = useState("All Statuses");
+  const [statusFilter, setStatusFilter] = useState(savedView.statusFilter);
   const [statusOpen, setStatusOpen] = useState(false);
   const statusRef = useRef<HTMLDivElement>(null);
 
-  const [commodityFilter, setCommodityFilter] = useState("All Commodities");
+  const [commodityFilter, setCommodityFilter] = useState(savedView.commodityFilter);
   const [commodityOpen, setCommodityOpen] = useState(false);
   const commodityRef = useRef<HTMLDivElement>(null);
 
-  const [originFilter, setOriginFilter] = useState("All Origins");
+  const [originFilter, setOriginFilter] = useState(savedView.originFilter);
   const [originOpen, setOriginOpen] = useState(false);
   const originRef = useRef<HTMLDivElement>(null);
+
+  // Display labels follow the active language; values stay English so
+  // API queries and comparisons never break when the language changes.
+  const STATUS_OPTS = [
+    { value: "All Statuses", label: t("all_statuses") },
+    { value: "Feasible", label: t("feasible") },
+    { value: "Infeasible", label: t("infeasible") },
+    { value: "Pending Evaluation", label: t("pending") },
+    { value: "Converted", label: t("st_converted") },
+  ];
+  const COMMODITY_OPTS = [
+    { value: "All Commodities", label: t("all_commodities") },
+    ...["Iron Ore", "Coal", "Bauxite", "Thermal Coal", "Coking Coal", "Metallurgical Coal"].map(
+      (c) => ({ value: c, label: c }),
+    ),
+  ];
+  const ORIGIN_OPTS = [
+    { value: "All Origins", label: t("all_origins") },
+    ...[
+      "Dampier, Australia",
+      "Newcastle, Australia",
+      "Port Hedland, Australia",
+      "Richards Bay, SA",
+      "Tubarão, Brazil",
+      "Port Kembla, Australia",
+      "Saldanha Bay, SA",
+      "Hay Point, Australia",
+    ].map((o) => ({ value: o, label: o })),
+  ];
+  const RANGE_OPTS = [
+    { value: "All Time", label: t("all_time") },
+    { value: "Last 7 Days", label: t("last_7") },
+    { value: "Last 30 Days", label: t("last_30") },
+  ];
+  const optLabel = (opts: { value: string; label: string }[], v: string) =>
+    (opts.find((o) => o.value === v) ?? opts[0]).label;
+
+  // The register view (filters, page, search) and the unsent draft both
+  // survive reloads. A successful create clears the draft via the reset below.
+  useEffect(() => {
+    saveJSON(VIEW_KEY, {
+      statusFilter,
+      commodityFilter,
+      originFilter,
+      dateRange,
+      page,
+      search,
+    });
+  }, [statusFilter, commodityFilter, originFilter, dateRange, page, search]);
+
+  useEffect(() => {
+    saveJSON(DRAFT_KEY, newReqForm);
+  }, [newReqForm]);
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (
@@ -149,7 +219,7 @@ export default function RequisitionsPage() {
   });
 
   const handleDelete = (id: string) => {
-    if (window.confirm("Are you sure you want to delete this requisition?")) {
+    if (window.confirm(t("confirm_delete"))) {
       deleteMutation.mutate(id);
     }
     setActionOpenRowId(null);
@@ -188,11 +258,9 @@ export default function RequisitionsPage() {
     queryFn: fetchRequisitions,
   });
 
-// Reset page when filters change
-  useEffect(() => {
-// eslint-disable-next-line react-hooks/set-state-in-effect
-    setPage(1);
-  }, [statusFilter, commodityFilter, originFilter, dateRange, debouncedSearch]);
+  const showA = data?.meta?.total === 0 ? 0 : (page - 1) * 10 + 1;
+  const showB = Math.min(page * 10, data?.meta?.total || 0);
+  const showC = data?.meta?.total || 0;
 
   const handleExport = () => {
     if (!data?.data) return;
@@ -237,12 +305,10 @@ export default function RequisitionsPage() {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl md:text-3xl font-bold text-[#0A1727]">
-            Requisitions
-          </h1>
-          <p className="text-slate-500 mt-1">
-            Create, manage, and track all your cargo transportation
-            requisitions.
+          <p className="mono-label text-[#B45309]">{t("pg_requisitions")}</p>
+          <h1 className="mt-1.5 font-display text-2xl md:text-3xl font-black tracking-[-0.02em] text-[#0A2342]">{t("req_title")}</h1>
+          <p className="text-[#6B7D99] mt-1">
+            {t("req_sub")}
           </p>
         </div>
         <div className="flex items-center space-x-3 shrink-0">
@@ -250,16 +316,14 @@ export default function RequisitionsPage() {
             type="button"
             aria-label="Export Requisitions"
             onClick={handleExport}
-            className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 h-10 px-4 py-2 shadow-sm"
+            className="inline-flex items-center justify-center rounded-lg text-sm font-medium transition-colors border border-[#E2E6EB] bg-white hover:bg-[#FAF7F1] text-[#3D4F68] h-10 px-4 py-2 shadow-sm"
           >
-            <Download className="w-4 h-4 mr-2" />
-            Export
-          </button>
+            <Download className="w-4 h-4 mr-2" />{t("export")}</button>
           <button
             type="button"
             aria-label="Create New Requisition"
             onClick={() => setIsNewRequisitionOpen(true)}
-            className="inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors bg-[#0A1727] text-white hover:bg-[#0A1727]/90 h-10 px-4 py-2 shadow-sm"
+            className="inline-flex items-center justify-center rounded-lg text-sm font-medium transition-colors bg-[#D95D0F] text-white hover:bg-[#B45309] h-10 px-4 py-2 shadow-sm"
           >
             <Plus className="w-4 h-4 mr-2" />
             {t("new_requisition")}
@@ -270,90 +334,89 @@ export default function RequisitionsPage() {
       {/* Stats Row */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
         {/* Total Requisitions */}
-        <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm flex items-center space-x-4">
-          <div className="w-12 h-12 rounded-xl bg-blue-50 flex items-center justify-center shrink-0">
-            <ClipboardList className="w-6 h-6 text-blue-600" />
+        <div className="bg-white border border-[#E2E6EB] rounded-xl p-5 shadow-sm flex items-center space-x-4">
+          <div className="w-12 h-12 rounded-xl bg-[#FDF1E7] flex items-center justify-center shrink-0">
+            <ClipboardList className="w-6 h-6 text-[#B45309]" />
           </div>
           <div>
-            <h3 className="text-2xl font-bold text-slate-800">
+              <p className="text-sm font-medium text-[#3D4F68]">{t("stat_total")}</p>
+            <h3 className="text-2xl font-bold text-[#0A2342]">
               {data?.meta?.total || 0}
             </h3>
-            <p className="text-xs font-medium text-green-600 mt-1">
+            <p className="text-xs font-medium text-[#0E7A3D] mt-1">
               ↑ 12%{" "}
-              <span className="text-slate-400 font-normal">
-                vs last 30 days
+              <span className="text-[#6B7D99] font-normal">
+                {t("vs_last_30")}
               </span>
             </p>
           </div>
         </div>
 
         {/* Pending Evaluation */}
-        <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm flex items-center space-x-4">
-          <div className="w-12 h-12 rounded-xl bg-orange-50 flex items-center justify-center shrink-0">
-            <Hourglass className="w-6 h-6 text-orange-500" />
+        <div className="bg-white border border-[#E2E6EB] rounded-xl p-5 shadow-sm flex items-center space-x-4">
+          <div className="w-12 h-12 rounded-xl bg-[#FDF1E7] flex items-center justify-center shrink-0">
+            <Hourglass className="w-6 h-6 text-[#D95D0F]" />
           </div>
           <div>
-            <p className="text-sm font-medium text-slate-500">
-              Pending Evaluation
-            </p>
-            <h3 className="text-2xl font-bold text-slate-800">32</h3>
-            <p className="text-xs font-medium text-orange-500 mt-1">
+            <p className="text-sm font-medium text-[#6B7D99]">{t("pending")}</p>
+            <h3 className="text-2xl font-bold text-[#0A2342]">32</h3>
+            <p className="text-xs font-medium text-[#D95D0F] mt-1">
               ↑ 8%{" "}
-              <span className="text-slate-400 font-normal">
-                vs last 30 days
+              <span className="text-[#6B7D99] font-normal">
+                {t("vs_last_30")}
               </span>
             </p>
           </div>
         </div>
 
         {/* Feasible */}
-        <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm flex items-center space-x-4">
-          <div className="w-12 h-12 rounded-xl bg-green-50 flex items-center justify-center shrink-0">
-            <CheckCircle2 className="w-6 h-6 text-green-600" />
+        <div className="bg-white border border-[#E2E6EB] rounded-xl p-5 shadow-sm flex items-center space-x-4">
+          <div className="w-12 h-12 rounded-xl bg-[#E9F5EE] flex items-center justify-center shrink-0">
+            <CheckCircle2 className="w-6 h-6 text-[#0E7A3D]" />
           </div>
           <div>
-            <p className="text-sm font-medium text-slate-500">{t("feasible")}</p>
-            <h3 className="text-2xl font-bold text-slate-800">68</h3>
-            <p className="text-xs font-medium text-green-600 mt-1">
+            <p className="text-sm font-medium text-[#6B7D99]">{t("feasible")}</p>
+            <h3 className="text-2xl font-bold text-[#0A2342]">68</h3>
+            <p className="text-xs font-medium text-[#0E7A3D] mt-1">
               ↑ 15%{" "}
-              <span className="text-slate-400 font-normal">
-                vs last 30 days
+              <span className="text-[#6B7D99] font-normal">
+                {t("vs_last_30")}
               </span>
             </p>
           </div>
         </div>
 
         {/* Infeasible */}
-        <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm flex items-center space-x-4">
-          <div className="w-12 h-12 rounded-xl bg-red-50 flex items-center justify-center shrink-0">
-            <XCircle className="w-6 h-6 text-red-500" />
+        <div className="bg-white border border-[#E2E6EB] rounded-xl p-5 shadow-sm flex items-center space-x-4">
+          <div className="w-12 h-12 rounded-xl bg-[#FDECEC] flex items-center justify-center shrink-0">
+            <XCircle className="w-6 h-6 text-[#B42318]" />
           </div>
           <div>
-            <p className="text-sm font-medium text-slate-500">{t("infeasible")}</p>
-            <h3 className="text-2xl font-bold text-slate-800">14</h3>
-            <p className="text-xs font-medium text-red-500 mt-1">
+            <p className="text-sm font-medium text-[#6B7D99]">{t("infeasible")}</p>
+            <h3 className="text-2xl font-bold text-[#0A2342]">14</h3>
+            <p className="text-xs font-medium text-[#B42318] mt-1">
               ↓ 3%{" "}
-              <span className="text-slate-400 font-normal">
-                vs last 30 days
+              <span className="text-[#6B7D99] font-normal">
+                {t("vs_last_30")}
               </span>
             </p>
           </div>
         </div>
 
-        {/* Converted to Shipment */}
-        <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm flex items-center space-x-4">
-          <div className="w-12 h-12 rounded-xl bg-purple-50 flex items-center justify-center shrink-0">
-            <Package className="w-6 h-6 text-purple-600" />
+        {/* {t("stat_converted")} */}
+        <div className="bg-white border border-[#E2E6EB] rounded-xl p-5 shadow-sm flex items-center space-x-4">
+          <div className="w-12 h-12 rounded-xl bg-[#EAF4FB] flex items-center justify-center shrink-0">
+            <Package className="w-6 h-6 text-[#1B7FBF]" />
           </div>
           <div>
-            <p className="text-sm font-medium text-slate-500">
-              Converted to Shipment
+            <p className="text-sm font-medium text-[#6B7D99]">
+              {t("stat_converted")}
             </p>
-            <h3 className="text-2xl font-bold text-slate-800">24</h3>
-            <p className="text-xs font-medium text-green-600 mt-1">
+            <h3 className="text-2xl font-bold text-[#0A2342]">24</h3>
+            <p className="text-xs font-medium text-[#0E7A3D] mt-1">
               ↑ 10%{" "}
-              <span className="text-slate-400 font-normal">
-                vs last 30 days
+              <span className="text-[#6B7D99] font-normal">
+                {t("vs_last_30")}
               </span>
             </p>
           </div>
@@ -361,24 +424,27 @@ export default function RequisitionsPage() {
       </div>
 
       {/* Filters Row */}
-      <div className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between z-20 relative">
+      <div className="bg-white border border-[#E2E6EB] rounded-xl p-4 shadow-sm flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between z-20 relative">
         <div className="flex-1 w-full lg:max-w-md relative">
           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <Search className="w-4 h-4 text-slate-400" />
+            <Search className="w-4 h-4 text-[#6B7D99]" />
           </div>
           <input
             type="text"
-            placeholder="Search requisition ID, commodity, or port..."
+            placeholder={t("search_req")}
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="flex h-10 w-full rounded-md border border-slate-300 bg-transparent pl-9 pr-3 py-2 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+            onChange={(e) => {
+              setSearch(e.target.value);
+              setPage(1);
+            }}
+            className="flex h-10 w-full rounded-lg border border-[#E2E6EB] bg-transparent pl-9 pr-3 py-2 text-sm text-[#0A2342] placeholder:text-[#6B7D99]/60 focus:outline-none focus:ring-2 focus:ring-[#D95D0F]/30 focus:border-transparent transition-all"
           />
         </div>
 
         <div className="flex flex-wrap items-center gap-3 w-full xl:w-auto">
           <div className="space-y-1 w-full sm:w-auto relative" ref={statusRef}>
-            <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
-              Status
+            <label className="text-[11px] font-semibold text-[#6B7D99] uppercase tracking-wider">
+              {t("f_status")}
             </label>
             <button
               type="button"
@@ -386,34 +452,29 @@ export default function RequisitionsPage() {
               aria-haspopup="listbox"
               aria-expanded={statusOpen}
               onClick={() => setStatusOpen(!statusOpen)}
-              className={`flex h-10 w-full sm:w-[150px] items-center justify-between rounded-md border bg-white px-3 py-2 text-sm text-slate-700 shadow-sm focus:outline-none transition-colors ${statusOpen ? "border-blue-500 ring-2 ring-blue-500/20" : "border-slate-300 hover:border-slate-400"}`}
+              className={`flex h-10 w-full sm:w-[150px] items-center justify-between rounded-lg border bg-white px-3 py-2 text-sm text-[#3D4F68] shadow-sm focus:outline-none transition-colors ${statusOpen ? "border-[#D95D0F] ring-2 ring-[#D95D0F]/20" : "border-[#E2E6EB] hover:border-[#6B7D99]"}`}
             >
-              <span>{statusFilter}</span>
+              <span>{optLabel(STATUS_OPTS, statusFilter)}</span>
               <ChevronDown
-                className={`w-4 h-4 text-slate-400 transition-transform duration-200 ${statusOpen ? "rotate-180" : ""}`}
+                className={`w-4 h-4 text-[#6B7D99] transition-transform duration-200 ${statusOpen ? "rotate-180" : ""}`}
               />
             </button>
             {statusOpen && (
-              <div className="absolute z-50 mt-2 w-full rounded-md border border-slate-200 bg-white shadow-lg overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
+              <div className="absolute z-50 mt-2 w-full rounded-lg border border-[#E2E6EB] bg-white shadow-lg overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
                 <ul className="max-h-60 overflow-auto py-1">
-                  {[
-                    "All Statuses",
-                    "Feasible",
-                    "Infeasible",
-                    "Pending Evaluation",
-                    "Converted",
-                  ].map((item) => (
+                  {STATUS_OPTS.map((opt) => (
                     <li
-                      key={item}
+                      key={opt.value}
                       onClick={() => {
-                        setStatusFilter(item);
+                        setStatusFilter(opt.value);
                         setStatusOpen(false);
+                        setPage(1);
                       }}
-                      className={`flex items-center px-3 py-2.5 cursor-pointer text-sm transition-colors ${statusFilter === item ? "bg-blue-50 text-blue-700 font-medium" : "text-slate-700 hover:bg-slate-50"}`}
+                      className={`flex items-center px-3 py-2.5 cursor-pointer text-sm transition-colors ${statusFilter === opt.value ? "bg-[#FDF1E7] text-[#B45309] font-medium" : "text-[#3D4F68] hover:bg-[#FAF7F1]"}`}
                     >
-                      {item}
-                      {statusFilter === item && (
-                        <CheckCircle2 className="w-4 h-4 ml-auto text-blue-600" />
+                      {opt.label}
+                      {statusFilter === opt.value && (
+                        <CheckCircle2 className="w-4 h-4 ml-auto text-[#B45309]" />
                       )}
                     </li>
                   ))}
@@ -426,8 +487,8 @@ export default function RequisitionsPage() {
             className="space-y-1 w-full sm:w-auto relative"
             ref={commodityRef}
           >
-            <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
-              Commodity
+            <label className="text-[11px] font-semibold text-[#6B7D99] uppercase tracking-wider">
+              {t("f_commodity")}
             </label>
             <button
               type="button"
@@ -435,36 +496,29 @@ export default function RequisitionsPage() {
               aria-haspopup="listbox"
               aria-expanded={commodityOpen}
               onClick={() => setCommodityOpen(!commodityOpen)}
-              className={`flex h-10 w-full sm:w-[160px] items-center justify-between rounded-md border bg-white px-3 py-2 text-sm text-slate-700 shadow-sm focus:outline-none transition-colors ${commodityOpen ? "border-blue-500 ring-2 ring-blue-500/20" : "border-slate-300 hover:border-slate-400"}`}
+              className={`flex h-10 w-full sm:w-[160px] items-center justify-between rounded-lg border bg-white px-3 py-2 text-sm text-[#3D4F68] shadow-sm focus:outline-none transition-colors ${commodityOpen ? "border-[#D95D0F] ring-2 ring-[#D95D0F]/20" : "border-[#E2E6EB] hover:border-[#6B7D99]"}`}
             >
-              <span>{commodityFilter}</span>
+              <span>{optLabel(COMMODITY_OPTS, commodityFilter)}</span>
               <ChevronDown
-                className={`w-4 h-4 text-slate-400 transition-transform duration-200 ${commodityOpen ? "rotate-180" : ""}`}
+                className={`w-4 h-4 text-[#6B7D99] transition-transform duration-200 ${commodityOpen ? "rotate-180" : ""}`}
               />
             </button>
             {commodityOpen && (
-              <div className="absolute z-50 mt-2 w-full rounded-md border border-slate-200 bg-white shadow-lg overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
+              <div className="absolute z-50 mt-2 w-full rounded-lg border border-[#E2E6EB] bg-white shadow-lg overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
                 <ul className="max-h-60 overflow-auto py-1">
-                  {[
-                    "All Commodities",
-                    "Iron Ore",
-                    "Coal",
-                    "Bauxite",
-                    "Thermal Coal",
-                    "Coking Coal",
-                    "Metallurgical Coal",
-                  ].map((item) => (
+                  {COMMODITY_OPTS.map((opt) => (
                     <li
-                      key={item}
+                      key={opt.value}
                       onClick={() => {
-                        setCommodityFilter(item);
+                        setCommodityFilter(opt.value);
                         setCommodityOpen(false);
+                        setPage(1);
                       }}
-                      className={`flex items-center px-3 py-2.5 cursor-pointer text-sm transition-colors ${commodityFilter === item ? "bg-blue-50 text-blue-700 font-medium" : "text-slate-700 hover:bg-slate-50"}`}
+                      className={`flex items-center px-3 py-2.5 cursor-pointer text-sm transition-colors ${commodityFilter === opt.value ? "bg-[#FDF1E7] text-[#B45309] font-medium" : "text-[#3D4F68] hover:bg-[#FAF7F1]"}`}
                     >
-                      {item}
-                      {commodityFilter === item && (
-                        <CheckCircle2 className="w-4 h-4 ml-auto text-blue-600" />
+                      {opt.label}
+                      {commodityFilter === opt.value && (
+                        <CheckCircle2 className="w-4 h-4 ml-auto text-[#B45309]" />
                       )}
                     </li>
                   ))}
@@ -474,8 +528,8 @@ export default function RequisitionsPage() {
           </div>
 
           <div className="space-y-1 w-full sm:w-auto relative" ref={originRef}>
-            <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
-              Origin Port
+            <label className="text-[11px] font-semibold text-[#6B7D99] uppercase tracking-wider">
+              {t("f_origin")}
             </label>
             <button
               type="button"
@@ -483,38 +537,29 @@ export default function RequisitionsPage() {
               aria-haspopup="listbox"
               aria-expanded={originOpen}
               onClick={() => setOriginOpen(!originOpen)}
-              className={`flex h-10 w-full sm:w-[150px] items-center justify-between rounded-md border bg-white px-3 py-2 text-sm text-slate-700 shadow-sm focus:outline-none transition-colors ${originOpen ? "border-blue-500 ring-2 ring-blue-500/20" : "border-slate-300 hover:border-slate-400"}`}
+              className={`flex h-10 w-full sm:w-[150px] items-center justify-between rounded-lg border bg-white px-3 py-2 text-sm text-[#3D4F68] shadow-sm focus:outline-none transition-colors ${originOpen ? "border-[#D95D0F] ring-2 ring-[#D95D0F]/20" : "border-[#E2E6EB] hover:border-[#6B7D99]"}`}
             >
-              <span>{originFilter}</span>
+              <span>{optLabel(ORIGIN_OPTS, originFilter)}</span>
               <ChevronDown
-                className={`w-4 h-4 text-slate-400 transition-transform duration-200 ${originOpen ? "rotate-180" : ""}`}
+                className={`w-4 h-4 text-[#6B7D99] transition-transform duration-200 ${originOpen ? "rotate-180" : ""}`}
               />
             </button>
             {originOpen && (
-              <div className="absolute z-50 mt-2 w-full rounded-md border border-slate-200 bg-white shadow-lg overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
+              <div className="absolute z-50 mt-2 w-full rounded-lg border border-[#E2E6EB] bg-white shadow-lg overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
                 <ul className="max-h-60 overflow-auto py-1">
-                  {[
-                    "All Origins",
-                    "Dampier, Australia",
-                    "Newcastle, Australia",
-                    "Port Hedland, Australia",
-                    "Richards Bay, SA",
-                    "Tubarão, Brazil",
-                    "Port Kembla, Australia",
-                    "Saldanha Bay, SA",
-                    "Hay Point, Australia",
-                  ].map((item) => (
+                  {ORIGIN_OPTS.map((opt) => (
                     <li
-                      key={item}
+                      key={opt.value}
                       onClick={() => {
-                        setOriginFilter(item);
+                        setOriginFilter(opt.value);
                         setOriginOpen(false);
+                        setPage(1);
                       }}
-                      className={`flex items-center px-3 py-2.5 cursor-pointer text-sm transition-colors ${originFilter === item ? "bg-blue-50 text-blue-700 font-medium" : "text-slate-700 hover:bg-slate-50"}`}
+                      className={`flex items-center px-3 py-2.5 cursor-pointer text-sm transition-colors ${originFilter === opt.value ? "bg-[#FDF1E7] text-[#B45309] font-medium" : "text-[#3D4F68] hover:bg-[#FAF7F1]"}`}
                     >
-                      {item}
-                      {originFilter === item && (
-                        <CheckCircle2 className="w-4 h-4 ml-auto text-blue-600" />
+                      {opt.label}
+                      {originFilter === opt.value && (
+                        <CheckCircle2 className="w-4 h-4 ml-auto text-[#B45309]" />
                       )}
                     </li>
                   ))}
@@ -526,8 +571,8 @@ export default function RequisitionsPage() {
             className="space-y-1 w-full sm:w-auto relative"
             ref={dateRangeRef}
           >
-            <label className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
-              Date Range
+            <label className="text-[11px] font-semibold text-[#6B7D99] uppercase tracking-wider">
+              {t("f_range")}
             </label>
             <button
               type="button"
@@ -535,31 +580,32 @@ export default function RequisitionsPage() {
               aria-haspopup="listbox"
               aria-expanded={dateRangeOpen}
               onClick={() => setDateRangeOpen(!dateRangeOpen)}
-              className={`flex h-10 w-full sm:w-[220px] items-center justify-between rounded-md border bg-white px-3 py-2 text-sm text-slate-700 shadow-sm focus:outline-none transition-colors ${dateRangeOpen ? "border-blue-500 ring-2 ring-blue-500/20" : "border-slate-300 hover:border-slate-400"}`}
+              className={`flex h-10 w-full sm:w-[220px] items-center justify-between rounded-lg border bg-white px-3 py-2 text-sm text-[#3D4F68] shadow-sm focus:outline-none transition-colors ${dateRangeOpen ? "border-[#D95D0F] ring-2 ring-[#D95D0F]/20" : "border-[#E2E6EB] hover:border-[#6B7D99]"}`}
             >
               <div className="flex items-center">
-                <Calendar className="w-4 h-4 text-slate-400 mr-2" />
-                <span>{dateRange}</span>
+                <Calendar className="w-4 h-4 text-[#6B7D99] mr-2" />
+                <span>{optLabel(RANGE_OPTS, dateRange)}</span>
               </div>
               <ChevronDown
-                className={`w-4 h-4 text-slate-400 transition-transform duration-200 ${dateRangeOpen ? "rotate-180" : ""}`}
+                className={`w-4 h-4 text-[#6B7D99] transition-transform duration-200 ${dateRangeOpen ? "rotate-180" : ""}`}
               />
             </button>
             {dateRangeOpen && (
-              <div className="absolute z-50 mt-2 w-full rounded-md border border-slate-200 bg-white shadow-lg overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
+              <div className="absolute z-50 mt-2 w-full rounded-lg border border-[#E2E6EB] bg-white shadow-lg overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
                 <ul className="max-h-60 overflow-auto py-1">
-                  {["All Time", "Last 7 Days", "Last 30 Days"].map((item) => (
+                  {RANGE_OPTS.map((opt) => (
                     <li
-                      key={item}
+                      key={opt.value}
                       onClick={() => {
-                        setDateRange(item);
+                        setDateRange(opt.value);
                         setDateRangeOpen(false);
+                        setPage(1);
                       }}
-                      className={`flex items-center px-3 py-2.5 cursor-pointer text-sm transition-colors ${dateRange === item ? "bg-blue-50 text-blue-700 font-medium" : "text-slate-700 hover:bg-slate-50"}`}
+                      className={`flex items-center px-3 py-2.5 cursor-pointer text-sm transition-colors ${dateRange === opt.value ? "bg-[#FDF1E7] text-[#B45309] font-medium" : "text-[#3D4F68] hover:bg-[#FAF7F1]"}`}
                     >
-                      {item}
-                      {dateRange === item && (
-                        <CheckCircle2 className="w-4 h-4 ml-auto text-blue-600" />
+                      {opt.label}
+                      {dateRange === opt.value && (
+                        <CheckCircle2 className="w-4 h-4 ml-auto text-[#B45309]" />
                       )}
                     </li>
                   ))}
@@ -579,86 +625,66 @@ export default function RequisitionsPage() {
                 setDateRange("All Time");
                 setSearch("");
               }}
-              className="flex h-10 w-full sm:w-auto items-center justify-center rounded-md border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 shadow-sm transition-colors hover:bg-slate-50"
+              className="flex h-10 w-full sm:w-auto items-center justify-center rounded-lg border border-[#E2E6EB] bg-white px-4 py-2 text-sm font-medium text-[#3D4F68] shadow-sm transition-colors hover:bg-[#FAF7F1]"
             >
-              <XCircle className="w-4 h-4 mr-2 text-slate-500" />
-              Clear Filters
-            </button>
+              <XCircle className="w-4 h-4 mr-2 text-[#6B7D99]" />{t("clear_filters")}</button>
           </div>
         </div>
       </div>
 
       {/* Data Table */}
-      <div className="bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden z-10 relative">
-        <div className="p-5 border-b border-slate-200">
-          <h2 className="text-base font-semibold text-slate-800">
+      <div className="bg-white border border-[#E2E6EB] rounded-xl shadow-sm overflow-hidden z-10 relative">
+        <div className="p-5 border-b border-[#E2E6EB]">
+          <h2 className="text-base font-display font-bold text-[#0A2342]">
             {t("all_requisitions")} ({data?.meta?.total || 0})
           </h2>
         </div>
 
         <div className="overflow-x-auto">
           <table className="w-full text-sm text-left whitespace-nowrap">
-            <thead className="bg-slate-50/80 text-slate-500 border-b border-slate-200 text-xs uppercase tracking-wider">
+            <thead className="bg-[#FAF7F1] text-[#6B7D99] border-b border-[#E2E6EB] text-xs uppercase tracking-wider">
               <tr>
                 <th scope="col" className="px-6 py-3 font-semibold w-12">
                   <div className="flex items-center justify-center">
                     <input
                       type="checkbox"
-                      className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                      className="w-4 h-4 rounded border-[#E2E6EB] accent-[#D95D0F] cursor-pointer"
                     />
                   </div>
                 </th>
                 <th
                   scope="col"
-                  className="px-6 py-3 font-semibold cursor-pointer hover:text-slate-700"
+                  className="px-6 py-3 font-semibold cursor-pointer hover:text-[#0A2342]"
                 >
-                  <div className="flex items-center">
-                    Requisition ID
-                    <ArrowUpDown className="w-3.5 h-3.5 ml-1.5" />
+                  <div className="flex items-center">{t("col_id")}<ArrowUpDown className="w-3.5 h-3.5 ml-1.5" />
                   </div>
                 </th>
-                <th scope="col" className="px-6 py-3 font-semibold">
-                  Commodity
-                </th>
-                <th scope="col" className="px-6 py-3 font-semibold">
-                  Origin Port
-                </th>
-                <th scope="col" className="px-6 py-3 font-semibold">
-                  Destination Port
-                </th>
-                <th scope="col" className="px-6 py-3 font-semibold text-right">
-                  Volume (MT)
-                </th>
+                <th scope="col" className="px-6 py-3 font-semibold">{t("col_commodity")}</th>
+                <th scope="col" className="px-6 py-3 font-semibold">{t("col_origin")}</th>
+                <th scope="col" className="px-6 py-3 font-semibold">{t("col_dest")}</th>
+                <th scope="col" className="px-6 py-3 font-semibold text-right">{t("col_vol")}</th>
                 <th
                   scope="col"
-                  className="px-6 py-3 font-semibold cursor-pointer hover:text-slate-700"
+                  className="px-6 py-3 font-semibold cursor-pointer hover:text-[#0A2342]"
                 >
-                  <div className="flex items-center">
-                    Requisition Date
-                    <ArrowUpDown className="w-3.5 h-3.5 ml-1.5" />
+                  <div className="flex items-center">{t("col_date")}<ArrowUpDown className="w-3.5 h-3.5 ml-1.5" />
                   </div>
                 </th>
-                <th scope="col" className="px-6 py-3 font-semibold">
-                  Status
-                </th>
-                <th scope="col" className="px-6 py-3 font-semibold">
-                  Evaluated On
-                </th>
-                <th scope="col" className="px-6 py-3 font-semibold text-center">
-                  Actions
-                </th>
+                <th scope="col" className="px-6 py-3 font-semibold">{t("col_status")}</th>
+                <th scope="col" className="px-6 py-3 font-semibold">{t("col_eval_on")}</th>
+                <th scope="col" className="px-6 py-3 font-semibold text-center">{t("col_actions")}</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody className="divide-y divide-[#E2E6EB]">
               {isLoading ? (
                 Array.from({ length: 5 }).map((_, idx) => (
                   <tr
                     key={idx}
-                    className="hover:bg-slate-50/50 transition-colors"
+                    className="hover:bg-[#FAF7F1] transition-colors"
                   >
                     <td className="px-6 py-4 whitespace-nowrap w-12">
                       <div className="flex items-center justify-center">
-                        <Skeleton className="h-4 w-4 rounded border-slate-300" />
+                        <Skeleton className="h-4 w-4 rounded border-[#E2E6EB]" />
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -689,7 +715,7 @@ export default function RequisitionsPage() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-center">
                       <div className="flex justify-center">
-                        <Skeleton className="h-8 w-8 rounded-md" />
+                        <Skeleton className="h-8 w-8 rounded-lg" />
                       </div>
                     </td>
                   </tr>
@@ -698,15 +724,14 @@ export default function RequisitionsPage() {
                 <tr>
                   <td colSpan={10} className="px-6 py-12 text-center">
                     <div className="flex flex-col items-center justify-center space-y-3">
-                      <div className="w-12 h-12 rounded-full bg-slate-100 flex items-center justify-center">
-                        <Search className="w-6 h-6 text-slate-400" />
+                      <div className="w-12 h-12 rounded-full bg-[#FAF7F1] flex items-center justify-center">
+                        <Search className="w-6 h-6 text-[#6B7D99]" />
                       </div>
-                      <h3 className="text-sm font-medium text-slate-900">
-                        No requisitions found
+                      <h3 className="text-sm font-medium text-[#0A2342]">
+                        {t("empty_title")}
                       </h3>
-                      <p className="text-sm text-slate-500 max-w-sm mx-auto">
-                        We couldn&apos;t find any requisitions matching your
-                        current filters. Try adjusting your search criteria.
+                      <p className="text-sm text-[#6B7D99] max-w-sm mx-auto">
+                        {t("empty_sub")}
                       </p>
                     </div>
                   </td>
@@ -715,60 +740,60 @@ export default function RequisitionsPage() {
                 data?.data?.map((row: Requisition, i: number) => (
                   <tr
                     key={i}
-                    className="hover:bg-slate-50 transition-colors group"
+                    className="hover:bg-[#FAF7F1] transition-colors group"
                   >
                     <td className="px-6 py-4">
                       <div className="flex items-center justify-center">
                         <input
                           type="checkbox"
-                          className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                          className="w-4 h-4 rounded border-[#E2E6EB] accent-[#D95D0F] cursor-pointer"
                         />
                       </div>
                     </td>
                     <td
-                      className="px-6 py-4 font-medium text-blue-600 cursor-pointer hover:underline"
+                      className="px-6 py-4 font-medium text-[#B45309] cursor-pointer hover:underline"
                       title={row.id}
                       onClick={() => setSelectedRequisition(row)}
                     >
                       {row.id.substring(0, 14)}...
                     </td>
-                    <td className="px-6 py-4 text-slate-700">
+                    <td className="px-6 py-4 text-[#3D4F68]">
                       {row.commodity}
                     </td>
-                    <td className="px-6 py-4 text-slate-700">{row.origin}</td>
-                    <td className="px-6 py-4 text-slate-700">
+                    <td className="px-6 py-4 text-[#3D4F68]">{row.origin}</td>
+                    <td className="px-6 py-4 text-[#3D4F68]">
                       {row.destPortName}
                     </td>
-                    <td className="px-6 py-4 text-slate-800 font-medium text-right">
+                    <td className="px-6 py-4 text-[#0A2342] font-medium text-right">
                       {row.volume_mt.toLocaleString()}
                     </td>
-                    <td className="px-6 py-4 text-slate-600">
+                    <td className="px-6 py-4 text-[#3D4F68]">
                       {new Date(row.createdAt).toLocaleDateString()}
                     </td>
                     <td className="px-6 py-4">
                       {row.status === "Feasible" && (
-                        <span className="inline-flex items-center rounded-md border border-green-200 bg-green-50 px-2.5 py-1 text-xs font-semibold text-green-700">
+                        <span className="inline-flex items-center rounded-lg border border-[#0E7A3D]/25 bg-[#E9F5EE] px-2.5 py-1 text-xs font-semibold text-[#0E7A3D]">
                           <CheckCircle2 className="w-3.5 h-3.5 mr-1" /> Feasible
                         </span>
                       )}
                       {(row.status === "Pending Evaluation" ||
                         row.status === "Pending") && (
-                        <span className="inline-flex items-center rounded-md border border-orange-200 bg-orange-50 px-2.5 py-1 text-xs font-semibold text-orange-700">
-                          <Hourglass className="w-3.5 h-3.5 mr-1" /> Pending
+                        <span className="inline-flex items-center rounded-lg border border-[#D95D0F]/30 bg-[#FDF1E7] px-2.5 py-1 text-xs font-semibold text-[#B45309]">
+                          <Hourglass className="w-3.5 h-3.5 mr-1" /> {t("badge_pending_short")}
                         </span>
                       )}
                       {row.status === "Infeasible" && (
-                        <span className="inline-flex items-center rounded-md border border-red-200 bg-red-50 px-2.5 py-1 text-xs font-semibold text-red-700">
+                        <span className="inline-flex items-center rounded-lg border border-[#F3C2C2] bg-[#FDECEC] px-2.5 py-1 text-xs font-semibold text-[#B42318]">
                           <XCircle className="w-3.5 h-3.5 mr-1" /> Infeasible
                         </span>
                       )}
                       {row.status === "Converted" && (
-                        <span className="inline-flex items-center rounded-md border border-purple-200 bg-purple-50 px-2.5 py-1 text-xs font-semibold text-purple-700">
+                        <span className="inline-flex items-center rounded-lg border border-[#1B7FBF]/30 bg-[#EAF4FB] px-2.5 py-1 text-xs font-semibold text-[#1B7FBF]">
                           <Package className="w-3.5 h-3.5 mr-1" /> Converted
                         </span>
                       )}
                     </td>
-                    <td className="px-6 py-4 text-slate-600">—</td>
+                    <td className="px-6 py-4 text-[#3D4F68]">—</td>
                     <td className="px-6 py-4 text-center relative">
                       <button
                         type="button"
@@ -780,28 +805,24 @@ export default function RequisitionsPage() {
                             actionOpenRowId === row.id ? null : row.id,
                           )
                         }
-                        className="text-slate-400 hover:text-slate-700 p-1 rounded-md hover:bg-slate-100 transition-colors"
+                        className="text-[#6B7D99] hover:text-[#0A2342] p-1 rounded-lg hover:bg-[#FAF7F1] transition-colors"
                       >
                         <MoreVertical className="w-4 h-4" />
                       </button>
                       {actionOpenRowId === row.id && (
-                        <div className="absolute right-10 top-4 z-50 w-32 rounded-md border border-slate-200 bg-white shadow-lg overflow-hidden animate-in fade-in zoom-in-95 duration-200 text-left">
+                        <div className="absolute right-10 top-4 z-50 w-32 rounded-lg border border-[#E2E6EB] bg-white shadow-lg overflow-hidden animate-in fade-in zoom-in-95 duration-200 text-left">
                           <ul className="py-1">
                             <li
-                              className="px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 cursor-pointer"
+                              className="px-4 py-2 text-sm text-[#3D4F68] hover:bg-[#FAF7F1] cursor-pointer"
                               onClick={() => {
                                 setSelectedRequisition(row);
                                 setActionOpenRowId(null);
                               }}
-                            >
-                              View Details
-                            </li>
+                            >{t("row_view")}</li>
                             <li
-                              className="px-4 py-2 text-sm text-red-600 hover:bg-red-50 cursor-pointer"
+                              className="px-4 py-2 text-sm text-[#B42318] hover:bg-[#FDECEC] cursor-pointer"
                               onClick={() => handleDelete(row.id)}
-                            >
-                              Delete
-                            </li>
+                            >{t("row_delete")}</li>
                           </ul>
                         </div>
                       )}
@@ -814,21 +835,12 @@ export default function RequisitionsPage() {
         </div>
 
         {/* Pagination */}
-        <div className="p-4 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-4 bg-slate-50/50">
-          <p className="text-sm text-slate-500">
-            Showing{" "}
-            <span className="font-medium text-slate-700">
-              {data?.meta?.total === 0 ? 0 : (page - 1) * 10 + 1}
-            </span>{" "}
-            to{" "}
-            <span className="font-medium text-slate-700">
-              {Math.min(page * 10, data?.meta?.total || 0)}
-            </span>{" "}
-            of{" "}
-            <span className="font-medium text-slate-700">
-              {data?.meta?.total || 0}
-            </span>{" "}
-            entries
+        <div className="p-4 border-t border-[#E2E6EB] flex flex-col sm:flex-row items-center justify-between gap-4 bg-[#FAF7F1]">
+          <p className="text-sm text-[#6B7D99]">
+            {t("showing_FMT")
+              .replace("{a}", String(showA))
+              .replace("{b}", String(showB))
+              .replace("{c}", String(showC))}
           </p>
           <div className="flex items-center space-x-1">
             <button
@@ -836,7 +848,7 @@ export default function RequisitionsPage() {
               aria-label="Previous page"
               onClick={() => setPage((p) => Math.max(1, p - 1))}
               disabled={page === 1}
-              className="w-8 h-8 flex items-center justify-center rounded-md text-slate-500 hover:bg-slate-200 transition-colors border border-slate-200 bg-white disabled:opacity-50"
+              className="w-8 h-8 flex items-center justify-center rounded-lg text-[#6B7D99] hover:bg-[#FAF7F1] transition-colors border border-[#E2E6EB] bg-white disabled:opacity-50"
             >
               <ChevronLeft className="w-4 h-4" />
             </button>
@@ -878,7 +890,7 @@ export default function RequisitionsPage() {
                 p === "..." ? (
                   <span
                     key={`ellipsis-${idx}`}
-                    className="w-8 h-8 flex items-center justify-center text-slate-400 text-sm font-medium"
+                    className="w-8 h-8 flex items-center justify-center text-[#6B7D99] text-sm font-medium"
                   >
                     ...
                   </span>
@@ -889,10 +901,10 @@ export default function RequisitionsPage() {
                     aria-label={`Page ${p}`}
                     aria-current={page === p ? "page" : undefined}
                     onClick={() => setPage(p as number)}
-                    className={`w-8 h-8 flex items-center justify-center rounded-md text-sm font-medium transition-colors ${
+                    className={`w-8 h-8 flex items-center justify-center rounded-lg text-sm font-medium transition-colors ${
                       page === p
-                        ? "bg-[#0A1727] text-white shadow-sm"
-                        : "text-slate-500 hover:bg-slate-200 border border-slate-200 bg-white"
+                        ? "bg-[#D95D0F] text-white shadow-sm"
+                        : "text-[#6B7D99] hover:bg-[#FAF7F1] border border-[#E2E6EB] bg-white"
                     }`}
                   >
                     {p}
@@ -905,7 +917,7 @@ export default function RequisitionsPage() {
               aria-label="Next page"
               onClick={() => setPage((p) => p + 1)}
               disabled={page >= (data?.meta?.totalPages || 1)}
-              className="w-8 h-8 flex items-center justify-center rounded-md text-slate-500 hover:bg-slate-200 transition-colors border border-slate-200 bg-white disabled:opacity-50"
+              className="w-8 h-8 flex items-center justify-center rounded-lg text-[#6B7D99] hover:bg-[#FAF7F1] transition-colors border border-[#E2E6EB] bg-white disabled:opacity-50"
             >
               <ChevronRight className="w-4 h-4" />
             </button>
@@ -914,66 +926,64 @@ export default function RequisitionsPage() {
       </div>
       {/* Details Modal */}
       {selectedRequisition && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#0A2342]/50 backdrop-blur-sm">
           <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-6 animate-in fade-in zoom-in-95 duration-200">
             <div className="flex justify-between items-start mb-4">
-              <h3 className="text-lg font-bold text-slate-800">
-                Requisition Details
-              </h3>
+              <h3 className="text-lg font-bold text-[#0A2342]">{t("det_title")}</h3>
               <button
                 type="button"
                 aria-label="Close details"
                 onClick={() => setSelectedRequisition(null)}
-                className="text-slate-400 hover:text-slate-700"
+                className="text-[#6B7D99] hover:text-[#0A2342]"
               >
                 <XCircle className="w-5 h-5" />
               </button>
             </div>
             <div className="space-y-4">
               <div>
-                <p className="text-xs text-slate-500 uppercase">ID</p>
-                <p className="font-medium text-slate-800 break-all">
+                <p className="text-xs text-[#6B7D99] uppercase">{t("det_id")}</p>
+                <p className="font-medium text-[#0A2342] break-all">
                   {selectedRequisition.id}
                 </p>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <p className="text-xs text-slate-500 uppercase">Commodity</p>
-                  <p className="font-medium text-slate-800">
+                  <p className="text-xs text-[#6B7D99] uppercase">{t("det_commodity")}</p>
+                  <p className="font-medium text-[#0A2342]">
                     {selectedRequisition.commodity}
                   </p>
                 </div>
                 <div>
-                  <p className="text-xs text-slate-500 uppercase">
+                  <p className="text-xs text-[#6B7D99] uppercase">
                     Volume (MT)
                   </p>
-                  <p className="font-medium text-slate-800">
+                  <p className="font-medium text-[#0A2342]">
                     {selectedRequisition.volume_mt.toLocaleString()}
                   </p>
                 </div>
                 <div>
-                  <p className="text-xs text-slate-500 uppercase">Origin</p>
-                  <p className="font-medium text-slate-800">
+                  <p className="text-xs text-[#6B7D99] uppercase">{t("det_origin")}</p>
+                  <p className="font-medium text-[#0A2342]">
                     {selectedRequisition.origin}
                   </p>
                 </div>
                 <div>
-                  <p className="text-xs text-slate-500 uppercase">
+                  <p className="text-xs text-[#6B7D99] uppercase">
                     Destination
                   </p>
-                  <p className="font-medium text-slate-800">
+                  <p className="font-medium text-[#0A2342]">
                     {selectedRequisition.destPortName}
                   </p>
                 </div>
                 <div>
-                  <p className="text-xs text-slate-500 uppercase">Status</p>
-                  <p className="font-medium text-slate-800">
+                  <p className="text-xs text-[#6B7D99] uppercase">{t("det_status")}</p>
+                  <p className="font-medium text-[#0A2342]">
                     {selectedRequisition.status}
                   </p>
                 </div>
                 <div>
-                  <p className="text-xs text-slate-500 uppercase">Date</p>
-                  <p className="font-medium text-slate-800">
+                  <p className="text-xs text-[#6B7D99] uppercase">{t("det_date")}</p>
+                  <p className="font-medium text-[#0A2342]">
                     {new Date(
                       selectedRequisition.createdAt,
                     ).toLocaleDateString()}
@@ -986,32 +996,28 @@ export default function RequisitionsPage() {
                 type="button"
                 aria-label="Close details button"
                 onClick={() => setSelectedRequisition(null)}
-                className="w-full h-10 rounded-md bg-slate-100 text-slate-700 font-medium hover:bg-slate-200 transition-colors"
-              >
-                Close
-              </button>
+                className="w-full h-10 rounded-lg bg-[#FAF7F1] text-[#3D4F68] font-medium hover:bg-[#FAF7F1] transition-colors"
+              >{t("close")}</button>
             </div>
           </div>
         </div>
       )}
 
       {isNewRequisitionOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-[#0A1727]/60 backdrop-blur-sm">
-          <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg p-6 animate-in fade-in zoom-in-95 duration-200 border border-slate-200">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-[#0A2342]/50 backdrop-blur-sm">
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg p-6 animate-in fade-in zoom-in-95 duration-200 border border-[#E2E6EB]">
             <div className="flex justify-between items-center mb-6">
               <div>
-                <h2 className="text-xl font-bold text-[#0A1727]">
-                  New Requisition
-                </h2>
-                <p className="text-sm text-slate-500 mt-1">
-                  Create a new cargo transportation request.
+                <h2 className="text-xl font-bold text-[#0A2342]">{t("new_title")}</h2>
+                <p className="text-sm text-[#6B7D99] mt-1">
+                  {t("new_sub")}
                 </p>
               </div>
               <button
                 type="button"
                 aria-label="Close form"
                 onClick={() => setIsNewRequisitionOpen(false)}
-                className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-full transition-colors"
+                className="p-2 text-[#6B7D99] hover:text-[#3D4F68] hover:bg-[#FAF7F1] rounded-full transition-colors"
               >
                 <XCircle className="w-6 h-6" />
               </button>
@@ -1019,8 +1025,7 @@ export default function RequisitionsPage() {
 
             <form onSubmit={handleCreateSubmit} className="space-y-5">
               <div>
-                <label className="block text-sm font-semibold text-slate-700 mb-1.5">
-                  Volume (MT) <span className="text-red-500">*</span>
+                <label className="block text-sm font-semibold text-[#3D4F68] mb-1.5">{t("det_volume")} <span className="text-[#B42318]">*</span>
                 </label>
                 <input
                   type="number"
@@ -1030,15 +1035,14 @@ export default function RequisitionsPage() {
                   onChange={(e) =>
                     setNewReqForm({ ...newReqForm, volume_mt: e.target.value })
                   }
-                  className="w-full h-11 px-3 rounded-md border border-slate-300 focus:border-[#0A1727] focus:ring-1 focus:ring-[#0A1727] outline-none transition-all text-slate-900"
+                  className="w-full h-11 px-3 rounded-lg border border-[#E2E6EB] focus:border-[#D95D0F] focus:ring-1 focus:ring-[#D95D0F]/30 outline-none transition-all text-[#0A2342]"
                   placeholder="e.g. 50000"
                 />
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                 <div>
-                  <label className="block text-sm font-semibold text-slate-700 mb-1.5">
-                    Commodity <span className="text-red-500">*</span>
+                  <label className="block text-sm font-semibold text-[#3D4F68] mb-1.5">{t("f_commodity")} <span className="text-[#B42318]">*</span>
                   </label>
                   <select
                     value={newReqForm.commodity}
@@ -1048,7 +1052,7 @@ export default function RequisitionsPage() {
                         commodity: e.target.value,
                       })
                     }
-                    className="w-full h-11 px-3 rounded-md border border-slate-300 focus:border-[#0A1727] focus:ring-1 focus:ring-[#0A1727] outline-none transition-all bg-white text-slate-900"
+                    className="w-full h-11 px-3 rounded-lg border border-[#E2E6EB] focus:border-[#D95D0F] focus:ring-1 focus:ring-[#D95D0F]/30 outline-none transition-all bg-white text-[#0A2342]"
                   >
                     {[
                       "Iron Ore",
@@ -1067,8 +1071,7 @@ export default function RequisitionsPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-semibold text-slate-700 mb-1.5">
-                    Destination Port <span className="text-red-500">*</span>
+                  <label className="block text-sm font-semibold text-[#3D4F68] mb-1.5">{t("col_dest")} <span className="text-[#B42318]">*</span>
                   </label>
                   <select
                     value={newReqForm.dest_port}
@@ -1078,7 +1081,7 @@ export default function RequisitionsPage() {
                         dest_port: e.target.value,
                       })
                     }
-                    className="w-full h-11 px-3 rounded-md border border-slate-300 focus:border-[#0A1727] focus:ring-1 focus:ring-[#0A1727] outline-none transition-all bg-white text-slate-900"
+                    className="w-full h-11 px-3 rounded-lg border border-[#E2E6EB] focus:border-[#D95D0F] focus:ring-1 focus:ring-[#D95D0F]/30 outline-none transition-all bg-white text-[#0A2342]"
                   >
                     {[
                       "Haldia",
@@ -1097,15 +1100,14 @@ export default function RequisitionsPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-slate-700 mb-1.5">
-                  Origin Port <span className="text-red-500">*</span>
+                <label className="block text-sm font-semibold text-[#3D4F68] mb-1.5">{t("f_origin")} <span className="text-[#B42318]">*</span>
                 </label>
                 <select
                   value={newReqForm.origin}
                   onChange={(e) =>
                     setNewReqForm({ ...newReqForm, origin: e.target.value })
                   }
-                  className="w-full h-11 px-3 rounded-md border border-slate-300 focus:border-[#0A1727] focus:ring-1 focus:ring-[#0A1727] outline-none transition-all bg-white text-slate-900"
+                  className="w-full h-11 px-3 rounded-lg border border-[#E2E6EB] focus:border-[#D95D0F] focus:ring-1 focus:ring-[#D95D0F]/30 outline-none transition-all bg-white text-[#0A2342]"
                 >
                   {[
                     "Port Hedland, Australia",
@@ -1124,27 +1126,25 @@ export default function RequisitionsPage() {
                 </select>
               </div>
 
-              <div className="pt-4 flex items-center justify-end space-x-3 border-t border-slate-100">
+              <div className="pt-4 flex items-center justify-end space-x-3 border-t border-[#E2E6EB]">
                 <button
                   type="button"
                   aria-label="Cancel creation"
                   onClick={() => setIsNewRequisitionOpen(false)}
-                  className="px-5 py-2.5 rounded-md text-sm font-medium text-slate-600 hover:bg-slate-100 transition-colors"
-                >
-                  Cancel
-                </button>
+                  className="px-5 py-2.5 rounded-lg text-sm font-medium text-[#3D4F68] hover:bg-[#FAF7F1] transition-colors"
+                >{t("cancel")}</button>
                 <button
                   type="submit"
                   disabled={createMutation.isPending}
-                  className="px-5 py-2.5 rounded-md text-sm font-medium bg-[#0A1727] text-white hover:bg-[#0A1727]/90 transition-colors disabled:opacity-70 flex items-center"
+                  className="px-5 py-2.5 rounded-lg text-sm font-medium bg-[#D95D0F] text-white hover:bg-[#B45309] transition-colors disabled:opacity-70 flex items-center"
                 >
                   {createMutation.isPending ? (
                     <>
                       <Hourglass className="w-4 h-4 mr-2 animate-spin" />
-                      Creating...
+                      {t("creating")}
                     </>
                   ) : (
-                    "Create Requisition"
+                    t("create_req")
                   )}
                 </button>
               </div>
