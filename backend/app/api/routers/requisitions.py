@@ -1,7 +1,7 @@
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, Query, HTTPException
 from typing import Optional
 from datetime import datetime, timedelta
-from app.schemas.requisition import RequisitionEvaluateRequest, RequisitionCreateRequest
+from app.schemas.requisition import RequisitionEvaluateRequest, RequisitionCreateRequest, RequisitionUpdateRequest
 from app.services import maritime_math
 from app.api.dependencies import prisma
 import math
@@ -79,3 +79,45 @@ async def create_requisition(req: RequisitionCreateRequest):
         }
     )
     return new_req
+
+
+@router.get("/{req_id}")
+async def get_requisition(req_id: str):
+    req = await prisma.requisition.find_unique(where={"id": req_id})
+    if not req:
+        raise HTTPException(status_code=404, detail="Requisition not found")
+    return req
+
+
+@router.patch("/{req_id}")
+async def update_requisition(req_id: str, body: RequisitionUpdateRequest):
+    existing = await prisma.requisition.find_unique(where={"id": req_id})
+    if not existing:
+        raise HTTPException(status_code=404, detail="Requisition not found")
+
+    update_data: dict = {}
+    if body.volume_mt is not None:
+        update_data["volume_mt"] = body.volume_mt
+    if body.dest_port is not None:
+        update_data["destPortName"] = body.dest_port
+    if body.commodity is not None:
+        update_data["commodity"] = body.commodity
+    if body.origin is not None:
+        update_data["origin"] = body.origin
+    if body.status is not None:
+        update_data["status"] = body.status
+
+    if not update_data:
+        raise HTTPException(status_code=400, detail="No fields to update")
+
+    updated = await prisma.requisition.update(where={"id": req_id}, data=update_data)
+    return updated
+
+
+@router.delete("/{req_id}")
+async def delete_requisition(req_id: str):
+    existing = await prisma.requisition.find_unique(where={"id": req_id})
+    if not existing:
+        raise HTTPException(status_code=404, detail="Requisition not found")
+    await prisma.requisition.delete(where={"id": req_id})
+    return {"detail": "Requisition deleted successfully"}

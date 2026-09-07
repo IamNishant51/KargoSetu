@@ -14,11 +14,13 @@ import {
   ArrowRight,
   Play,
 } from "lucide-react";
+import { useUser } from "@/hooks/useUser";
 
 export default function Navbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [solutionsOpen, setSolutionsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const { data: user } = useUser();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -60,6 +62,7 @@ export default function Navbar() {
                 src="/logo-ks.png"
                 alt="KargoSetu Logo"
                 fill
+                sizes="(max-width: 640px) 48px, 64px"
                 className="object-contain scale-[1.15] drop-shadow-sm"
                 priority
               />
@@ -213,13 +216,33 @@ export default function Navbar() {
               Watch Demo
             </button>
 
-            <Link
-              href="/dashboard"
-              className="bg-[#0F172A] hover:bg-[#1E293B] text-white px-5 py-2.5 rounded-xl font-medium transition-all flex items-center gap-2 shadow-sm text-sm"
-            >
-              <User size={17} />
-              <span>Get Started Free</span>
-            </Link>
+            {user ? (
+              <Link
+                href="/dashboard"
+                className="bg-slate-100 hover:bg-slate-200 text-slate-900 pr-4 pl-1.5 py-1.5 rounded-full font-medium transition-all flex items-center gap-3 shadow-sm border border-slate-200 text-sm"
+              >
+                {user.avatarUrl ? (
+                  <img 
+                    src={user.avatarUrl} 
+                    alt="Avatar" 
+                    className="w-8 h-8 rounded-full border border-white shadow-sm"
+                  />
+                ) : (
+                  <div className="w-8 h-8 rounded-full bg-orange-500 text-white flex items-center justify-center text-xs font-bold shadow-sm">
+                    {user.name?.substring(0, 2).toUpperCase() || "U"}
+                  </div>
+                )}
+                <span className="truncate max-w-[120px]">{user.name || "Dashboard"}</span>
+              </Link>
+            ) : (
+              <Link
+                href="/dashboard"
+                className="bg-[#0F172A] hover:bg-[#1E293B] text-white px-5 py-2.5 rounded-xl font-medium transition-all flex items-center gap-2 shadow-sm text-sm"
+              >
+                <User size={17} />
+                <span>Get Started Free</span>
+              </Link>
+            )}
           </div>
 
           {/* Mobile Menu Hamburger Button */}
@@ -295,14 +318,33 @@ export default function Navbar() {
 
           {/* Mobile CTAs */}
           <div className="pt-3 border-t border-slate-100 space-y-2">
-            <Link
-              href="/dashboard"
-              onClick={() => setMobileMenuOpen(false)}
-              className="w-full bg-[#0F172A] hover:bg-[#1E293B] text-white py-3 rounded-xl font-semibold transition-all flex items-center justify-center gap-2 shadow-sm text-sm"
-            >
-              <User size={18} />
-              <span>Get Started Free</span>
-            </Link>
+            {user ? (
+              <Link
+                href="/dashboard"
+                onClick={() => setMobileMenuOpen(false)}
+                className="w-full bg-slate-100 hover:bg-slate-200 text-slate-900 py-3 rounded-xl font-semibold transition-all flex items-center justify-center gap-3 shadow-sm text-sm border border-slate-200"
+              >
+                {user.avatarUrl ? (
+                  <img 
+                    src={user.avatarUrl} 
+                    alt="Avatar" 
+                    className="w-6 h-6 rounded-full"
+                  />
+                ) : (
+                  <User size={18} />
+                )}
+                <span>Go to Dashboard</span>
+              </Link>
+            ) : (
+              <Link
+                href="/dashboard"
+                onClick={() => setMobileMenuOpen(false)}
+                className="w-full bg-[#0F172A] hover:bg-[#1E293B] text-white py-3 rounded-xl font-semibold transition-all flex items-center justify-center gap-2 shadow-sm text-sm"
+              >
+                <User size={18} />
+                <span>Get Started Free</span>
+              </Link>
+            )}
 
             <button
               type="button"

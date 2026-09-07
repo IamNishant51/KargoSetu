@@ -15,6 +15,7 @@ from app.api.routers import (
     commodities,
     settings,
     notifications,
+    auth,
 )
 import httpx
 import app.services.maritime_math as maritime_math
@@ -80,3 +81,4 @@ app.include_router(ports.router)
 app.include_router(commodities.router)
 app.include_router(settings.router)
 app.include_router(notifications.router)
+app.include_router(auth.router)

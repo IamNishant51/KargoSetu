@@ -175,6 +175,13 @@ export default function Footer() {
           </div>
         </div>
 
+        {/* Massive Creative Typography Watermark */}
+        <div className="w-full overflow-hidden flex justify-center pointer-events-none select-none px-4 pb-2">
+          <h1 className="text-[14vw] font-black leading-none tracking-tighter bg-clip-text text-transparent bg-gradient-to-b from-slate-200/80 to-slate-50/10 whitespace-nowrap opacity-80 mix-blend-multiply">
+            KARGOSETU
+          </h1>
+        </div>
+
         {/* Bottom Bar */}
         <div className="mt-12 pt-8 border-t border-slate-200/80 flex flex-col sm:flex-row justify-between items-center gap-4 text-xs text-slate-500 font-medium">
           <p suppressHydrationWarning>

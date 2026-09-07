@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import { useMutation, useQuery } from "@tanstack/react-query";
+import { useLanguage } from "@/i18n/LanguageContext";
 import {
   Download,
   Calendar,
@@ -19,6 +20,7 @@ import {
 } from "lucide-react";
 
 export default function DashboardPage() {
+  const { t } = useLanguage();
   const [unit, setUnit] = useState<"Meters" | "Feet">("Meters");
   const [portDropdownOpen, setPortDropdownOpen] = useState(false);
   const [portSearch, setPortSearch] = useState("");
@@ -210,7 +212,7 @@ export default function DashboardPage() {
                           selectedPort ? "text-slate-800" : "text-slate-400"
                         }
                       >
-                        {selectedPort ? selectedPort.name : "Select port..."}
+                        {selectedPort ? selectedPort.name : t("select_port")}
                       </span>
                       <div className="flex items-center space-x-2">
                         {selectedPort && (
@@ -236,7 +238,7 @@ export default function DashboardPage() {
                           <Search className="w-4 h-4 text-slate-400 mr-2 shrink-0" />
                           <input
                             type="text"
-                            placeholder="Search ports..."
+                            placeholder={t("search_ports")}
                             value={portSearch}
                             onChange={(e) => setPortSearch(e.target.value)}
                             className="w-full bg-transparent text-sm focus:outline-none text-slate-700 placeholder:text-slate-400"
@@ -411,7 +413,7 @@ export default function DashboardPage() {
                   className="w-full inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors bg-[#0A1727] text-white hover:bg-[#0A1727]/90 h-10 px-4 py-2 shadow-sm disabled:opacity-70 disabled:cursor-not-allowed"
                 >
                   <ClipboardCheck className="w-4 h-4 mr-2" />
-                  {loading ? "Evaluating..." : "Evaluate Constraints"}
+                  {loading ? "Evaluating..." : t("evaluate_constraints")}
                 </button>
                 {error && (
                   <div className="text-red-500 text-sm mt-2">

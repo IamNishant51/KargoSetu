@@ -1,4 +1,5 @@
 "use client";
+import { useLanguage } from "@/i18n/LanguageContext";
 
 import React, { useState, use } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -52,6 +53,7 @@ export default function SettingsPage({
 }: {
   settingsPromise: Promise<unknown>;
 }) {
+  const { t, language, setLanguage } = useLanguage();
   const queryClient = useQueryClient();
   const remoteSettingsArray = use(settingsPromise);
   const remoteSettings =
@@ -147,7 +149,7 @@ export default function SettingsPage({
             ? "Saving..."
             : mutation.isSuccess
               ? "Saved"
-              : "Save Changes"}
+              : t("save_changes")}
         </button>
       </div>
 
@@ -246,13 +248,21 @@ export default function SettingsPage({
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <Globe className="w-4 h-4 text-slate-500" />
                 </div>
-                <select
-                  value={settings.language}
-                  onChange={(e) => updateSetting("language", e.target.value)}
+                                <select
+                  value={language}
+                  onChange={(e) => {
+                    setLanguage(e.target.value as "en" | "hi" | "bn" | "mr" | "ta" | "te" | "gu");
+                    updateSetting("language", e.target.value);
+                  }}
                   className="block w-full h-10 pl-9 pr-10 py-2 text-sm border border-slate-300 rounded-md focus:ring-[#0A1727] focus:border-[#0A1727] bg-white text-slate-800 font-medium appearance-none"
                 >
-                  <option>English</option>
-                  <option>Hindi</option>
+                  <option value="en">English</option>
+                  <option value="hi">हिन्दी</option>
+                  <option value="bn">বাংলা</option>
+                  <option value="mr">मराठी</option>
+                  <option value="ta">தமிழ்</option>
+                  <option value="te">తెలుగు</option>
+                  <option value="gu">ગુજરાતી</option>
                 </select>
                 <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none text-slate-500">
                   <ChevronDown className="w-4 h-4" />

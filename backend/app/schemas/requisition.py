@@ -22,3 +22,16 @@ class RequisitionCreateRequest(BaseModel):
     dest_port: str = Field(..., description="Name or UN/LOCODE of the destination port", example="Shanghai")
     commodity: str = Field(..., description="Type of commodity", example="Coal")
     origin: str = Field(..., description="Name or UN/LOCODE of the origin port", example="Newcastle")
+
+
+class RequisitionUpdateRequest(BaseModel):
+    """
+    Schema for updating an existing freight requisition.
+    All fields are optional — only provided fields are updated.
+    """
+    model_config = {"strict": True}
+    volume_mt: float | None = Field(None, description="Volume of the cargo in metric tonnes", example=75000.0)
+    dest_port: str | None = Field(None, description="Name or UN/LOCODE of the destination port", example="Shanghai")
+    commodity: str | None = Field(None, description="Type of commodity", example="Coal")
+    origin: str | None = Field(None, description="Name or UN/LOCODE of the origin port", example="Newcastle")
+    status: str | None = Field(None, description="Requisition status", example="Approved")

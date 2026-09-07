@@ -12,8 +12,13 @@ import {
   Bell,
   LogOut,
   User,
+  Globe,
 } from "lucide-react";
+import { useLanguage } from "@/i18n/LanguageContext";
 import { useQuery } from "@tanstack/react-query";
+import { useUser } from "@/hooks/useUser";
+import Cookies from "js-cookie";
+import { useRouter } from "next/navigation";
 import { useSidebar } from "./SidebarContext";
 
 function getRelativeTime(dateStr: string) {
@@ -31,10 +36,14 @@ function getRelativeTime(dateStr: string) {
 
 export function TopHeader() {
   const { setSidebarOpen } = useSidebar();
+  const { t, language, setLanguage } = useLanguage();
   const pathname = usePathname();
+  const router = useRouter();
+  const { data: user, isLoading: isUserLoading } = useUser();
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [allRead, setAllRead] = useState(false);
+  const [langOpen, setLangOpen] = useState(false);
 
   const { data: notificationsData, isLoading: isLoadingNotifications } =
     useQuery({
@@ -55,6 +64,7 @@ export function TopHeader() {
 
   const notifRef = useRef<HTMLDivElement>(null);
   const profileRef = useRef<HTMLDivElement>(null);
+  const langRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -128,12 +138,12 @@ export function TopHeader() {
           {notificationsOpen && (
             <div className="absolute right-0 mt-2 w-80 rounded-xl border border-slate-200 bg-white shadow-lg overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200 z-50">
               <div className="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50">
-                <h3 className="font-semibold text-slate-800">Notifications</h3>
+                <h3 className="font-semibold text-slate-800">{t("notifications")}</h3>
                 <span
                   onClick={() => setAllRead(true)}
                   className="text-xs font-medium text-blue-600 cursor-pointer hover:text-blue-700"
                 >
-                  Mark all as read
+                  {t("mark_read")}
                 </span>
               </div>
               <div className="max-h-[300px] overflow-auto">
@@ -201,6 +211,45 @@ export function TopHeader() {
         </div>
 
         {/* Profile Dropdown */}
+        {/* Language Selector */}
+        <div className="relative mr-2 sm:mr-4" ref={langRef}>
+          <button
+            onClick={() => setLangOpen(!langOpen)}
+            className="p-2 text-slate-500 hover:text-slate-700 hover:bg-slate-100 rounded-full transition-colors flex items-center"
+            title="Change Language"
+          >
+            <Globe className="w-5 h-5" />
+          </button>
+
+          {langOpen && (
+            <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-slate-200 overflow-hidden z-50">
+              <ul className="py-1">
+                {[
+                  { code: "en", label: "English" },
+                  { code: "hi", label: "हिन्दी" },
+                  { code: "bn", label: "বাংলা" },
+                  { code: "mr", label: "मराठी" },
+                  { code: "ta", label: "தமிழ்" },
+                  { code: "te", label: "తెలుగు" },
+                  { code: "gu", label: "ગુજરાતી" },
+                ].map((l) => (
+                  <li key={l.code}>
+                    <button
+                      className={`w-full text-left px-4 py-2 text-sm transition-colors hover:bg-slate-50 ${language === l.code ? "text-orange-600 font-semibold bg-orange-50/50" : "text-slate-700"}`}
+                      onClick={() => {
+                        setLanguage(l.code as "en" | "hi" | "bn" | "mr" | "ta" | "te" | "gu");
+                        setLangOpen(false);
+                      }}
+                    >
+                      {l.label}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
+
         <div
           className="relative border-l border-slate-200 pl-3 sm:pl-6"
           ref={profileRef}
@@ -211,36 +260,34 @@ export function TopHeader() {
           >
             <div className="text-right mr-3 hidden lg:block">
               <p className="text-sm font-medium text-slate-800 group-hover:text-blue-600 transition-colors">
-                Admin User
+                {user?.name || "KargoSetu User"}
               </p>
-              <p className="text-xs text-slate-500">Oceanix Corp.</p>
+              <p className="text-xs text-slate-500">{user?.email || "Admin"}</p>
             </div>
-            <div
-              className={`w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-slate-100 border text-slate-600 flex items-center justify-center shrink-0 overflow-hidden transition-all ${profileOpen ? "border-blue-500 ring-2 ring-blue-500/20" : "border-slate-200 group-hover:border-blue-300"}`}
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 24 24"
-                fill="currentColor"
-                className="w-5 h-5 sm:w-6 sm:h-6 mt-1 sm:mt-2"
+            
+            {user?.avatarUrl ? (
+              <img 
+                src={user.avatarUrl}
+                alt={user.name || "Avatar"}
+                className={`w-8 h-8 sm:w-9 sm:h-9 rounded-full shrink-0 border transition-all ${profileOpen ? "border-blue-500 ring-2 ring-blue-500/20" : "border-slate-200 group-hover:border-blue-300"}`}
+              />
+            ) : (
+              <div
+                className={`w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-orange-500 text-white flex items-center justify-center font-bold text-sm shrink-0 overflow-hidden transition-all shadow-sm ${profileOpen ? "ring-2 ring-blue-500/20" : ""}`}
               >
-                <path
-                  fillRule="evenodd"
-                  d="M7.5 6a4.5 4.5 0 119 0 4.5 4.5 0 01-9 0zM3.751 20.105a8.25 8.25 0 0116.498 0 .75.75 0 01-.437.695A18.683 18.683 0 0112 22.5c-2.786 0-5.433-.608-7.812-1.7a.75.75 0 01-.437-.695z"
-                  clipRule="evenodd"
-                />
-              </svg>
-            </div>
+                {user?.name?.substring(0, 2).toUpperCase() || "U"}
+              </div>
+            )}
           </div>
 
           {profileOpen && (
             <div className="absolute right-0 mt-3 w-56 rounded-xl border border-slate-200 bg-white shadow-lg overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200 z-50">
               <div className="p-4 border-b border-slate-100 bg-slate-50">
                 <p className="text-sm font-semibold text-slate-800">
-                  Admin User
+                  {user?.name || "KargoSetu User"}
                 </p>
                 <p className="text-xs text-slate-500 mt-0.5">
-                  admin@oceanix.com
+                  {user?.email || "Admin"}
                 </p>
               </div>
               <div className="p-2">
@@ -262,6 +309,10 @@ export function TopHeader() {
               <div className="p-2 border-t border-slate-100">
                 <button
                   type="button"
+                  onClick={() => {
+                    Cookies.remove("auth_token", { path: '/' });
+                    router.push('/login');
+                  }}
                   aria-label="Sign out"
                   className="w-full flex items-center px-3 py-2 text-sm font-medium text-red-600 rounded-md hover:bg-red-50 transition-colors"
                 >

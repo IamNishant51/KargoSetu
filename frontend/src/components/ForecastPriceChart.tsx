@@ -65,7 +65,7 @@ const ForecastPriceChart = React.memo(function ForecastPriceChart() {
 
       {displayData && (
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div className="bg-navy-900 p-5 rounded-xl border-t-4 border-emerald-500 shadow-md transition-transform hover:-translate-y-1 duration-200 flex flex-col justify-center">
+          <div className="bg-navy-900 p-5 rounded-xl shadow-md transition-transform hover:-translate-y-1 duration-200 flex flex-col justify-center">
             <div className="text-xs text-slate-400 uppercase font-bold tracking-wider mb-2">
               P10 (Optimistic)
             </div>
@@ -73,7 +73,7 @@ const ForecastPriceChart = React.memo(function ForecastPriceChart() {
               ${displayData.p10.toLocaleString()}
             </div>
           </div>
-          <div className="bg-navy-900 p-5 rounded-xl border-t-4 border-blue-500 shadow-md transition-transform hover:-translate-y-1 duration-200 flex flex-col justify-center">
+          <div className="bg-navy-900 p-5 rounded-xl shadow-md transition-transform hover:-translate-y-1 duration-200 flex flex-col justify-center">
             <div className="text-xs text-slate-400 uppercase font-bold tracking-wider mb-2">
               P50 (Median)
             </div>
@@ -81,7 +81,7 @@ const ForecastPriceChart = React.memo(function ForecastPriceChart() {
               ${displayData.p50.toLocaleString()}
             </div>
           </div>
-          <div className="bg-navy-900 p-5 rounded-xl border-t-4 border-orange-500 shadow-md transition-transform hover:-translate-y-1 duration-200 flex flex-col justify-center">
+          <div className="bg-navy-900 p-5 rounded-xl shadow-md transition-transform hover:-translate-y-1 duration-200 flex flex-col justify-center">
             <div className="text-xs text-slate-400 uppercase font-bold tracking-wider mb-2">
               P90 (Pessimistic)
             </div>

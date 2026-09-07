@@ -129,7 +129,7 @@ export default function SocialProofLogos() {
           {LOGOS.map((item, idx) => (
             <div
               key={idx}
-              className={`flex items-center gap-2.5 text-slate-800 transition-colors ${item.hoverColor} cursor-default`}
+              className="flex items-center gap-2.5 text-slate-700 transition-opacity hover:opacity-100 cursor-default"
             >
               {item.icon}
               {item.customLayout ? (
@@ -147,7 +147,7 @@ export default function SocialProofLogos() {
             {[...LOGOS, ...LOGOS].map((item, idx) => (
               <div
                 key={idx}
-                className={`flex items-center gap-2 text-slate-800 whitespace-nowrap ${item.hoverColor}`}
+                className="flex items-center gap-2 text-slate-700 whitespace-nowrap"
               >
                 {item.icon}
                 {item.customLayout ? (

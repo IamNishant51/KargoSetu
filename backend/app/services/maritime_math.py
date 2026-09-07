@@ -153,9 +153,15 @@ async def evaluate_requisition(req_data: RequisitionEvaluateRequest) -> dict:
             "strategy": "Offshore Transshipment Required (e.g., Lighterage at Sandheads)",
             "calculatedDraft": 0.0,
             "portMaxDraft": float(dest_port_draft),
+            "clearance_margin": 0.0,
+            "total_vessels": 0,
+            "vesselCapacity": 0,
+            "requestedVolume": req_data.volume_mt,
+            "vessel_class": "N/A",
+            "ai_insight": "No vessel class meets the UKC safety requirement at this port. Consider offshore transshipment or lighterage operations.",
         }
 
-# Sort by cost efficiency per metric ton
+    # Sort by cost efficiency per metric ton
     valid_vessels.sort(key=lambda x: x["vessel"].daily_cost / x["vessel"].capacity)
 
     best = valid_vessels[0]
@@ -166,9 +172,35 @@ async def evaluate_requisition(req_data: RequisitionEvaluateRequest) -> dict:
     if vessel_count > 1:
         strategy = f"Split Cargo into {vessel_count}x {best_vessel.name}s"
 
+    clearance = round(best["clearance_margin"], 2)
+    draft_pct = round((best["calculatedDraft"] / dest_port_draft) * 100, 1) if dest_port_draft else 0
+
+    # Determine vessel class recommendation
+    if vessel_count == 1:
+        vessel_class = best_vessel.name
+    else:
+        vessel_class = f"{vessel_count}x {best_vessel.name}"
+
+    # Build AI insight
+    if clearance < 2.0:
+        ukc_note = f"UKC is tight at {clearance}m — recommend neap tide window."
+    else:
+        ukc_note = f"UKC of {clearance}m provides comfortable margin."
+
+    ai_insight = (
+        f"Draft is {draft_pct}% of port max. {ukc_note} "
+        f"Recommended: {vessel_class} for {req_data.volume_mt:,} MT of {req_data.commodity}."
+    )
+
     return {
         "feasible": True,
         "strategy": strategy,
         "calculatedDraft": float(best["calculatedDraft"]),
         "portMaxDraft": float(dest_port_draft),
+        "clearance_margin": clearance,
+        "total_vessels": vessel_count,
+        "vesselCapacity": best_vessel.capacity,
+        "requestedVolume": req_data.volume_mt,
+        "vessel_class": vessel_class,
+        "ai_insight": ai_insight,
     }
