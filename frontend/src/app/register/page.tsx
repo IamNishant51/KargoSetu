@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { Mail, Lock, User, ArrowRight, Eye, EyeOff } from "lucide-react";
-import { GoogleLogin } from "@react-oauth/google";
+import { GoogleLogin, CredentialResponse } from "@react-oauth/google";
 import Cookies from "js-cookie";
 
 import { Button } from "@/components/ui/button";
@@ -41,14 +41,18 @@ export default function RegisterPage() {
       const data = await res.json();
       Cookies.set("auth_token", data.access_token, { expires: 7, path: "/" });
       router.push("/dashboard");
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError("An unknown error occurred");
+      }
     } finally {
       setLoading(false);
     }
   };
 
-  const handleGoogleSuccess = async (credentialResponse: any) => {
+  const handleGoogleSuccess = async (credentialResponse: CredentialResponse) => {
     try {
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:7860"}/api/v1/auth/google`, {
         method: "POST",
@@ -60,8 +64,12 @@ export default function RegisterPage() {
       const data = await res.json();
       Cookies.set("auth_token", data.access_token, { expires: 7, path: "/" });
       router.push("/dashboard");
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError("An unknown error occurred");
+      }
     }
   };
 

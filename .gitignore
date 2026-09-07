@@ -20,3 +20,7 @@ backend/model.onnx
 .vscode/
 .idea/
 POSTGRES_SETUP.md.opencode/
+
+# Local Deployment Docs
+DEPLOYMENT_GUIDE.md
+DEPLOYMENT_GUIDE.md.opencode/

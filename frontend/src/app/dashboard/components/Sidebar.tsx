@@ -3,21 +3,26 @@
 import React, { useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   LayoutDashboard,
   FileText,
   TrendingUp,
   Settings,
   X,
+  LogOut,
 } from "lucide-react";
 import { useSidebar } from "./SidebarContext";
 import { useLanguage } from "@/i18n/LanguageContext";
+import Cookies from "js-cookie";
+import { useUser } from "@/hooks/useUser";
 
 export function Sidebar() {
   const { sidebarOpen, setSidebarOpen } = useSidebar();
   const { t } = useLanguage();
   const pathname = usePathname();
+  const router = useRouter();
+  const { data: user, isLoading: isUserLoading } = useUser();
 
 // Close sidebar on route change on mobile
   useEffect(() => {
@@ -101,16 +106,36 @@ export function Sidebar() {
 
         {/* Profile Area - Sidebar */}
         <div className="p-4 border-t border-slate-200">
-          <div className="flex items-center bg-slate-50 border border-slate-100 p-3 rounded-lg hover:bg-slate-100 transition-colors cursor-pointer">
-            <div className="w-10 h-10 rounded-full bg-orange-500 text-white flex items-center justify-center font-semibold text-sm shrink-0">
-              AC
+          <div className="flex items-center justify-between bg-slate-50 border border-slate-100 p-3 rounded-lg hover:bg-slate-100 transition-colors">
+            <div className="flex items-center overflow-hidden">
+              {user?.avatarUrl ? (
+                <img 
+                  src={user.avatarUrl} 
+                  alt={user.name || "User avatar"} 
+                  className="w-10 h-10 rounded-full shrink-0 border border-slate-200"
+                />
+              ) : (
+                <div className="w-10 h-10 rounded-full bg-orange-500 text-white flex items-center justify-center font-semibold text-sm shrink-0">
+                  {user?.name?.substring(0, 2).toUpperCase() || "U"}
+                </div>
+              )}
+              <div className="ml-3 overflow-hidden">
+                <p className="text-sm font-medium text-slate-900 truncate">
+                  {user?.name || "KargoSetu User"}
+                </p>
+                <p className="text-xs text-slate-500 truncate">{user?.email || "Admin"}</p>
+              </div>
             </div>
-            <div className="ml-3 overflow-hidden">
-              <p className="text-sm font-medium text-slate-900 truncate">
-                Oceanix Corp.
-              </p>
-              <p className="text-xs text-slate-500 truncate">Admin</p>
-            </div>
+            <button 
+              onClick={() => {
+                Cookies.remove("auth_token", { path: '/' });
+                router.push('/login');
+              }}
+              className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors"
+              title="Logout"
+            >
+              <LogOut size={18} />
+            </button>
           </div>
         </div>
       </aside>

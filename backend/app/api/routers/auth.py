@@ -11,7 +11,8 @@ from app.core.security import verify_password, get_password_hash, create_access_
 router = APIRouter(prefix="/api/v1/auth", tags=["auth"])
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login")
 
-GOOGLE_CLIENT_ID = "YOUR_GOOGLE_CLIENT_ID" # This should ideally be in env vars
+import os
+GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID", "YOUR_GOOGLE_CLIENT_ID")
 
 # Dependency to get db
 # In MIGRATION_PLAN.md it says use prisma.connect() in lifespan and import prisma

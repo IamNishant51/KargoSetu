@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { Mail, Lock, ArrowRight, Eye, EyeOff } from "lucide-react";
-import { GoogleLogin } from "@react-oauth/google";
+import { GoogleLogin, CredentialResponse } from "@react-oauth/google";
 import Cookies from "js-cookie";
 
 import { Button } from "@/components/ui/button";
@@ -40,14 +40,14 @@ export default function LoginPage() {
       const data = await res.json();
       Cookies.set("auth_token", data.access_token, { expires: 7, path: "/" });
       router.push("/dashboard");
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "An unknown error occurred");
     } finally {
       setLoading(false);
     }
   };
 
-  const handleGoogleSuccess = async (credentialResponse: any) => {
+  const handleGoogleSuccess = async (credentialResponse: CredentialResponse) => {
     try {
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:7860"}/api/v1/auth/google`, {
         method: "POST",
@@ -59,8 +59,8 @@ export default function LoginPage() {
       const data = await res.json();
       Cookies.set("auth_token", data.access_token, { expires: 7, path: "/" });
       router.push("/dashboard");
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "An unknown error occurred");
     }
   };
 
@@ -175,13 +175,13 @@ export default function LoginPage() {
             onError={() => setError("Google Sign-In failed")}
             theme="outline"
             size="large"
-            width="100%"
+            width="360"
             shape="rectangular"
           />
         </div>
 
         <p className="mt-6 text-center text-sm font-medium text-slate-600">
-          Don't have an account?{" "}
+          Don&apos;t have an account?{" "}
           <Link href="/register" className="font-bold text-[#EA580C] hover:text-[#C2410C] hover:underline transition-all">
             Sign up
           </Link>
