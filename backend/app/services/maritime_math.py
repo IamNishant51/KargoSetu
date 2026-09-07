@@ -158,7 +158,7 @@ async def evaluate_requisition(req_data: RequisitionEvaluateRequest) -> dict:
             "vesselCapacity": 0,
             "requestedVolume": req_data.volume_mt,
             "vessel_class": "N/A",
-            "ai_insight": "No vessel class meets the UKC safety requirement at this port. Consider offshore transshipment or lighterage operations.",
+            "ai_insight": "Evaluative models conclude that no available vessel class satisfies the strict Under Keel Clearance (UKC) safety thresholds at this destination. Strategic alternatives, such as offshore transshipment or lighterage operations, are highly recommended to proceed.",
         }
 
     # Sort by cost efficiency per metric ton
@@ -183,13 +183,16 @@ async def evaluate_requisition(req_data: RequisitionEvaluateRequest) -> dict:
 
     # Build AI insight
     if clearance < 2.0:
-        ukc_note = f"UKC is tight at {clearance}m — recommend neap tide window."
+        ukc_note = f"However, the Under Keel Clearance (UKC) is extremely tight at {clearance:.2f}m. Navigational caution and strict adherence to neap tide windows are strongly advised."
+    elif clearance < 3.5:
+        ukc_note = f"The projected Under Keel Clearance (UKC) of {clearance:.2f}m provides a sufficient, albeit standard, safety margin for transit."
     else:
-        ukc_note = f"UKC of {clearance}m provides comfortable margin."
+        ukc_note = f"An ample Under Keel Clearance (UKC) of {clearance:.2f}m affords a highly comfortable margin, ensuring robust operational safety."
 
     ai_insight = (
-        f"Draft is {draft_pct}% of port max. {ukc_note} "
-        f"Recommended: {vessel_class} for {req_data.volume_mt:,} MT of {req_data.commodity}."
+        f"Analysis indicates the projected draft utilizes {draft_pct:.1f}% of the port's maximum permissible limits. "
+        f"{ukc_note} "
+        f"The optimal logistical strategy recommends deploying {vessel_class} to accommodate the {req_data.volume_mt:,.1f} MT of {req_data.commodity} efficiently."
     )
 
     return {
