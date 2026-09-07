@@ -41,3 +41,21 @@ To run the recently migrated Python FastAPI backend locally:
    ```
 
 *The backend API will be live at `http://localhost:7860`.*
+
+
+---
+
+### Potential Judge Questions
+
+Based on the provided documentation, here are 10 thoughtful and probing questions I would ask the team as a technical judge:
+
+1. **Proxy Data Validity:** You mentioned using the `BDRY` ETF via `yfinance` as a "free" way to fetch data. Since this ETF represents a generalized global basket of dry bulk freight futures, how are you mathematically extrapolating route-specific (e.g., Australia/Indonesia to East Coast India) and vessel-specific rates from a broad global index?
+2. **Model Confidence & Risk Management:** Forecasting financial/freight markets 30 to 90 days out is notoriously difficult and volatile. What specific machine learning models are you using, and do you provide confidence intervals to logistics managers so they know the risk level of "waiting 8 days to book"?
+3. **Vessel Class Discrepancies:** The `BDRY` ETF tracks Capesize, Panamax, and Supramax futures. However, your documentation explicitly mentions recommending *Handysize* ships for shallow ports like Haldia. How is your AI forecasting rates for vessel classes that are not directly represented in your primary data source?
+4. **Handling Demurrage Dynamics:** Your problem statement notes the loss of crores in demurrage (waiting fees). Does your "Smart Ship Selection" algorithm dynamically factor in real-time port congestion and unloading speeds, or is it strictly matching the static vessel draft to the port depth?
+5. **Operational Deadlines vs. Savings:** Your "Best Booking Window" advises managers to delay bookings to save money. How does your algorithm balance the predicted freight savings against the rigid supply chain deadlines required to keep a massive steel plant (like SAIL or RINL) operational without running out of coal or iron ore?
+6. **Backend Data Ingestion:** I see you are using a Python FastAPI backend. How is the real-time or daily data ingestion pipeline structured? Are you utilizing background tasks (e.g., Celery or FastAPI's BackgroundTasks) to periodically pull and process the `yfinance` data without blocking client requests?
+7. **Database Architecture:** You are using Prisma as your ORM. How is your database schema structured to handle the complex, many-to-many relationships between historical time-series data, varying port specifications (like water depth), and specific cargo volume requirements?
+8. **Geopolitical and External Variables:** Shipping rates are highly susceptible to sudden global events, weather (like cyclones in the Bay of Bengal), and geopolitical tensions. Does your forecasting model rely purely on historical univariate price data, or are you engineering features to account for external market shocks?
+9. **Origin-Destination Specifics:** Importing coal from Australia versus Indonesia involves vastly different transit times, distances, and freight economics. How does your model parameterize the specific origin country when calculating the forecasting and chartering window for the East Coast of India?
+10. **Enterprise Integration:** Indian steel PSUs typically rely on secure, legacy ERP systems. How have you designed your FastAPI architecture and API endpoints to ensure secure, seamless integration into their existing procurement and logistics workflows?

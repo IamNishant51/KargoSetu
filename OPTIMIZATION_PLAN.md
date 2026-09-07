@@ -95,3 +95,21 @@ An elite, actionable blueprint for transforming KargoSetu into an ultra-performa
   from tensorflow.keras import mixed_precision
   mixed_precision.set_global_policy('mixed_float16')
   ```
+
+
+---
+
+### Potential Judge Questions
+
+Here are 10 thoughtful, probing questions based on your optimization plan, designed to test the depth of your technical decisions as an expert hackathon judge:
+
+1. **Regarding `DashboardLayoutClient.tsx` and Server Components:** By moving the top-level structural skeleton to a Server Component and isolating interactive elements into client components, how do you plan to handle global state or context (like user sessions or theme) that might be required by both the server layout and the deeply nested client components?
+2. **On React 19 Suspense Boundaries:** You mentioned streaming dynamic parts via Suspense boundaries for the frontend layout. How are you designing your fallback UI states to prevent Cumulative Layout Shift (CLS) when these interactive components (like the sidebar or dropdowns) finally hydrate?
+3. **Addressing the `QueryClient` SSR Risk:** You noted that initializing the `QueryClient` inside a `useState` is a bottleneck and are moving to the `makeQueryClient` pattern with an `isServer` check. Can you explain the specific data-leak or memory-leak risks during Server-Side Rendering that occur when a Query Client is shared across concurrent user requests?
+4. **Experimental Packages in Production:** You plan to adopt `@tanstack/react-query-next-experimental` for streamed hydration. Given the time constraints and reliability needs of a hackathon/enterprise app, what is your fallback strategy if this experimental package introduces breaking changes or hydration mismatches?
+5. **Dynamic Imports and SSR:** In your code snippet for lazy-loading, you explicitly disabled Server-Side Rendering (`ssr: false`) for the `InteractiveSandbox` component. What specific dependencies or browser-APIs within that sandbox necessitated this decision, and how does skipping SSR impact your initial page load performance?
+6. **Measuring Bundle Size Reductions:** You mentioned tree-shaking `lucide-react` and using `next/dynamic` to reduce the bundle size in `page.tsx`. Have you run Next.js bundle analyzer yet, and what is your target reduction in the initial JavaScript payload size?
+7. **React 19 `use()` Hook Error Handling:** Transitioning from `useEffect` waterfalls to using the new `use()` hook for resolving promises directly in client components is a very modern approach. Since `use()` can trigger Suspense, how are you implementing Error Boundaries to catch and handle promise rejections gracefully in the UI?
+8. **Client-Side Rendering Performance:** To avoid main-thread UI jank in `ForecastPriceChart.tsx`, you suggested using `React.memo` and `useMemo`. However, complex data transformations can still block the thread even if memoized. Did you consider moving these heavy chart data transformations to a Web Worker or doing them entirely on the FastAPI backend before sending the payload?
+9. **FastAPI Lifespan and Connection Pooling:** You correctly identified the TCP handshake bottleneck in `maritime_math.py` and are moving the `httpx.AsyncClient()` to the FastAPI `lifespan`. How do you plan to configure the connection pool limits (e.g., max keep-alive connections, timeouts) within that client to ensure you don't overwhelm external APIs during traffic spikes?
+10. **Graceful Backend Shutdowns:** Instantiating a global HTTP client pool in `app.state.http_client` is great for initialization, but handling the teardown is equally important. How are you managing the cleanup phase in the FastAPI lifespan to ensure all active HTTP connections are gracefully closed when the application shuts down or scales in?

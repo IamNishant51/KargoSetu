@@ -1,4 +1,4 @@
-import React from "react";
+import React, { Suspense } from "react";
 import Navbar from "@/components/landing/Navbar";
 import HeroSection from "@/components/landing/HeroSection";
 import SocialProofLogos from "@/components/landing/SocialProofLogos";
@@ -42,7 +42,9 @@ export default function Home() {
         <CtaSection />
       </main>
       <Footer />
-      <DemoModal />
+      <Suspense fallback={null}>
+        <DemoModal />
+      </Suspense>
     </div>
   );
 }

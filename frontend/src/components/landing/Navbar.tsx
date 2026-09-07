@@ -59,7 +59,7 @@ export default function Navbar() {
                 <a
                   key={l.label}
                   href={l.href}
-                  className="group flex items-center gap-1.5 text-[14px] font-semibold text-[#3D4F68] hover:text-[#0A2342] transition-colors"
+                  className="group relative flex items-center gap-1.5 text-[14px] font-semibold text-[#3D4F68] hover:text-[#0A2342] transition-colors py-1"
                 >
                   {l.label}
                   {l.live && (
@@ -67,7 +67,7 @@ export default function Navbar() {
                       Live
                     </span>
                   )}
-                  <span className="block h-px w-0 bg-[#D95D0F] transition-all group-hover:w-full" />
+                  <span className="absolute bottom-0 left-0 block h-px w-0 bg-[#D95D0F] transition-all group-hover:w-full" />
                 </a>
               ))}
             </nav>

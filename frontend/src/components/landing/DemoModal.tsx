@@ -1,8 +1,9 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { X, ArrowRight, Compass } from "lucide-react";
+import { useSearchParams, useRouter, usePathname } from "next/navigation";
 
 const DEMO_STEPS = [
   {
@@ -94,8 +95,25 @@ const DEMO_STEPS = [
 ];
 
 export default function DemoModal() {
-  const isOpen = false;
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const pathname = usePathname();
+  const isOpen = searchParams.get("demo") === "true";
+
   const [activeStepIndex, setActiveStepIndex] = useState(0);
+
+  // Reset step when modal opens
+  useEffect(() => {
+    if (isOpen) {
+      setActiveStepIndex(0);
+    }
+  }, [isOpen]);
+
+  const closeModal = () => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete("demo");
+    router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+  };
 
   if (!isOpen) return null;
 
@@ -125,6 +143,7 @@ export default function DemoModal() {
 
           <button
             type="button"
+            onClick={closeModal}
             className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
             aria-label="Close modal"
           >

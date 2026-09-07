@@ -143,26 +143,22 @@ graph TD
 Follow these instructions to run the enterprise platform locally.
 
 <details open>
-  <summary><strong>1. Initialize the Python Backend Services</strong></summary>
+  <summary><strong>1. Initialize the Current Backend Service (Node.js)</strong></summary>
   <br/>
 
-  The backend is built with FastAPI and runs on Python 3.11+.
+  The backend is currently running on Node.js/Express (Migration to Python in progress).
 
   ```bash
   # Navigate to the backend directory
   cd backend
 
-  # Install required Python dependencies
-  pip install -r requirements.txt
+  # Install Node dependencies
+  npm install
 
-  # Setup Prisma Database Connection
-  # Ensure a .env file is present with the DATABASE_URL string
-  prisma generate
-
-  # Boot the FastAPI Server via Gunicorn
-  gunicorn app.main:app -w 4 -k uvicorn.workers.UvicornWorker --bind 0.0.0.0:7860
+  # Boot the Express development server
+  npm run dev
   ```
-  *The backend API will be live at `http://localhost:7860`*
+  *The backend API will be live at `http://localhost:3001`*
 </details>
 
 <details>
@@ -180,6 +176,26 @@ Follow these instructions to run the enterprise platform locally.
   npm run dev
   ```
   *Access the Executive Command Center at `http://localhost:3000`*
+</details>
+
+<details>
+  <summary><strong>3. [Upcoming] Python/FastAPI Backend (Migration Target)</strong></summary>
+  <br/>
+
+  ```bash
+  # Navigate to the backend directory
+  cd backend
+
+  # Install required Python dependencies
+  pip install -r requirements.txt
+
+  # Setup Prisma Database Connection
+  prisma generate
+
+  # Boot the FastAPI Server
+  uvicorn app.main:app --reload
+  # Or via Gunicorn: gunicorn app.main:app -w 4 -k uvicorn.workers.UvicornWorker --bind 0.0.0.0:7860
+  ```
 </details>
 
 <hr />
@@ -202,3 +218,4 @@ This system is engineered to enterprise logistics standards:
 <div align="center">
   <p>Engineered for the Smart India Hackathon 2026</p>
 </div>
+

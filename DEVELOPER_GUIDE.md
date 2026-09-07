@@ -87,3 +87,19 @@ If you are writing code for KargoSetu, you MUST follow these rules (detailed ful
 
 ### A Note for Developers and AI Agents:
 If you create a new file or make a massive change to what a file does, **you must update this document**. Keep it simple, and keep it human-readable!
+
+
+---
+
+### Potential Judge Questions
+
+1. You mention using TanStack React Query to display "real-time live calculations" on the dashboard, but your notification system relies on the frontend polling the FastAPI backend every 30 seconds. Why did you choose polling instead of WebSockets or Server-Sent Events (SSE) for a system that requires real-time data?
+2. The developer guide notes that read receipts for notifications are stored in `localStorage` by notification ID. Doesn't this mean a user's read/unread state will not sync if they log in from a different device or browser? How do you justify this trade-off for an enterprise or operational tool?
+3. You have intentionally hardcoded your application to a light "harbour language" theme and explicitly stripped out dark mode surfaces (e.g., `bg-navy-950`). Given that many operators look at screens in low-light environments (like night shifts at ports), how does this strict design choice impact accessibility and user eye strain?
+4. Your internationalization (i18n) setup uses a custom string replacement approach (`.replace()`) for dynamic values because your translation function lacks native interpolation. Why did you build a custom templating system instead of leveraging established, robust i18n libraries that handle pluralization and interpolation natively?
+5. The guide states there is a "critical rule" that filter and select values must stay in English, otherwise API queries will break on a language switch. What architectural safeguards or backend validations have you implemented to prevent the system from crashing if a translated value accidentally leaks into an API payload?
+6. You maintain seven different language dictionaries (en/hi/bn/mr/ta/te/gu) and mandate "enforced key parity" across all of them. What automated CI/CD checks or linting tools do you have in place to guarantee a developer doesn't break the application by forgetting to update one of the seven files?
+7. By intentional "desk convention," you leave commodity names, ports, units, and currencies strictly in English across all translations. Have you validated with actual regional end-users that keeping these critical operational terms in English won't hinder the usability of your localized interfaces?
+8. The documentation states that notifications from the FastAPI feed are "fault-isolated per source" (requisitions, draft alerts, ML models). Can you explain exactly how this fault isolation is implemented on the frontend during your 30-second polling intervals?
+9. The Landing Page features an "interactive sandbox" tied to the SIH 26006 problem specifications. How does this sandbox actually process user input, and does it use the same live backend calculations as the Dashboard, or is it running mocked data?
+10. For the dashboard's live calculations wired through TanStack React Query, how are you handling cache invalidation and data staleness to ensure the user isn't making critical freight or draft decisions based on cached, outdated numbers?

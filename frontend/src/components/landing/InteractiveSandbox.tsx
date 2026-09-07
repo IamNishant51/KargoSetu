@@ -211,9 +211,9 @@ export default function InteractiveSandbox() {
         </div>
 
         {/* Tab Navigation Controls */}
-        <div className="flex justify-start mb-6 overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0">
+        <div className="flex justify-start mb-6 overflow-x-auto -mx-4 px-4 sm:mx-0 sm:px-0 pb-2">
           <div
-            className="inline-flex p-1 bg-white rounded-xl border border-[#0A2342]/15 max-w-full"
+            className="inline-flex p-1 bg-white rounded-xl border border-[#0A2342]/15 min-w-max"
             role="tablist"
             aria-label="Sandbox Tabs"
           >

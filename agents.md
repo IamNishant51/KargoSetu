@@ -16,6 +16,7 @@ STRICT RULE: NEVER use emojis in any `.md` file, documentation, or commit messag
 
 <repository-map>
 ### Exact File Locations
+- **GitHub Repository:** `https://github.com/IamNishant51/KargoSetu`
 - **Backend Entry:** `backend/index.js` (Express Router & Middleware)
 - **Math/Physics Engine:** `backend/services/maritimeMath.js` (FWA, Squat, UKC calculations)
 - **ML Engine:** `backend/services/mlPredictor.js` (TensorFlow.js LSTM, Yahoo Finance)

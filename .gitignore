@@ -24,3 +24,4 @@ POSTGRES_SETUP.md.opencode/
 # Local Deployment Docs
 DEPLOYMENT_GUIDE.md
 DEPLOYMENT_GUIDE.md.opencode/
+oracle_backend_deployment.md

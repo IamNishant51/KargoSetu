@@ -152,3 +152,30 @@ backend/
 2.  **DO NOT** modify `schema.prisma` database tables, column names, or relationships.
 3.  **DO NOT** use emojis in any code, comments, or documentation, as per the `AGENTS.md` mandate.
 4.  **DO NOT** write TypeScript. The Python backend is typed using Python Type Hints (`-> list[dict]`, `str`, etc.).
+
+
+---
+
+### Potential Judge Questions
+
+Based on the provided `MIGRATION_PLAN.md` excerpt, here are 10 thoughtful, probing questions to ask the team as an expert technical judge:
+
+1. **On Concurrency and Event Loops:** You mentioned moving away from Node.js to bypass its single-threaded event loop limitations. However, standard Python is constrained by the Global Interpreter Lock (GIL), and heavy NumPy/ML operations are CPU-bound. How do you plan to prevent these synchronous, heavy inference tasks from blocking FastAPI's asynchronous event loop (Uvicorn)? 
+
+2. **On Schema Naming Conventions:** Your migration plan strictly mandates that Pydantic schemas in FastAPI must mirror TypeScript interfaces 1:1 without renaming keys. Since Python standard practice dictates `snake_case` while TypeScript heavily utilizes `camelCase`, how are you handling this serialization mismatch in Pydantic without breaking native Python conventions?
+
+3. **On Prisma Client Python Maturity:** You've chosen to use *Prisma Client Python* to keep the exact `schema.prisma` file untouched. Given that the Python implementation of Prisma is historically a community project and far less mature than the official Node.js version, what risks have you identified, and what is your fallback strategy if you encounter missing features or bugs?
+
+4. **On Hugging Face Spaces Deployment:** You are targeting Hugging Face Spaces for your backend deployment. Spaces are typically designed as ephemeral containers for ML demos rather than persistent enterprise web servers. How do you plan to reliably manage your Prisma database connections and environment variables (`process.env`) in this specific hosting environment?
+
+5. **On Model Translation Validity:** The document mentions a "1:1 translation of the CNN-LSTM model" from TensorFlow.js to either Python TensorFlow (Keras) or PyTorch. Have you finalized the decision between TensorFlow and PyTorch, and more importantly, how are you technically verifying that the migrated Python model outputs the exact same inference weights and predictions as the original Node.js model?
+
+6. **On Backend Caching Capabilities:** You mentioned caching the `GET /api/v1/forecast/rates` endpoint for 24 hours on the frontend using TanStack Query. Are you also implementing a caching strategy on the FastAPI backend? If not, how will you prevent redundant, heavy ML inferences and external API calls if multiple different users request the same daily freight rates?
+
+7. **On External Data Reliability:** You are replacing `yahoo-finance2` with `yfinance`. `yfinance` is known to rely on scraping Yahoo Finance's API, which can be brittle and subject to sudden rate limits or schema changes. How is your `exceptions.py` or FastAPI architecture designed to gracefully handle these third-party failures without crashing the application?
+
+8. **On Global Error Handling:** You specified that all 400/500 errors must return a standardized `{ "detail": "error message" }` JSON to correctly trigger TanStack Query's `onError` handlers. How are you designing your `exceptions.py` to catch complex database errors from Prisma or matrix errors from NumPy/Pandas and safely translate them into this simple format without leaking sensitive stack traces?
+
+9. **On CORS and API Security:** You are utilizing FastAPI's `CORSMiddleware` to restrict access to `process.env.FRONTEND_URL`. Since CORS only protects against browser-based requests, how are you securing your Hugging Face Space endpoint to prevent unauthorized server-to-server or cURL requests from burning through your ML compute resources?
+
+10. **On Async HTTP Requests:** You correctly mapped `fetch()` to `httpx` to maintain asynchronous HTTP calls (e.g., for Open-Meteo). Will you be instantiating a new `httpx.AsyncClient()` per request, or do you have a plan to manage a global client session within FastAPI's lifespan to prevent socket exhaustion during high-traffic periods?
