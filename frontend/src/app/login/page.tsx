@@ -152,7 +152,6 @@ export default function LoginPage() {
           onError={() => setError("Google Sign-In failed")}
           theme="outline"
           size="large"
-          width="320"
           shape="rectangular"
         />
       </div>

@@ -170,7 +170,6 @@ export default function RegisterPage() {
           onError={() => setError("Google Registration failed")}
           theme="outline"
           size="large"
-          width="320"
           shape="rectangular"
         />
       </div>
