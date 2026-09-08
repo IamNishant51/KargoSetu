@@ -1,8 +1,11 @@
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, Query, Response
 from app.api.dependencies import prisma
 from datetime import datetime, timezone
+import structlog
 
 router = APIRouter(prefix="/api/v1/notifications", tags=["notifications"])
+logger = structlog.get_logger(__name__)
+
 
 
 def _norm_time(value) -> str:
@@ -19,12 +22,13 @@ def _norm_time(value) -> str:
 
 
 @router.get("")
-async def get_notifications(limit: int = Query(default=20, ge=1, le=50)):
+async def get_notifications(response: Response, limit: int = Query(default=20, ge=1, le=50)):
     """Live desk feed: latest requisitions, draft alerts, newest ML model.
 
     Each source is isolated — one empty/broken table can never 500 the feed.
     Clients track read state locally by notification id.
     """
+    response.headers["Cache-Control"] = "no-cache"
     notifications = []
 
     try:
@@ -42,8 +46,8 @@ async def get_notifications(limit: int = Query(default=20, ge=1, le=50)):
                     "unread": True,
                 }
             )
-    except Exception:
-        pass
+    except Exception as e:
+        logger.warning("notification_source_failed", source="requisitions", error=str(e))
 
     try:
         port = await prisma.port.find_first(where={"permissibleDraft": {"lt": 10.0}})
@@ -58,8 +62,8 @@ async def get_notifications(limit: int = Query(default=20, ge=1, le=50)):
                     "unread": True,
                 }
             )
-    except Exception:
-        pass
+    except Exception as e:
+        logger.warning("notification_source_failed", source="draft_alert", error=str(e))
 
     try:
         ml_model = await prisma.mlmodel.find_first(order={"trainedAt": "desc"})
@@ -74,8 +78,8 @@ async def get_notifications(limit: int = Query(default=20, ge=1, le=50)):
                     "unread": True,
                 }
             )
-    except Exception:
-        pass
+    except Exception as e:
+        logger.warning("notification_source_failed", source="ml_model", error=str(e))
 
     notifications.sort(key=lambda x: x["time"], reverse=True)
     return notifications[:limit]

@@ -27,7 +27,7 @@ export default function RegisterPage() {
     setError("");
 
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:7860"}/api/v1/auth/register`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/api/v1/auth/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password, name }),
@@ -53,7 +53,7 @@ export default function RegisterPage() {
 
   const handleGoogleSuccess = async (credentialResponse: CredentialResponse) => {
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:7860"}/api/v1/auth/google`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/api/v1/auth/google`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ token: credentialResponse.credential }),

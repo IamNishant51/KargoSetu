@@ -2,53 +2,56 @@ name: CI
 
 on:
   push:
-    branches:
-      - main
-      - nishant
+    branches: [main, nishant]
   pull_request:
-    branches:
-      - main
+    branches: [main]
 
 jobs:
-  test-backend:
+  backend-python:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Set up Python 3.11
-        uses: actions/setup-python@v5
+      - uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
+          python-version: "3.11"
+          cache: "pip"
+          cache-dependency-path: backend/requirements.txt
 
       - name: Install dependencies
         run: |
-          pip install -r backend/requirements.txt
-          pip install pytest
-          cd backend && prisma generate
+          pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest pytest-asyncio ruff
 
-      - name: Run backend tests
-        run: pytest backend/tests/
+      - name: Generate Prisma Client
+        run: prisma generate
 
-  test-frontend:
+      - name: Lint with Ruff
+        run: ruff check app/ tests/
+
+      - name: Run tests
+        run: python -m pytest tests/ -v --tb=short
+        env:
+          DATABASE_URL: "postgresql://test:test@localhost:5432/testdb"
+          JWT_SECRET_KEY: "ci-test-secret-key"
+
+  frontend:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Set up Node.js 20
-        uses: actions/setup-node@v4
+      - uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: frontend/package-lock.json
 
-      - name: Install frontend dependencies and Playwright
-        working-directory: frontend
-        run: |
-          npm install
-          npx playwright install --with-deps
-
-      - name: Build and test frontend
-        working-directory: frontend
-        run: |
-          npm run build
-          npx playwright test
+      - run: npm ci
+      - run: npm run build

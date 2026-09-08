@@ -55,17 +55,19 @@ These are the reusable LEGO blocks used to build the dashboard.
 This is the invisible "engine" running on the server. It handles all the heavy math and AI predictions. **New Update:** It has been completely migrated to a hyper-optimized **Python** stack using **FastAPI**!
 
 ### The Brain
-* **`main.py`**: The **Server Entry Point**. Think of this as a traffic cop. It uses FastAPI for ultra-fast routing. When running in production, it is managed by **Gunicorn** with Uvicorn workers to handle heavy concurrent traffic without breaking a sweat. We also utilize **ORJSON** here for the fastest possible JSON response serialization.
-* **`api/` folder**: Contains specific API endpoints modularized by feature (`health`, `requisitions`, `forecast`) to keep the codebase maintainable.
-* **`requirements.txt`**: A simple list of the tools the backend needs to run (like FastAPI, Prisma, and ONNX Runtime).
+* **`main.py`**: The **Server Entry Point**. Think of this as a traffic cop. It uses FastAPI for ultra-fast routing. When running in production, it is managed by **Gunicorn** with Uvicorn workers to handle heavy concurrent traffic.
+* **`core/` folder**: Contains centralized settings (`config.py`), global error handlers (`exceptions.py`), and authentication utilities (`security.py`).
+* **`api/routers/` folder**: Contains specific API endpoints modularized by feature (`health`, `requisitions`, `forecast`, `market`, `auth`, `commodities`, `ports`, `notifications`, `settings`).
+* **`requirements.txt` & `pyproject.toml`**: The pinned Python dependencies and project build configurations.
+
 ### The Services (`services/` folder)
-* **`maritimeMath.py`**: The **Calculator**. This file handles the physical physics of ships. It calculates "Squat" and "Sinkage" to ensure a ship won't scrape the ocean floor. It dynamically fetches critical port constraints directly from the PostgreSQL database.
-* **`mlPredictor.py`**: The **Crystal Ball**. This is our Artificial Intelligence (AI) file. **New Update:** We migrated off TensorFlow.js! We now export our Python LSTM models to **ONNX** format. The predictor uses **ONNX Runtime** for bare-metal C++ inference speeds, drastically reducing prediction latency and memory overhead.
+* **`maritime_math.py`**: The **Calculator**. This file handles the physical physics of ships. It calculates "Squat" and "Sinkage" to ensure a ship won't scrape the ocean floor. It dynamically fetches critical port constraints and real-time tide data.
+* **`ml_predictor.py`**: The **Crystal Ball**. This is our Artificial Intelligence (AI) file. It trains an advanced CNN-LSTM Hybrid model on Baltic Dry Index data, exports it to **ONNX**, and uses **ONNX Runtime** for bare-metal CPU inference speeds.
 ---
 
 ### The Database (`prisma/` folder)
 * **`schema.prisma`**: The **Blueprint**. We added Prisma ORM to talk to a PostgreSQL database! This file defines what our port data looks like (Charted Depth, Permissible Draft, etc.) and also tracks the `Vessel` fleet (Capesize, Panamax, Supramax, Handysize).
-* **`seed.js`**: The **Data Filler**. A script used to load real-world bathymetry data for ports like Haldia, Paradip, and Dhamra, and fleet specs into the database. Note: The `/api/v1/requisitions/evaluate` endpoint now dynamically queries this database via Prisma, but automatically falls back to safe mock data if the database isn't connected so the dashboard keeps working!
+* **`scripts/seed.py`**: The **Data Filler**. A Python script used to load real-world bathymetry data for 15 Indian ports and 5 fleet specs into the database, generating 500 mock historical requisitions.
 
 ## 3. The Documentation (`Docs/` folder)
 These files are strictly for reading. They contain the official rules and planning for the Hackathon.

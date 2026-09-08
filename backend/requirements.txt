@@ -1,21 +1,45 @@
-fastapi
-uvicorn
-prisma
-pydantic
-pydantic-settings
-yfinance
-pandas
-numpy
-tensorflow
-httpx
-scikit-learn
-orjson
-gunicorn
-tf2onnx
-onnxruntime
-google-auth
-pyjwt
-passlib
-bcrypt
-email-validator
-gradio
+# === Web Framework ===
+fastapi>=0.115.0,<1.0.0
+uvicorn[standard]>=0.32.0,<1.0.0
+gunicorn>=22.0.0,<23.0.0
+orjson>=3.10.0,<4.0.0
+
+# === Validation & Serialization ===
+pydantic>=2.10.0,<3.0.0
+pydantic-settings>=2.6.0,<3.0.0
+email-validator>=2.2.0,<3.0.0
+
+# === Database ===
+prisma>=0.15.0,<1.0.0
+
+# === Machine Learning (Training) ===
+tensorflow>=2.16.0,<3.0.0
+tf2onnx>=1.16.0,<2.0.0
+scikit-learn>=1.5.0,<2.0.0
+
+# === Machine Learning (Inference) ===
+onnxruntime>=1.19.0,<2.0.0
+
+# === Data Processing ===
+numpy>=1.26.0,<2.0.0
+pandas>=2.2.0,<3.0.0
+
+# === Financial Data ===
+yfinance>=0.2.40,<1.0.0
+
+# === HTTP Client ===
+httpx>=0.28.0,<1.0.0
+
+# === Security ===
+pyjwt>=2.9.0,<3.0.0
+bcrypt>=4.2.0,<5.0.0
+google-auth>=2.35.0,<3.0.0
+
+# === Logging ===
+structlog>=24.4.0,<25.0.0
+
+# === Rate Limiting ===
+slowapi>=0.1.9,<1.0.0
+
+# === Hugging Face Spaces UI ===
+gradio>=5.0.0,<6.0.0

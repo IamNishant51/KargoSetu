@@ -1,6 +1,6 @@
 import React from "react";
-import DashboardClient from "./DashboardClient";
+import DynamicDashboardClient from "./DynamicDashboardClient";
 
 export default function DashboardPage() {
-  return <DashboardClient />;
+  return <DynamicDashboardClient />;
 }

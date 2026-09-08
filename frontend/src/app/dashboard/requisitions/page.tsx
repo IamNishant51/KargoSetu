@@ -1,6 +1,6 @@
 import React from "react";
-import RequisitionsClient from "./RequisitionsClient";
+import DynamicRequisitionsClient from "./DynamicRequisitionsClient";
 
 export default function RequisitionsPage() {
-  return <RequisitionsClient />;
+  return <DynamicRequisitionsClient />;
 }

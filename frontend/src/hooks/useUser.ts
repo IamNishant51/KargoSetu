@@ -23,7 +23,7 @@ export function useUser() {
         throw new Error("No token found");
       }
       
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001";
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
       const res = await fetch(`${apiUrl}/api/v1/auth/me`, {
         headers: {
           Authorization: `Bearer ${token}`,

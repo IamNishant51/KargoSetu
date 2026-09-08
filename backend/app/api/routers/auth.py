@@ -1,25 +1,22 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Request
 from fastapi.security import OAuth2PasswordBearer
 from prisma import Prisma
 import jwt
 from google.oauth2 import id_token
 from google.auth.transport import requests
+from slowapi import Limiter
+from slowapi.util import get_remote_address
 
 from app.schemas.user import UserCreate, UserLogin, GoogleLogin, UserResponse, Token
-from app.core.security import verify_password, get_password_hash, create_access_token, SECRET_KEY, ALGORITHM
+from app.core.security import verify_password, get_password_hash, create_access_token, decode_access_token
+from app.core.config import settings
 
 router = APIRouter(prefix="/api/v1/auth", tags=["auth"])
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login")
 
-import os
-GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID", "YOUR_GOOGLE_CLIENT_ID")
+GOOGLE_CLIENT_ID = settings.google_client_id
+limiter = Limiter(key_func=get_remote_address)
 
-# Dependency to get db
-# In MIGRATION_PLAN.md it says use prisma.connect() in lifespan and import prisma
-# Let's assume a global prisma client or we can import it.
-# Wait, MIGRATION_PLAN: "Use prisma.connect() in FastAPI's @asynccontextmanager lifespan... Ensure all database operations are explicitly awaited (e.g., await prisma.port.find_unique(...))."
-# Let's import the global client from a place, or just instantiate it. Wait, Prisma Client is usually instantiated in prisma.py or main.py. Let's use `from prisma import Prisma; db = Prisma()` pattern, but since it's async, we might need the one initialized in main.py.
-# Actually, the standard Prisma Python way is:
 from app.api.dependencies import prisma
 
 
@@ -30,26 +27,21 @@ async def get_current_user(token: str = Depends(oauth2_scheme)) -> UserResponse:
         headers={"WWW-Authenticate": "Bearer"},
     )
     try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        payload = decode_access_token(token)
         email: str = payload.get("sub")
         if email is None:
             raise credentials_exception
-    except jwt.PyJWTError:
+    except jwt.InvalidTokenError:
         raise credentials_exception
     
-    if not prisma.is_connected():
-        await prisma.connect()
-        
     user = await prisma.user.find_unique(where={"email": email})
     if user is None:
         raise credentials_exception
     return user
 
 @router.post("/register", response_model=Token)
-async def register(user_in: UserCreate):
-    if not prisma.is_connected():
-        await prisma.connect()
-        
+@limiter.limit("5/minute")
+async def register(request: Request, user_in: UserCreate):
     existing_user = await prisma.user.find_unique(where={"email": user_in.email})
     if existing_user:
         raise HTTPException(status_code=400, detail="Email already registered")
@@ -66,10 +58,8 @@ async def register(user_in: UserCreate):
     return {"access_token": access_token, "token_type": "bearer"}
 
 @router.post("/login", response_model=Token)
-async def login(user_in: UserLogin):
-    if not prisma.is_connected():
-        await prisma.connect()
-        
+@limiter.limit("10/minute")
+async def login(request: Request, user_in: UserLogin):
     user = await prisma.user.find_unique(where={"email": user_in.email})
     if not user or not user.passwordHash:
         raise HTTPException(status_code=400, detail="Incorrect email or password")
@@ -81,7 +71,8 @@ async def login(user_in: UserLogin):
     return {"access_token": access_token, "token_type": "bearer"}
 
 @router.post("/google", response_model=Token)
-async def google_login(google_in: GoogleLogin):
+@limiter.limit("10/minute")
+async def google_login(request: Request, google_in: GoogleLogin):
     try:
         # Validate Google token
         idinfo = id_token.verify_oauth2_token(google_in.token, requests.Request(), GOOGLE_CLIENT_ID)
@@ -92,9 +83,6 @@ async def google_login(google_in: GoogleLogin):
         
         if not email:
             raise HTTPException(status_code=400, detail="Google token missing email")
-            
-        if not prisma.is_connected():
-            await prisma.connect()
             
         user = await prisma.user.find_unique(where={"email": email})
         if not user:

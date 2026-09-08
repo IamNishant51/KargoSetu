@@ -1,6 +1,6 @@
 import React from "react";
-import ForecastClient from "./ForecastClient";
+import DynamicForecastClient from "./DynamicForecastClient";
 
 export default function ForecastsPage() {
-  return <ForecastClient />;
+  return <DynamicForecastClient />;
 }

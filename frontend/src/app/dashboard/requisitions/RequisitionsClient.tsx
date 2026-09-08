@@ -53,6 +53,17 @@ const DEFAULT_DRAFT = {
 
 export default function RequisitionsPage() {
   const { t } = useLanguage();
+  const queryClient = useQueryClient();
+
+  // Custom Toast State
+  const [toast, setToast] = useState<{ message: string; type: "success" | "error" | "info" } | null>(null);
+  const showToast = (message: string, type: "success" | "error" | "info" = "success") => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 3000);
+  };
+
+  // Custom Delete Modal State
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
   const [savedView] = useState(() => loadJSON(VIEW_KEY, DEFAULT_VIEW));
   const [savedDraft] = useState(() => loadJSON(DRAFT_KEY, DEFAULT_DRAFT));
   const [search, setSearch] = useState(savedView.search);
@@ -60,17 +71,9 @@ export default function RequisitionsPage() {
   const [page, setPage] = useState(
     Number.isInteger(savedView.page) && savedView.page >= 1 ? savedView.page : 1,
   );
-
-  const [dateRange, setDateRange] = useState(savedView.dateRange);
-  const [dateRangeOpen, setDateRangeOpen] = useState(false);
-  const dateRangeRef = useRef<HTMLDivElement>(null);
-
-  const [actionOpenRowId, setActionOpenRowId] = useState<string | null>(null);
-  const [selectedRequisition, setSelectedRequisition] =
-    useState<Requisition | null>(null);
-
   const [isNewRequisitionOpen, setIsNewRequisitionOpen] = useState(false);
   const [newReqForm, setNewReqForm] = useState(savedDraft);
+  const [evalTimeLeft, setEvalTimeLeft] = useState(3);
 
   const createMutation = useMutation({
     mutationFn: async (newReq: Record<string, unknown>) => {
@@ -93,8 +96,33 @@ export default function RequisitionsPage() {
         origin: "Newcastle, Australia",
         dest_port: "Haldia",
       });
+      showToast("Requisition created successfully!", "success");
     },
+    onError: () => {
+      showToast("Failed to create requisition", "error");
+    }
   });
+
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
+    if (isNewRequisitionOpen && !createMutation.isPending) {
+      setEvalTimeLeft(4); // Typically takes 3-4s to resolve the math and external API
+    }
+    if (createMutation.isPending) {
+      timer = setInterval(() => {
+        setEvalTimeLeft((prev) => (prev > 0 ? prev - 1 : 0));
+      }, 1000);
+    }
+    return () => clearInterval(timer);
+  }, [isNewRequisitionOpen, createMutation.isPending]);
+
+  const [dateRange, setDateRange] = useState(savedView.dateRange);
+  const [dateRangeOpen, setDateRangeOpen] = useState(false);
+  const dateRangeRef = useRef<HTMLDivElement>(null);
+
+  const [actionOpenRowId, setActionOpenRowId] = useState<string | null>(null);
+  const [selectedRequisition, setSelectedRequisition] =
+    useState<Requisition | null>(null);
 
   const handleCreateSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -103,7 +131,6 @@ export default function RequisitionsPage() {
       volume_mt: Number(newReqForm.volume_mt),
     });
   };
-  const queryClient = useQueryClient();
 
 // Debounce search
   useEffect(() => {
@@ -215,13 +242,17 @@ export default function RequisitionsPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["requisitions"] });
+      showToast("Requisition deleted successfully!", "success");
+      setDeleteConfirmId(null);
     },
+    onError: () => {
+      showToast("Failed to delete requisition", "error");
+      setDeleteConfirmId(null);
+    }
   });
 
   const handleDelete = (id: string) => {
-    if (window.confirm(t("confirm_delete"))) {
-      deleteMutation.mutate(id);
-    }
+    setDeleteConfirmId(id);
     setActionOpenRowId(null);
   };
 
@@ -1136,12 +1167,12 @@ export default function RequisitionsPage() {
                 <button
                   type="submit"
                   disabled={createMutation.isPending}
-                  className="px-5 py-2.5 rounded-lg text-sm font-medium bg-[#D95D0F] text-white hover:bg-[#B45309] transition-colors disabled:opacity-70 flex items-center"
+                  className="px-5 py-2.5 rounded-lg text-sm font-medium bg-[#D95D0F] text-white hover:bg-[#B45309] transition-colors disabled:opacity-70 flex items-center min-w-[140px] justify-center"
                 >
                   {createMutation.isPending ? (
                     <>
                       <Hourglass className="w-4 h-4 mr-2 animate-spin" />
-                      {t("creating")}
+                      {evalTimeLeft > 0 ? `AI Evaluating... (~${evalTimeLeft}s)` : "Finalizing..."}
                     </>
                   ) : (
                     t("create_req")
@@ -1150,6 +1181,54 @@ export default function RequisitionsPage() {
               </div>
             </form>
           </div>
+        </div>
+      )}
+      {/* Custom Delete Confirmation Modal */}
+      {deleteConfirmId && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-[#0A2342]/50 backdrop-blur-sm">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-sm p-6 animate-in fade-in zoom-in-95 duration-200 border border-[#E2E6EB]">
+            <div className="flex items-center mb-4 text-[#B42318]">
+              <XCircle className="w-6 h-6 mr-2" />
+              <h3 className="text-lg font-bold">Delete Requisition</h3>
+            </div>
+            <p className="text-sm text-[#3D4F68] mb-6">
+              Are you sure you want to delete this requisition? This action cannot be undone.
+            </p>
+            <div className="flex justify-end space-x-3">
+              <button
+                onClick={() => setDeleteConfirmId(null)}
+                className="px-4 py-2 rounded-lg text-sm font-medium text-[#3D4F68] bg-[#FAF7F1] hover:bg-[#E2E6EB] transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => deleteMutation.mutate(deleteConfirmId)}
+                disabled={deleteMutation.isPending}
+                className="px-4 py-2 rounded-lg text-sm font-medium bg-[#B42318] text-white hover:bg-[#991B12] transition-colors disabled:opacity-70 flex items-center"
+              >
+                {deleteMutation.isPending ? (
+                  <>
+                    <Hourglass className="w-4 h-4 mr-2 animate-spin" />
+                    Deleting...
+                  </>
+                ) : (
+                  "Delete"
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Custom Toast Notification */}
+      {toast && (
+        <div className={`fixed bottom-6 right-6 z-[200] px-4 py-3 rounded-lg shadow-xl flex items-center animate-in slide-in-from-bottom-5 duration-300 ${toast.type === 'success' ? 'bg-[#E9F5EE] border border-[#0E7A3D]/25 text-[#0E7A3D]' : 'bg-[#FDECEC] border border-[#F3C2C2] text-[#B42318]'}`}>
+          {toast.type === 'success' ? (
+            <CheckCircle2 className="w-5 h-5 mr-3" />
+          ) : (
+            <XCircle className="w-5 h-5 mr-3" />
+          )}
+          <span className="text-sm font-bold tracking-wide">{toast.message}</span>
         </div>
       )}
     </div>
