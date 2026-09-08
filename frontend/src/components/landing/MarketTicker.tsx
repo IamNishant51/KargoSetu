@@ -36,14 +36,18 @@ export default function MarketTicker() {
           <div className="animate-marquee flex w-max will-change-transform py-2.5 font-mono text-[11.5px] sm:text-[12.5px]">
             {[0, 1, 2, 3].map((copy) => (
               <div key={copy} aria-hidden={copy > 0} className="flex shrink-0 items-center">
-                {items.map((it: { symbol: string; value: string; delta: string }, i: number) => (
-                  <span key={i} className="flex items-center gap-2 whitespace-nowrap pl-6">
-                    <span className="font-semibold tracking-[0.1em] text-white/60">{it.symbol}</span>
-                    <span className="font-semibold text-white">{it.value}</span>
-                    <span className="text-[#F5B98A]">{it.delta}</span>
-                    <span className="ml-6 text-white/25">/</span>
-                  </span>
-                ))}
+                {items.map((it: any, i: number) => {
+                  const displayValue = it.value || (it.price !== undefined ? `${it.price.toLocaleString()}` : "N/A");
+                  const displayDelta = it.delta || (it.change_pct !== undefined ? `${it.change_pct > 0 ? '+' : ''}${it.change_pct}%` : "");
+                  return (
+                    <span key={i} className="flex items-center gap-2 whitespace-nowrap pl-6">
+                      <span className="font-semibold tracking-[0.1em] text-white/60">{it.symbol}</span>
+                      <span className="font-semibold text-white">{displayValue}</span>
+                      <span className="text-[#F5B98A]">{displayDelta}</span>
+                      <span className="ml-6 text-white/25">/</span>
+                    </span>
+                  );
+                })}
               </div>
             ))}
           </div>
