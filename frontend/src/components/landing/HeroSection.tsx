@@ -5,10 +5,26 @@ import Link from "next/link";
 import Image from "next/image";
 import { ArrowUpRight, Play } from "lucide-react";
 import { useRouter, usePathname } from "next/navigation";
+import { useQuery } from "@tanstack/react-query";
 
 export default function HeroSection() {
   const router = useRouter();
   const pathname = usePathname();
+
+  const { data: corridorData } = useQuery({
+    queryKey: ["portCorridor"],
+    queryFn: async () => {
+      const base = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+      const res = await fetch(`${base}/api/v1/ports/corridor`);
+      if (!res.ok) throw new Error("fetch failed");
+      return res.json();
+    },
+  });
+
+  const haldiaInfo = Array.isArray(corridorData) ? corridorData.find(p => p.name === "Haldia") : null;
+  const haldiaDraft = haldiaInfo?.draft || "7.5 m";
+  const haldiaTide = haldiaInfo?.tide?.split("–")[1]?.trim() || "+4.2 m";
+
 
   return (
     <section className="relative bg-white overflow-hidden">
@@ -46,8 +62,8 @@ export default function HeroSection() {
 
             <dl className="mt-7 grid grid-cols-3 max-w-lg divide-x divide-[#E2E6EB] border-y border-[#E2E6EB] bg-white/80">
               {[
-                ["Haldia draft", "7.5 m"],
-                ["Tide now", "+3.2 m"],
+                ["Haldia draft", haldiaDraft],
+                ["Tide now", haldiaTide],
                 ["Capesize", "18.2 m"],
               ].map(([k, v]) => (
                 <div key={k} className="px-4 py-3.5">

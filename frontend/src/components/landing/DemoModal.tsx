@@ -105,6 +105,7 @@ export default function DemoModal() {
   // Reset step when modal opens
   useEffect(() => {
     if (isOpen) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setActiveStepIndex(0);
     }
   }, [isOpen]);

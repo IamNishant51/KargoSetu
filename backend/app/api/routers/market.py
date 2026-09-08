@@ -24,7 +24,7 @@ def _quote(symbol: str) -> dict:
         ticker = yf.Ticker(symbol)
         hist = ticker.history(period="5d")
         if hist.empty:
-            return {"symbol": symbol, "price": 0.0, "change_pct": 0.0}
+            return {"symbol": SYMBOLS.get(symbol, symbol), "value": "N/A", "delta": "0.0%"}
 
         closes = hist["Close"].tolist()
         if len(closes) >= 2:
@@ -36,14 +36,13 @@ def _quote(symbol: str) -> dict:
             change = 0.0
 
         return {
-            "symbol": symbol,
-            "name": SYMBOLS.get(symbol, symbol),
-            "price": round(current, 2),
-            "change_pct": round(change, 2),
+            "symbol": SYMBOLS.get(symbol, symbol),
+            "value": f"{current:,.2f}",
+            "delta": f"{'+' if change >= 0 else ''}{change:.2f}%",
         }
     except Exception as e:
         logger.warning("market_quote_failed", symbol=symbol, error=str(e))
-        return {"symbol": symbol, "name": SYMBOLS.get(symbol, symbol), "price": 0.0, "change_pct": 0.0}
+        return {"symbol": SYMBOLS.get(symbol, symbol), "value": "N/A", "delta": "0.0%"}
 
 @router.get("/ticker")
 async def get_market_ticker():

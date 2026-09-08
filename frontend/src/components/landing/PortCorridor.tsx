@@ -1,8 +1,9 @@
 "use client";
 import React from "react";
 import Image from "next/image";
+import { useQuery } from "@tanstack/react-query";
 
-const PORTS = [
+const FALLBACK_PORTS = [
   { n: "01", name: "Haldia", sub: "Hooghly river · tide-bound", draft: "7.5 m", tide: "+2.8 – 4.2 m", ship: "Supramax direct", note: "Heavy siltation. The reason splits exist.", flag: "Watch" },
   { n: "02", name: "Paradip", sub: "Bay of Bengal · all-weather", draft: "14.5 m", tide: "+1.2 – 2.4 m", ship: "Panamax / baby Cape", note: "Mechanised coal berths. Laycan discipline matters.", flag: "Open" },
   { n: "03", name: "Dhamra", sub: "Deep-sea fairway", draft: "16.0 m", tide: "+1.5 – 2.8 m", ship: "Full Capesize 180k", note: "Coking-coal front door when Haldia chokes.", flag: "Open" },
@@ -10,6 +11,20 @@ const PORTS = [
 ];
 
 export default function PortCorridor() {
+  const { data } = useQuery({
+    queryKey: ["portCorridor"],
+    queryFn: async () => {
+      const base = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+      const res = await fetch(`${base}/api/v1/ports/corridor`);
+      if (!res.ok) throw new Error("corridor fetch failed");
+      return res.json();
+    },
+    retry: false,
+    refetchOnWindowFocus: false,
+  });
+
+  const portsData = Array.isArray(data) && data.length ? data : FALLBACK_PORTS;
+
   return (
     <section id="ports" className="bg-[#FAF7F1] border-y border-[#E2E6EB] py-14 sm:py-20 scroll-mt-20 sm:scroll-mt-24">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -56,7 +71,7 @@ export default function PortCorridor() {
               </tr>
             </thead>
             <tbody className="divide-y divide-[#E2E6EB]">
-              {PORTS.map((p) => (
+              {portsData.map((p: { n: string, name: string, sub: string, draft: string, tide: string, ship: string, note: string, flag: string }) => (
                 <tr key={p.n} className="hover:bg-[#FAF7F1] transition-colors">
                   <td className="px-5 py-4">
                     <span className="font-mono text-[11px] text-[#6B7D99] mr-2">{p.n}</span>

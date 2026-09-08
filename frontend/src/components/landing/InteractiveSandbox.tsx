@@ -71,38 +71,35 @@ export default function InteractiveSandbox() {
   const [annualTonnage, setAnnualTonnage] = useState<number>(3.5); // Million MT
   const [spotRate, setSpotRate] = useState<number>(22); // USD per MT
 
-// Port definitions
-  const PORT_DATA: Record<
-    string,
-    { draft: number; type: string; tide: number; maxVessel: string }
-  > = {
-    Haldia: {
-      draft: 7.5,
-      type: "Riverine Port (Hooghly)",
-      tide: 3.2,
-      maxVessel: "Supramax (50k DWT)",
+  // Fetch Port Corridor data dynamically from API
+  const { data: corridorData } = useQuery({
+    queryKey: ["portCorridor"],
+    queryFn: async () => {
+      const base = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+      const res = await fetch(`${base}/api/v1/ports/corridor`);
+      if (!res.ok) throw new Error("corridor fetch failed");
+      return res.json();
     },
-    Paradip: {
-      draft: 14.5,
-      type: "Deepwater Coastal",
-      tide: 1.8,
-      maxVessel: "Panamax / Baby Cape",
-    },
-    Dhamra: {
-      draft: 16.0,
-      type: "Deep Sea Bulk Terminal",
-      tide: 2.1,
-      maxVessel: "Capesize (180k DWT)",
-    },
-    Visakhapatnam: {
-      draft: 14.5,
-      type: "Natural Harbour",
-      tide: 1.5,
-      maxVessel: "Panamax",
-    },
+  });
+
+  // Fallback for UI mapping if API is still loading
+  const PORT_DATA_UI: Record<string, { type: string, maxVessel: string }> = {
+    Haldia: { type: "Riverine Port (Hooghly)", maxVessel: "Supramax (50k DWT)" },
+    Paradip: { type: "Deepwater Coastal", maxVessel: "Panamax / Baby Cape" },
+    Dhamra: { type: "Deep Sea Bulk Terminal", maxVessel: "Capesize (180k DWT)" },
+    Sandheads: { type: "Natural Harbour", maxVessel: "Panamax" },
   };
 
-  const currentPortInfo = PORT_DATA[port] || PORT_DATA["Haldia"];
+  const currentCorridorInfo = Array.isArray(corridorData) 
+    ? corridorData.find(p => p.name === port) 
+    : null;
+
+  const currentPortInfo = {
+    draft: currentCorridorInfo?.draft ? parseFloat(currentCorridorInfo.draft) : 7.5,
+    type: PORT_DATA_UI[port]?.type || "Port",
+    tide: currentCorridorInfo?.tide ? parseFloat(currentCorridorInfo.tide.replace(/[^0-9.]/g, '')) : 3.2,
+    maxVessel: PORT_DATA_UI[port]?.maxVessel || "Any"
+  };
 
 // Deterministic thousands separator to prevent SSR/CSR locale hydration mismatches
   const formatNum = (val: number) =>
@@ -324,26 +321,30 @@ export default function InteractiveSandbox() {
                     Destination Port (East Coast India)
                   </label>
                   <div className="grid grid-cols-2 gap-2">
-                    {Object.keys(PORT_DATA).map((p) => (
-                      <button
-                        key={p}
-                        type="button"
-                        aria-label={`Select port ${p}`}
-                        onClick={() => setPort(p)}
-                        className={`p-2.5 rounded-xl text-left border text-xs font-semibold transition-all cursor-pointer ${
-                          port === p
-                            ? "bg-orange-50 text-orange-950 border-orange-300 ring-1 ring-orange-300 shadow-2xs"
-                            : "bg-white text-slate-700 border-slate-200 hover:border-slate-300 hover:bg-slate-50"
-                        }`}
-                      >
-                        <div className="font-bold">{p}</div>
-                        <div
-                          className={`text-[10px] ${port === p ? "text-orange-700" : "text-slate-400"}`}
+                    {Object.keys(PORT_DATA_UI).map((p) => {
+                      const pData = Array.isArray(corridorData) ? corridorData.find(cp => cp.name === p) : null;
+                      const pDraft = pData?.draft || (p === "Haldia" ? "7.5 m" : p === "Paradip" ? "14.5 m" : p === "Dhamra" ? "16.0 m" : "22 m+");
+                      
+                      return (
+                        <button
+                          key={p}
+                          type="button"
+                          onClick={() => setPort(p)}
+                          className={`p-3 rounded-xl border text-left transition-all ${
+                            port === p
+                              ? "bg-[#0A2342] border-[#0A2342] text-white shadow-md"
+                              : "bg-white border-slate-200 text-slate-700 hover:border-slate-300"
+                          }`}
                         >
-                          Draft: {PORT_DATA[p].draft}m
-                        </div>
-                      </button>
-                    ))}
+                          <div className="font-bold text-sm">{p}</div>
+                          <div
+                            className={`text-xs mt-0.5 ${port === p ? "text-slate-300" : "text-slate-500"}`}
+                          >
+                            Draft: {pDraft}
+                          </div>
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
 
