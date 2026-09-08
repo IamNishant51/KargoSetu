@@ -18,7 +18,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { loadJSON, saveJSON } from "@/lib/storage";
 
 const FC_VIEW_KEY = "kargosetu_fc_view_v1";
-const DEFAULT_FC_VIEW = { shock: 2.0, days: 30, currentPage: 1 };
+const DEFAULT_FC_VIEW = { shock: 2.0, days: 30, currentPage: 1, origin: "Newcastle, Australia", destination: "Haldia" };
 
 export default function ForecastsPage() {
   const { t } = useLanguage();
@@ -26,6 +26,8 @@ export default function ForecastsPage() {
   const [shock, setShock] = useState(savedFcView.shock);
   const [debouncedShock, setDebouncedShock] = useState(savedFcView.shock);
   const [days, setDays] = useState(savedFcView.days);
+  const [origin, setOrigin] = useState(savedFcView.origin ?? "Newcastle, Australia");
+  const [destination, setDestination] = useState(savedFcView.destination ?? "Haldia");
   const [currentPage, setCurrentPage] = useState(
     Number.isInteger(savedFcView.currentPage) && savedFcView.currentPage >= 1
       ? savedFcView.currentPage
@@ -34,8 +36,8 @@ export default function ForecastsPage() {
 
   // Shock, horizon, and table page survive reloads; the chart refetches itself.
   useEffect(() => {
-    saveJSON(FC_VIEW_KEY, { shock, days, currentPage });
-  }, [shock, days, currentPage]);
+    saveJSON(FC_VIEW_KEY, { shock, days, currentPage, origin, destination });
+  }, [shock, days, currentPage, origin, destination]);
 
   useEffect(() => {
     const handler = setTimeout(() => {
@@ -44,13 +46,26 @@ export default function ForecastsPage() {
     return () => clearTimeout(handler);
   }, [shock]);
 
+  const { data: portsData } = useQuery({
+    queryKey: ["ports"],
+    queryFn: async () => {
+      const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+      const res = await fetch(`${baseUrl}/api/v1/ports`);
+      if (!res.ok) return [];
+      const data = await res.json();
+      const list = data.ports || data;
+      return (Array.isArray(list) ? list : []).map((p: Record<string, unknown>) => String(p?.name ?? ""));
+    },
+  });
+  const ports = portsData || ["Haldia", "Paradip", "Dhamra"];
+
   const { data: apiChartData, isLoading } = useQuery({
-    queryKey: ["forecast", debouncedShock],
+    queryKey: ["forecast", debouncedShock, origin, destination],
     queryFn: async () => {
       const baseUrl =
         process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
       const res = await fetch(
-        `${baseUrl}/api/v1/forecast/rates?shockMultiplier=${debouncedShock}`,
+        `${baseUrl}/api/v1/forecast/rates?shockMultiplier=${debouncedShock}&origin=${encodeURIComponent(origin)}&destination=${encodeURIComponent(destination)}`,
       );
       if (!res.ok) throw new Error("Failed to fetch forecast");
       const json = await res.json();
@@ -120,13 +135,33 @@ export default function ForecastsPage() {
             </p>
           </div>
 
-          <div className="flex items-center gap-3">
-            <div className="flex items-center bg-white border border-[#E2E6EB] rounded-lg px-3 py-2 shadow-sm">
-              <ArrowRightLeft className="w-4 h-4 text-[#6B7D99] mr-2" />
-              <select className="bg-transparent text-sm font-medium focus:outline-none text-[#3D4F68]">
-                <option>Route: Singapore → Rotterdam</option>
-                <option>Route: Shanghai → Los Angeles</option>
-              </select>
+          <div className="flex items-center gap-2 flex-wrap">
+            <div className="flex items-center gap-2">
+              <div className="flex items-center bg-white border border-[#E2E6EB] rounded-lg px-3 py-2 shadow-sm">
+                <ArrowRightLeft className="w-4 h-4 text-[#6B7D99] mr-2" />
+                <select 
+                  className="bg-transparent text-sm font-medium focus:outline-none text-[#3D4F68]"
+                  value={origin}
+                  onChange={(e) => setOrigin(e.target.value)}
+                >
+                  <option value="Newcastle, Australia">Newcastle, Australia</option>
+                  <option value="Port Hedland, Australia">Port Hedland, Australia</option>
+                  <option value="Tubarão, Brazil">Tubarão, Brazil</option>
+                  <option value="Richards Bay, SA">Richards Bay, SA</option>
+                </select>
+              </div>
+              <span className="text-[#6B7D99] font-medium hidden sm:inline">→</span>
+              <div className="flex items-center bg-white border border-[#E2E6EB] rounded-lg px-3 py-2 shadow-sm">
+                <select 
+                  className="bg-transparent text-sm font-medium focus:outline-none text-[#3D4F68]"
+                  value={destination}
+                  onChange={(e) => setDestination(e.target.value)}
+                >
+                  {ports.map((p: string) => (
+                    <option key={p} value={p}>{p}</option>
+                  ))}
+                </select>
+              </div>
             </div>
 
             <div className="flex items-center bg-white border border-[#E2E6EB] rounded-lg px-3 py-2 shadow-sm">

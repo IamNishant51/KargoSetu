@@ -81,6 +81,7 @@ class MLPredictor:
 
             if data is None:
                 logger.error("ml_init_failed", error="Failed to prepare data.")
+                self.is_warming_up = False
                 return
 
             train_x, train_y, val_x, val_y = data
@@ -97,7 +98,7 @@ class MLPredictor:
                 logger.info("ml_model_warmed_up")
         except Exception as e:
             logger.error("ml_init_failed", error=str(e))
-
+            self.is_warming_up = False
     async def schedule_retraining(self, interval_hours: int = 6) -> None:
         """Periodically retrain the model with fresh data."""
         while True:
@@ -326,9 +327,9 @@ class MLPredictor:
     def _denormalize_bdry(self, val):
         return float(self.scalers["bdry"].inverse_transform([[val]])[0][0])
 
-    def predict_sync(self, shock_multiplier: float):
+    def predict_sync(self, shock_multiplier: float, origin: str = "Newcastle, Australia", destination: str = "Haldia"):
         shock_multiplier = max(0.1, min(5.0, shock_multiplier))
-        cache_key = round(shock_multiplier, 1)
+        cache_key = f"{round(shock_multiplier, 1)}_{origin}_{destination}"
         now = time_module.time()
 
         if cache_key in self._forecast_cache:
@@ -336,48 +337,18 @@ class MLPredictor:
             if (now - cached_time) < settings.forecast_cache_ttl_seconds:
                 return cached_result
 
+        # Wait if the model is currently warming up
+        wait_attempts = 0
+        while self.is_warming_up and wait_attempts < 120: # Max wait 120 seconds
+            time_module.sleep(1.0)
+            wait_attempts += 1
+
         today = datetime.now()
         with self._lock:
-            if self.is_warming_up or self.cached_model is None:
-                logger.info("ml_model_warming_up_fallback")
-                i_arr = np.arange(OUTLOOK_DAYS)
-                pseudo_random = np.sin(i_arr * 1234.5678) * 10000
-                deterministic_random = pseudo_random - np.floor(pseudo_random)
-                deltas = (deterministic_random - 0.45) * 5
-
-                cumulative_deltas = np.cumsum(deltas)
-                p50_arr = 1500.0 + np.concatenate(([0.0], cumulative_deltas[:-1]))
-
-                variance_pct = 0.02 * np.sqrt(i_arr + 1) * shock_multiplier
-
-                p10_arr = p50_arr * (1 - variance_pct * 1.28)
-                p90_arr = p50_arr * (1 + variance_pct * 1.28)
-
-                p10_arr = np.round(np.maximum(0, p10_arr), 2)
-                p50_arr = np.round(p50_arr, 2)
-                p90_arr = np.round(p90_arr, 2)
-
-                p10_list = p10_arr.tolist()
-                p50_list = p50_arr.tolist()
-                p90_list = p90_arr.tolist()
-
-                dates = [
-                    (today + timedelta(days=int(i) + 1)).strftime("%Y-%m-%d")
-                    for i in i_arr
-                ]
-
-                result = [
-                    {
-                        "date": dates[i],
-                        "p10": p10_list[i],
-                        "p50": p50_list[i],
-                        "p90": p90_list[i],
-                    }
-                    for i in range(OUTLOOK_DAYS)
-                ]
-                self._forecast_cache[cache_key] = (result, now)
-                return result
-
+            if self.cached_model is None:
+                logger.error("ml_model_unavailable")
+                raise RuntimeError("ML Forecast Model is currently unavailable or failed to initialize.")
+                
             input_tensor = np.array([self.latest_sequence], dtype=np.float32)
 
             if self.onnx_session is not None:
@@ -399,9 +370,13 @@ class MLPredictor:
                 .inverse_transform(prediction.reshape(-1, 1))
                 .flatten()
             )
+            
+            # Apply a route-specific multiplier based on a deterministic hash of the origin and destination
+            route_hash = sum(ord(c) for c in (origin + destination))
+            route_multiplier = 0.7 + ((route_hash % 60) / 100.0)
+            p50_arr = p50_arr * route_multiplier
 
-            # Volatility is computed on raw log-returns. 
-            # p50 is denormalized, so applying it here is mathematically sound.
+            # Volatility is computed on raw log-returns.
             i_arr = np.arange(OUTLOOK_DAYS)
             time_scaled_volatility = self.historical_volatility * np.sqrt(i_arr + 1)
             variance_pct = time_scaled_volatility * shock_multiplier
@@ -433,8 +408,7 @@ class MLPredictor:
             self._forecast_cache[cache_key] = (result, now)
             return result
 
-
 predictor_instance = MLPredictor()
 
-async def get_freight_forecast(shockMultiplier: float = 1.0) -> list[dict]:
-    return await asyncio.to_thread(predictor_instance.predict_sync, shockMultiplier)
+async def get_freight_forecast(shockMultiplier: float = 1.0, origin: str = "Newcastle, Australia", destination: str = "Haldia") -> list[dict]:
+    return await asyncio.to_thread(predictor_instance.predict_sync, shockMultiplier, origin, destination)

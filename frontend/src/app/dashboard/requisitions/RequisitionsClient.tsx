@@ -102,6 +102,19 @@ export default function RequisitionsPage() {
     }
   });
 
+  const { data: portsData } = useQuery({
+    queryKey: ["ports"],
+    queryFn: async () => {
+      const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+      const res = await fetch(`${baseUrl}/api/v1/ports`);
+      if (!res.ok) return [];
+      const data = await res.json();
+      const list = data.ports || data;
+      return (Array.isArray(list) ? list : []).map((p: Record<string, unknown>) => String(p?.name ?? ""));
+    },
+  });
+  const ports = portsData || ["Haldia", "Paradip", "Dhamra", "Mumbai", "Kandla", "Mundra"];
+
   const [dateRange, setDateRange] = useState(savedView.dateRange);
   const [dateRangeOpen, setDateRangeOpen] = useState(false);
   const dateRangeRef = useRef<HTMLDivElement>(null);
@@ -273,13 +286,6 @@ export default function RequisitionsPage() {
       debouncedSearch,
     ],
     queryFn: fetchRequisitions,
-    refetchInterval: (query) => {
-      const currentData = query.state?.data as { data?: Requisition[] } | undefined;
-      const hasPending = currentData?.data?.some(
-        (r) => r.status === "Pending Evaluation"
-      );
-      return hasPending ? 1000 : false;
-    },
   });
 
   const showA = data?.meta?.total === 0 ? 0 : (page - 1) * 10 + 1;
@@ -326,15 +332,6 @@ export default function RequisitionsPage() {
 
   return (
     <div className="max-w-7xl mx-auto space-y-6">
-      <style>{`
-        @keyframes ai-progress-fill {
-          0% { width: 0%; }
-          100% { width: 100%; }
-        }
-        .animate-ai-progress {
-          animation: ai-progress-fill 5s linear forwards;
-        }
-      `}</style>
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
         <div>
@@ -811,16 +808,9 @@ export default function RequisitionsPage() {
                       )}
                       {(row.status === "Pending Evaluation" ||
                         row.status === "Pending") && (
-                        <div className="w-full min-w-[120px]">
-                          <div className="flex justify-between items-center mb-1.5">
-                            <span className="text-[10px] font-bold text-[#D95D0F] uppercase tracking-wide flex items-center">
-                              <Hourglass className="w-3 h-3 mr-1 animate-spin" /> AI Evaluating...
-                            </span>
-                          </div>
-                          <div className="w-full bg-[#FDF1E7] rounded-full h-1.5 overflow-hidden border border-[#D95D0F]/20">
-                            <div className="bg-[#D95D0F] h-1.5 rounded-full animate-ai-progress"></div>
-                          </div>
-                        </div>
+                        <span className="inline-flex items-center rounded-lg border border-[#D95D0F]/30 bg-[#FDF1E7] px-2.5 py-1 text-xs font-semibold text-[#B45309]">
+                          <Hourglass className="w-3.5 h-3.5 mr-1" /> {t("badge_pending_short")}
+                        </span>
                       )}
                       {row.status === "Infeasible" && (
                         <span className="inline-flex items-center rounded-lg border border-[#F3C2C2] bg-[#FDECEC] px-2.5 py-1 text-xs font-semibold text-[#B42318]">
@@ -1123,14 +1113,7 @@ export default function RequisitionsPage() {
                     }
                     className="w-full h-11 px-3 rounded-lg border border-[#E2E6EB] focus:border-[#D95D0F] focus:ring-1 focus:ring-[#D95D0F]/30 outline-none transition-all bg-white text-[#0A2342]"
                   >
-                    {[
-                      "Haldia",
-                      "Paradip",
-                      "Dhamra",
-                      "Mumbai",
-                      "Kandla",
-                      "Mundra",
-                    ].map((p) => (
+                    {ports.map((p: string) => (
                       <option key={p} value={p}>
                         {p}
                       </option>
