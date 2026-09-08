@@ -34,8 +34,8 @@ export default function MarketTicker() {
         </div>
         <div className="overflow-hidden flex-1 [mask-image:linear-gradient(to_right,transparent,black_6%,black_94%,transparent)]">
           <div className="animate-marquee flex w-max will-change-transform py-2.5 font-mono text-[11.5px] sm:text-[12.5px]">
-            {[0, 1].map((copy) => (
-              <div key={copy} aria-hidden={copy === 1} className="flex shrink-0 items-center">
+            {[0, 1, 2, 3].map((copy) => (
+              <div key={copy} aria-hidden={copy > 0} className="flex shrink-0 items-center">
                 {items.map((it: { symbol: string; value: string; delta: string }, i: number) => (
                   <span key={i} className="flex items-center gap-2 whitespace-nowrap pl-6">
                     <span className="font-semibold tracking-[0.1em] text-white/60">{it.symbol}</span>

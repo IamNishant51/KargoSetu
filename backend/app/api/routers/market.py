@@ -13,6 +13,11 @@ SYMBOLS = {
     "BDRY": "Baltic Dry Index",
     "^GSPC": "S&P 500",
     "CL=F": "Crude Oil",
+    "GC=F": "Gold",
+    "SI=F": "Silver",
+    "PL=F": "Platinum",
+    "^DJI": "Dow Jones",
+    "^IXIC": "NASDAQ",
 }
 
 _market_cache: list | None = None
