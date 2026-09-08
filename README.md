@@ -212,6 +212,7 @@ This system is engineered to enterprise logistics standards:
 
 ## PROJECT CONTRIBUTORS
 * **Nishant** - Full Stack Architect & ML Lead
+* **Aditya** - Team Member
 * *(Additional team members to be added)*
 
 <br/>
