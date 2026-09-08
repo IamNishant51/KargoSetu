@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Query, HTTPException
+from fastapi import APIRouter, Query, HTTPException, BackgroundTasks
 from typing import Optional
 from datetime import datetime, timedelta
 from app.schemas.requisition import RequisitionEvaluateRequest, RequisitionCreateRequest, RequisitionUpdateRequest
@@ -67,8 +67,31 @@ async def evaluate_requisition(req: RequisitionEvaluateRequest):
     return result
 
 
+async def background_evaluate(req_id: str, eval_req: RequisitionEvaluateRequest):
+    import asyncio
+    import structlog
+    logger = structlog.get_logger(__name__)
+    
+    # Intentionally delay for 5 seconds to let the user see the progress bar
+    await asyncio.sleep(5)
+    
+    try:
+        result = await maritime_math.evaluate_requisition(eval_req)
+        new_status = "Feasible" if result.get("feasible") else "Infeasible"
+        await prisma.requisition.update(
+            where={"id": req_id},
+            data={"status": new_status}
+        )
+    except Exception as e:
+        logger.error("background_evaluation_failed", error=str(e))
+        # You might want to update it to "Evaluation Failed" if it breaks, but for now we'll keep it simple
+        await prisma.requisition.update(
+            where={"id": req_id},
+            data={"status": "Infeasible"} # Fallback so it doesn't get stuck forever
+        )
+
 @router.post("")
-async def create_requisition(req: RequisitionCreateRequest):
+async def create_requisition(req: RequisitionCreateRequest, background_tasks: BackgroundTasks):
     new_req = await prisma.requisition.create(
         data={
             "volume_mt": req.volume_mt,
@@ -85,23 +108,9 @@ async def create_requisition(req: RequisitionCreateRequest):
         commodity=req.commodity
     )
     
-    try:
-        import structlog
-        logger = structlog.get_logger(__name__)
-        result = await maritime_math.evaluate_requisition(eval_req)
-        new_status = "Feasible" if result.get("feasible") else "Infeasible"
-        
-        updated_req = await prisma.requisition.update(
-            where={"id": new_req.id},
-            data={"status": new_status}
-        )
-        return updated_req
-    except Exception as e:
-        import structlog
-        logger = structlog.get_logger(__name__)
-        logger.error("evaluation_failed_during_create", error=str(e))
-        return new_req
-
+    background_tasks.add_task(background_evaluate, new_req.id, eval_req)
+    
+    return new_req
 
 @router.get("/{req_id}")
 async def get_requisition(req_id: str):

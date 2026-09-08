@@ -73,7 +73,6 @@ export default function RequisitionsPage() {
   );
   const [isNewRequisitionOpen, setIsNewRequisitionOpen] = useState(false);
   const [newReqForm, setNewReqForm] = useState(savedDraft);
-  const [evalTimeLeft, setEvalTimeLeft] = useState(3);
 
   const createMutation = useMutation({
     mutationFn: async (newReq: Record<string, unknown>) => {
@@ -102,19 +101,6 @@ export default function RequisitionsPage() {
       showToast("Failed to create requisition", "error");
     }
   });
-
-  useEffect(() => {
-    let timer: NodeJS.Timeout;
-    if (isNewRequisitionOpen && !createMutation.isPending) {
-      setEvalTimeLeft(4); // Typically takes 3-4s to resolve the math and external API
-    }
-    if (createMutation.isPending) {
-      timer = setInterval(() => {
-        setEvalTimeLeft((prev) => (prev > 0 ? prev - 1 : 0));
-      }, 1000);
-    }
-    return () => clearInterval(timer);
-  }, [isNewRequisitionOpen, createMutation.isPending]);
 
   const [dateRange, setDateRange] = useState(savedView.dateRange);
   const [dateRangeOpen, setDateRangeOpen] = useState(false);
@@ -287,6 +273,13 @@ export default function RequisitionsPage() {
       debouncedSearch,
     ],
     queryFn: fetchRequisitions,
+    refetchInterval: (query) => {
+      const currentData = query.state?.data as { data?: Requisition[] } | undefined;
+      const hasPending = currentData?.data?.some(
+        (r) => r.status === "Pending Evaluation"
+      );
+      return hasPending ? 1000 : false;
+    },
   });
 
   const showA = data?.meta?.total === 0 ? 0 : (page - 1) * 10 + 1;
@@ -333,6 +326,15 @@ export default function RequisitionsPage() {
 
   return (
     <div className="max-w-7xl mx-auto space-y-6">
+      <style>{`
+        @keyframes ai-progress-fill {
+          0% { width: 0%; }
+          100% { width: 100%; }
+        }
+        .animate-ai-progress {
+          animation: ai-progress-fill 5s linear forwards;
+        }
+      `}</style>
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
         <div>
@@ -809,9 +811,16 @@ export default function RequisitionsPage() {
                       )}
                       {(row.status === "Pending Evaluation" ||
                         row.status === "Pending") && (
-                        <span className="inline-flex items-center rounded-lg border border-[#D95D0F]/30 bg-[#FDF1E7] px-2.5 py-1 text-xs font-semibold text-[#B45309]">
-                          <Hourglass className="w-3.5 h-3.5 mr-1" /> {t("badge_pending_short")}
-                        </span>
+                        <div className="w-full min-w-[120px]">
+                          <div className="flex justify-between items-center mb-1.5">
+                            <span className="text-[10px] font-bold text-[#D95D0F] uppercase tracking-wide flex items-center">
+                              <Hourglass className="w-3 h-3 mr-1 animate-spin" /> AI Evaluating...
+                            </span>
+                          </div>
+                          <div className="w-full bg-[#FDF1E7] rounded-full h-1.5 overflow-hidden border border-[#D95D0F]/20">
+                            <div className="bg-[#D95D0F] h-1.5 rounded-full animate-ai-progress"></div>
+                          </div>
+                        </div>
                       )}
                       {row.status === "Infeasible" && (
                         <span className="inline-flex items-center rounded-lg border border-[#F3C2C2] bg-[#FDECEC] px-2.5 py-1 text-xs font-semibold text-[#B42318]">
@@ -1172,7 +1181,7 @@ export default function RequisitionsPage() {
                   {createMutation.isPending ? (
                     <>
                       <Hourglass className="w-4 h-4 mr-2 animate-spin" />
-                      {evalTimeLeft > 0 ? `AI Evaluating... (~${evalTimeLeft}s)` : "Finalizing..."}
+                      Creating...
                     </>
                   ) : (
                     t("create_req")
