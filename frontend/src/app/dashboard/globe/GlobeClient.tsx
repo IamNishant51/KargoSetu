@@ -2,7 +2,7 @@
 
 import React from "react";
 import { useMutation } from "@tanstack/react-query";
-import KargoGlobe from "@/components/map/KargoGlobe";
+import KargoGlobe, { flyCameraTo } from "@/components/map/KargoGlobe";
 import type { CesiumViewer } from "@/components/map/KargoGlobe";
 import VesselLayer from "@/components/map/VesselLayer";
 import HazardLayer from "@/components/map/HazardLayer";
@@ -73,9 +73,15 @@ export default function GlobeClient() {
 
   const selected = vessels.find((v) => v.mmsi === persisted.selectedMmsi) ?? null;
 
-  const setPreset = React.useCallback((preset: CameraPresetId) => {
-    setPersisted((p) => ({ ...p, camera: preset }));
-  }, []);
+  const setPreset = React.useCallback(
+    (preset: CameraPresetId) => {
+      setPersisted((p) => ({ ...p, camera: preset }));
+      if (viewer) {
+        flyCameraTo(viewer, preset);
+      }
+    },
+    [viewer],
+  );
 
   const setLayers = React.useCallback((layers: LayerVisibility) => {
     setPersisted((p) => ({ ...p, layers }));
@@ -241,10 +247,20 @@ export default function GlobeClient() {
       )}
 
         <aside
-          className={`absolute bottom-14 right-3 top-[150px] z-20 w-[300px] max-w-[calc(100vw-24px)] space-y-3 overflow-y-auto rounded-2xl border border-[#E2E6EB] bg-[#FAF7F1]/95 p-3 shadow-xl backdrop-blur transition-transform duration-300 sm:top-[132px] ${
+          className={`absolute bottom-14 right-3 top-[140px] z-20 w-[310px] max-w-[calc(100vw-24px)] space-y-3 overflow-y-auto rounded-2xl border border-[#E2E6EB] bg-[#FAF7F1]/95 p-3 shadow-xl backdrop-blur transition-transform duration-300 sm:top-[128px] ${
             panelOpen ? "translate-x-0" : "translate-x-[calc(100%+16px)]"
           }`}
         >
+          <div className="flex lg:hidden items-center justify-between pb-1 px-1">
+            <span className="mono-label text-[#0A2342]">Tactical Controls</span>
+            <button
+              type="button"
+              onClick={() => setPanelOpen(false)}
+              className="rounded-lg bg-white border border-[#E2E6EB] px-2.5 py-1 text-[11px] font-bold text-[#6B7D99] hover:text-[#0A2342] shadow-sm"
+            >
+              ✕ Close
+            </button>
+          </div>
           <div className="rounded-2xl bg-white border border-[#E2E6EB] p-3 shadow-sm">
             <p className="mono-label text-[#6B7D99] px-1 pb-2">Camera</p>
             <div className="grid grid-cols-3 gap-1.5">

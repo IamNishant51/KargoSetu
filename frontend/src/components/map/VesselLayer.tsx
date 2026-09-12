@@ -16,17 +16,24 @@ interface VesselLayerProps {
 }
 
 function dotImage(color: string): string {
+  if (typeof document === "undefined") return "";
   const c = document.createElement("canvas");
-  c.width = 24;
-  c.height = 24;
+  c.width = 36;
+  c.height = 36;
   const ctx = c.getContext("2d");
   if (!ctx) return "";
+  // Outer subtle glow / border
   ctx.beginPath();
-  ctx.arc(12, 12, 8, 0, Math.PI * 2);
+  ctx.arc(18, 18, 14, 0, Math.PI * 2);
+  ctx.fillStyle = "#ffffff";
+  ctx.fill();
+  // Core indicator
+  ctx.beginPath();
+  ctx.arc(18, 18, 11, 0, Math.PI * 2);
   ctx.fillStyle = color;
   ctx.fill();
-  ctx.lineWidth = 2;
-  ctx.strokeStyle = "#ffffff";
+  ctx.lineWidth = 2.5;
+  ctx.strokeStyle = "#0A2342";
   ctx.stroke();
   return c.toDataURL();
 }
@@ -90,17 +97,23 @@ export default function VesselLayer({
               image: img,
               width: isSel ? 20 : 14,
               height: isSel ? 20 : 14,
-              eyeOffset: new Cesium.Cartesian3(0, 0, -10),
+              disableDepthTestDistance: Number.POSITIVE_INFINITY,
+              eyeOffset: new Cesium.Cartesian3(0, 0, -15),
             },
             label: {
-              text: v.name || v.mmsi,
+              text: ` ${v.name || v.mmsi} `,
               show: isSel || detection,
-              font: "12px monospace",
+              font: "bold 11px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
               fillColor: Cesium.Color.WHITE,
-              outlineColor: Cesium.Color.BLACK,
+              outlineColor: Cesium.Color.fromCssColorString("#0A2342"),
               outlineWidth: 2,
               style: Cesium.LabelStyle.FILL_AND_OUTLINE,
-              pixelOffset: new Cesium.Cartesian2(0, -18),
+              showBackground: true,
+              backgroundColor: Cesium.Color.fromCssColorString("rgba(10, 35, 66, 0.92)"),
+              backgroundPadding: new Cesium.Cartesian2(7, 4),
+              pixelOffset: new Cesium.Cartesian2(0, -20),
+              disableDepthTestDistance: Number.POSITIVE_INFINITY,
+              eyeOffset: new Cesium.Cartesian3(0, 0, -25),
             },
           }) as unknown;
           entities.set(v.mmsi, added);
@@ -118,7 +131,7 @@ export default function VesselLayer({
             }
             if (e.label) {
               e.label.show = isSel || detection;
-              e.label.text = v.name || v.mmsi;
+              e.label.text = ` ${v.name || v.mmsi} `;
             }
           } catch {
             // entity update best-effort

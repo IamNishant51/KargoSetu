@@ -63,10 +63,10 @@ export default function VesselSheet({ vessel, mode, corridor, onClose }: VesselS
           : { text: t("globe.status.unavailable"), cls: "bg-[#FDECEC] text-[#B42318] border-[#F5C6C6]" };
 
   return (
-    <div className="absolute left-3 right-3 bottom-3 sm:left-auto sm:right-4 sm:bottom-4 sm:w-[360px] rounded-2xl bg-white border border-[#E2E6EB] shadow-lg p-4">
+    <div className="absolute left-3 right-3 bottom-12 sm:left-4 sm:right-auto sm:bottom-12 sm:w-[370px] z-30 rounded-2xl bg-white/98 border border-[#E2E6EB] shadow-2xl backdrop-blur p-4 animate-in fade-in slide-in-from-bottom-2 duration-200">
       <div className="flex items-start justify-between gap-2">
         <div>
-          <p className="mono-label text-[#6B7D99]">Vessel</p>
+          <p className="mono-label text-[#B45309]">Vessel Tracked</p>
           <h3 className="font-display font-black text-lg text-[#0A2342] leading-tight">
             {vessel.name || vessel.mmsi}
           </h3>
@@ -74,17 +74,17 @@ export default function VesselSheet({ vessel, mode, corridor, onClose }: VesselS
             MMSI {vessel.mmsi} · {vessel.shipType || "Unknown type"}
           </p>
         </div>
-        <div className="flex flex-col items-end gap-2">
+        <div className="flex items-center gap-2">
           <span className={`font-mono text-[10px] uppercase tracking-[0.12em] px-2 py-1 rounded border ${badge.cls}`}>
             {badge.text}
           </span>
           <button
             type="button"
             onClick={onClose}
-            className="text-[12px] font-semibold text-[#6B7D99] hover:text-[#0A2342]"
+            className="rounded-lg border border-[#E2E6EB] bg-[#FAF7F1] px-2 py-1 text-[12px] font-bold text-[#6B7D99] hover:text-[#0A2342] hover:bg-white transition-colors"
             aria-label="Close vessel sheet"
           >
-            Close
+            ✕
           </button>
         </div>
       </div>

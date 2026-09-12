@@ -85,25 +85,50 @@ export default function CorridorLayer({ viewer, corridor, visible, showBoundarie
         }
       }
 
+      const PORT_LAYOUT: Record<string, { offset: [number, number]; hOrigin: "LEFT" | "RIGHT" | "CENTER" }> = {
+        Haldia: { offset: [0, -22], hOrigin: "CENTER" },
+        Sandheads: { offset: [78, 0], hOrigin: "LEFT" }, // offset eastward into open water away from 4 converging lines
+        Dhamra: { offset: [-70, -2], hOrigin: "RIGHT" }, // offset westward onto land away from shipping lane
+        Paradip: { offset: [-70, 0], hOrigin: "RIGHT" }, // offset westward onto land
+        Newcastle: { offset: [0, -22], hOrigin: "CENTER" },
+      };
+
       for (const p of corridor) {
         const c = allCoords[p.name];
         if (!c) continue;
+        const layout = PORT_LAYOUT[p.name] ?? { offset: [0, -20], hOrigin: "CENTER" };
+        const hOrigin =
+          layout.hOrigin === "LEFT"
+            ? Cesium.HorizontalOrigin.LEFT
+            : layout.hOrigin === "RIGHT"
+              ? Cesium.HorizontalOrigin.RIGHT
+              : Cesium.HorizontalOrigin.CENTER;
+
         try {
           ds.entities.add({
             position: Cesium.Cartesian3.fromDegrees(c.lon, c.lat),
             billboard: {
               image: portDot(),
-              width: 12,
-              height: 12,
+              width: 14,
+              height: 14,
+              disableDepthTestDistance: Number.POSITIVE_INFINITY,
+              eyeOffset: new Cesium.Cartesian3(0, 0, -15),
             },
             label: {
-              text: `${p.name} ${p.draft}`,
-              font: "12px monospace",
+              text: ` ${p.name} · ${p.draft} `,
+              font: "bold 12px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
               fillColor: Cesium.Color.WHITE,
-              outlineColor: Cesium.Color.BLACK,
+              outlineColor: Cesium.Color.fromCssColorString("#0A2342"),
               outlineWidth: 2,
               style: Cesium.LabelStyle.FILL_AND_OUTLINE,
-              pixelOffset: new Cesium.Cartesian2(0, -16),
+              showBackground: true,
+              backgroundColor: Cesium.Color.fromCssColorString("rgba(10, 35, 66, 0.94)"),
+              backgroundPadding: new Cesium.Cartesian2(8, 5),
+              pixelOffset: new Cesium.Cartesian2(layout.offset[0], layout.offset[1]),
+              horizontalOrigin: hOrigin,
+              verticalOrigin: Cesium.VerticalOrigin.CENTER,
+              disableDepthTestDistance: Number.POSITIVE_INFINITY,
+              eyeOffset: new Cesium.Cartesian3(0, 0, -25),
               show: true,
             },
           });
@@ -149,16 +174,21 @@ export default function CorridorLayer({ viewer, corridor, visible, showBoundarie
 function portDot(): string {
   if (typeof document === "undefined") return "";
   const c = document.createElement("canvas");
-  c.width = 16;
-  c.height = 16;
+  c.width = 32;
+  c.height = 32;
   const ctx = c.getContext("2d");
   if (!ctx) return "";
   ctx.beginPath();
-  ctx.arc(8, 8, 6, 0, Math.PI * 2);
-  ctx.fillStyle = "#0A2342";
+  ctx.arc(16, 16, 12, 0, Math.PI * 2);
+  ctx.fillStyle = "#FAF7F1";
   ctx.fill();
-  ctx.lineWidth = 2;
+  ctx.lineWidth = 4;
   ctx.strokeStyle = "#D95D0F";
   ctx.stroke();
+
+  ctx.beginPath();
+  ctx.arc(16, 16, 6, 0, Math.PI * 2);
+  ctx.fillStyle = "#0A2342";
+  ctx.fill();
   return c.toDataURL();
 }

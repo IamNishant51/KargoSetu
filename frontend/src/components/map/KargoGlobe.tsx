@@ -12,18 +12,39 @@ import { ATTRIBUTION_ITEMS } from "./attribution";
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type CesiumViewer = any;
 
+export async function flyCameraTo(
+  viewer: CesiumViewer,
+  preset: CameraPresetId,
+  duration = 2.2,
+) {
+  if (!viewer || !viewer.camera) return;
+  const p = CAMERA_PRESETS[preset];
+  if (!p) return;
+  try {
+    const Cesium = await import("cesium");
+    viewer.camera.flyTo({
+      destination: Cesium.Cartesian3.fromDegrees(p.lon, p.lat, p.height),
+      duration,
+    });
+  } catch {
+    // flyTo best-effort
+  }
+}
+
 interface KargoGlobeProps {
   preset: CameraPresetId;
   onViewer: (viewer: CesiumViewer | null) => void;
   onNotice?: (msg: string | null) => void;
+  interactive?: boolean;
 }
 
-export default function KargoGlobe({ preset, onViewer, onNotice }: KargoGlobeProps) {
+export default function KargoGlobe({ preset, onViewer, onNotice, interactive = true }: KargoGlobeProps) {
   const containerRef = React.useRef<HTMLDivElement | null>(null);
   const viewerRef = React.useRef<CesiumViewer | null>(null);
   const presetRef = React.useRef(preset);
   const onViewerRef = React.useRef(onViewer);
   const onNoticeRef = React.useRef(onNotice);
+  const interactiveRef = React.useRef(interactive);
   const [ready, setReady] = React.useState(false);
 
   React.useEffect(() => {
@@ -35,6 +56,9 @@ export default function KargoGlobe({ preset, onViewer, onNotice }: KargoGlobePro
   React.useEffect(() => {
     onNoticeRef.current = onNotice;
   }, [onNotice]);
+  React.useEffect(() => {
+    interactiveRef.current = interactive;
+  }, [interactive]);
 
   React.useEffect(() => {
     let cancelled = false;
@@ -67,8 +91,8 @@ export default function KargoGlobe({ preset, onViewer, onNotice }: KargoGlobePro
           timeline: false,
           animation: false,
           geocoder: false,
-          homeButton: true,
-          sceneModePicker: true,
+          homeButton: interactiveRef.current,
+          sceneModePicker: interactiveRef.current,
           navigationHelpButton: false,
           navigationInstructionsInitiallyVisible: false,
           infoBox: false,
@@ -76,6 +100,13 @@ export default function KargoGlobe({ preset, onViewer, onNotice }: KargoGlobePro
           baseLayer: false,
           terrainProvider: terrainProvider as never,
         });
+
+        // High-DPI crisp rendering: scale up resolution to native retina/4K display pixels (max 2.0x for performance)
+        const dpr = typeof window !== "undefined" ? window.devicePixelRatio || 1.0 : 1.0;
+        viewer.resolutionScale = Math.min(dpr, 2.0);
+        viewer.scene.msaaSamples = 4;
+        viewer.scene.globe.depthTestAgainstTerrain = false;
+
         viewer.imageryLayers.addImageryProvider(esri);
 
         // OSM fallback if Esri tiles error.

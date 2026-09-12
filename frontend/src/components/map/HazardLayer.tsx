@@ -45,13 +45,18 @@ export default function HazardLayer({ viewer, hazards, showHazards, showWeather 
                 outlineColor: Cesium.Color.RED,
               },
               label: {
-                text: `M${mag.toFixed(1)}`,
-                show: mag >= 5.5,
-                font: "11px monospace",
+                text: ` M${mag.toFixed(1)} `,
+                show: mag >= 5.2,
+                font: "bold 11px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
                 fillColor: Cesium.Color.WHITE,
-                outlineColor: Cesium.Color.BLACK,
+                outlineColor: Cesium.Color.fromCssColorString("#7F1D1D"),
                 outlineWidth: 2,
                 style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+                showBackground: true,
+                backgroundColor: Cesium.Color.fromCssColorString("rgba(180, 35, 24, 0.92)"),
+                backgroundPadding: new Cesium.Cartesian2(6, 3),
+                disableDepthTestDistance: Number.POSITIVE_INFINITY,
+                eyeOffset: new Cesium.Cartesian3(0, 0, -20),
               },
             });
           } catch {
@@ -66,6 +71,8 @@ export default function HazardLayer({ viewer, hazards, showHazards, showWeather 
                 image: fireDot(),
                 width: 10,
                 height: 10,
+                disableDepthTestDistance: Number.POSITIVE_INFINITY,
+                eyeOffset: new Cesium.Cartesian3(0, 0, -15),
               },
             });
           } catch {
@@ -78,16 +85,22 @@ export default function HazardLayer({ viewer, hazards, showHazards, showWeather 
         try {
           const w = hazards.weather;
           const label =
-            `Waves ${w.waveHeightM ?? "?"}m · Wind ${w.windSpeedKmh ?? "?"}km/h (${w.source})`;
+            ` 🌊 Waves ${w.waveHeightM ?? "?"}m · 💨 Wind ${w.windSpeedKmh ?? "?"}km/h (${w.source}) `;
           ds.entities.add({
             position: Cesium.Cartesian3.fromDegrees(87.5, 19.0),
             label: {
               text: label,
-              font: "12px monospace",
-              fillColor: Cesium.Color.LIGHTSKYBLUE,
-              outlineColor: Cesium.Color.BLACK,
+              font: "bold 12px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
+              fillColor: Cesium.Color.fromCssColorString("#67E8F9"),
+              outlineColor: Cesium.Color.fromCssColorString("#0A2342"),
               outlineWidth: 2,
               style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+              showBackground: true,
+              backgroundColor: Cesium.Color.fromCssColorString("rgba(10, 35, 66, 0.94)"),
+              backgroundPadding: new Cesium.Cartesian2(12, 6),
+              disableDepthTestDistance: Number.POSITIVE_INFINITY,
+              eyeOffset: new Cesium.Cartesian3(0, 0, -25),
+              show: true,
             },
           });
         } catch {
