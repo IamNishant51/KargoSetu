@@ -35,7 +35,15 @@ Reloads must never lose desk state. The rule: **lazy `useState` initializers reh
 * **`FaqSection.tsx`**: Interactive accordion answering key questions on bathymetry, LSTM models, and ERP integration.
 * **`CtaSection.tsx`**: Conversion call-to-action banner for launching the Executive Command Center.
 * **`Footer.tsx`**: Complete enterprise footer with port corridors, SIH 26006 problem badge, and system status.
-* **`DemoModal.tsx`**: Interactive 4-chapter guided walkthrough modal triggered by Watch Demo buttons.
+* **`DemoModal.tsx`**: Interactive 5-chapter guided walkthrough modal triggered by Watch Demo buttons. Chapter 5 is the Live Globe tour and deep-links to `/dashboard/globe?preset=newcastle`.
+
+### Live Corridor Globe (`app/dashboard/globe/` + `components/map/` folder)
+This is the 3D "Gods Eye View" of the Bay of Bengal. It is lazy-loaded so the landing page stays fast: only the globe route ever imports Cesium (resolved version 1.145.0, `^1.124.0` series per plan). Cesium workers live in `public/cesium/` (copied by `scripts/copy-cesium.mjs` on postinstall) and the globe sets `CESIUM_BASE_URL` to `/cesium` before building the Viewer. Default map is keyless Esri World Imagery with automatic OSM fallback; terrain is Re:Earth quantized-mesh with a flat-ellipsoid fallback. No Google tiles and no committed keys.
+* **Route files**: `app/dashboard/globe/page.tsx` (server component, renders the dynamic wrapper), `DynamicGlobeClient.tsx` (`ssr: false` + skeleton, same pattern as the dashboard), `GlobeClient.tsx` (layout and state only, no Cesium calls).
+* **Map components**: `KargoGlobe.tsx` (Viewer lifecycle: create once, destroy on unmount), `VesselLayer.tsx` (one billboard per vessel, interpolated between 30s polls), `HazardLayer.tsx` (quake circles, fire dots, weather label), `CorridorLayer.tsx` (Newcastle to Sandheads to Haldia/Paradip/Dhamra lines plus port markers), `VesselSheet.tsx` (click a ship, see its data, press Evaluate to call the same solver the desk uses), `LayerToggles.tsx`, `Hud.tsx` (camera and counts, max 4Hz), `TourDirector.tsx` (5-stop SIH stage tour, Esc exits), `SensorStyles.tsx` (Normal/CRT/NVG/FLIR via CSS overlay, keys 1-4), `CommandBar.tsx` (text commands like "take me to haldia").
+* **Data hooks**: `useVessels.ts` (30s poll, debounced bbox), `useHazards.ts` (60s poll), `useCorridor.ts` (5min poll with the same hardcoded fallback the landing uses). Server data stays in TanStack Query; `globeStore.ts` holds only UI state (camera preset, layers, selected ship) persisted under `kargosetu_globe_v1`.
+* **Words in 7 languages**: every globe label lives in `src/i18n/translations/` under `globe.*` keys in all seven files (en/hi/bn/mr/ta/te/gu). Values sent to the API stay English.
+* **Credits that never hide**: `attribution.ts` holds one shared line used by both the in-app popover and the landing footer, so they cannot drift: Esri, OpenStreetMap contributors, AISStream.io, USGS, NASA FIRMS (full acknowledgement text), Open-Meteo.
 
 ### Auth Pages (`app/login/`, `app/register/`, `components/auth/` folder)
 Both pages share one shell so they always look like the same office. **`AuthShell.tsx`** renders the top bar (wordmark + SIH tag + back link), the hard-shadow card, a quiet navy panel on the left (eyebrow, headline, one sub-line, SIH footnote — deliberately minimal), and the white form desk on the right. The login and register pages only pass different copy (eyebrow, title, sub) plus their own form fields. All auth logic is untouched: forms POST to the FastAPI backend and `persistSessionAndRedirect` in `lib/auth.ts` hard-navigates to `/dashboard` so the middleware sees the cookie. If you change one auth page, mirror the copy shape in the other.
@@ -44,7 +52,7 @@ Both pages share one shell so they always look like the same office. **`AuthShel
 These are the reusable LEGO blocks used to build the dashboard.
 * **`ExecutiveDashboard.tsx`**: The main layout grid that holds all the other dashboard components together.
 * **`ConstraintSolverCard.tsx`**: The input box where users type in cargo weight and select ports to see if a ship will fit.
-* **`ForecastPriceChart.tsx`**: The line graph that draws the AI's future shipping cost predictions.
+* **`ForecastPriceChart.tsx`**: The full 90-day freight outlook chart. It draws all three bands (P10/P50/P90) with a shaded P10-P90 region, thin date ticks, and the shock-multiplier note in the header. Empty and error states use the same short desk tone as everywhere else. The shock slider covers the full 0.1-5.0 contract range.
 * **`TradeRouteMap.tsx`**: The visual map that draws lines connecting global ports to India.
 * **`IdleFleetManager.tsx`** & **`MarketShockSlider.tsx`**: Smaller interactive widgets on the dashboard.
 * **`ui/` folder**: Tiny, basic UI parts like button, card, and badge (provided by Shadcn UI).
@@ -57,7 +65,12 @@ This is the invisible "engine" running on the server. It handles all the heavy m
 ### The Brain
 * **`main.py`**: The **Server Entry Point**. Think of this as a traffic cop. It uses FastAPI for ultra-fast routing. When running in production, it is managed by **Gunicorn** with Uvicorn workers to handle heavy concurrent traffic.
 * **`core/` folder**: Contains centralized settings (`config.py`), global error handlers (`exceptions.py`), and authentication utilities (`security.py`).
-* **`api/routers/` folder**: Contains specific API endpoints modularized by feature (`health`, `requisitions`, `forecast`, `market`, `auth`, `commodities`, `ports`, `notifications`, `settings`).
+* **`api/routers/` folder**: Contains specific API endpoints modularized by feature (`health`, `requisitions`, `forecast`, `market`, `auth`, `commodities`, `ports`, `notifications`, `settings`, plus `vessels` and `hazards` for the globe).
+* **`api/routers/vessels.py`**: `GET /api/v1/vessels/live` with a Bay of Bengal bbox. Without `AISSTREAM_API_KEY` it returns clearly-flagged demo traffic; with a key it collects the AISStream WebSocket for up to 5 seconds. Upstream trouble never becomes a 500: it serves the last good snapshot as `stale` or an empty `unavailable` with a short notice.
+* **`api/routers/hazards.py`**: `GET /api/v1/hazards/summary` fans out to USGS quakes, NASA FIRMS fires, and Open-Meteo weather at the same time, each with its own cache. One feed failing only marks its own source as `stale` or `unavailable`; the endpoint still returns 200 with whatever survived. FIRMS without a key reports `disabled`.
+* **`api/routers/ports.py`**: `GET /api/v1/ports/corridor` keeps every existing field exactly as before and adds two optional fields per port: `liveVesselCount` (ships within 50 km) and `nearestVesselNm` (rounded to 1 decimal, `None` when the feed is down).
+* **`services/ais_proxy.py`**: The vessel cache and demo fleet live here. It reuses the global HTTP client from lifespan and caps bboxes at 30 degrees per side and vessels at 500.
+* **Environment keys**: `AISSTREAM_API_KEY` (free at aisstream.io, empty means demo mode) and `FIRMS_MAP_KEY` (free at firms.modaps.eosdis.nasa.gov/api/map_key, empty means the fires layer reports disabled). Both go in `backend/.env.example` as empty placeholders and in Hugging Face Spaces secrets for real runs. Never commit real keys.
 * **`requirements.txt` & `pyproject.toml`**: The pinned Python dependencies and project build configurations.
 
 ### The Services (`services/` folder)

@@ -23,12 +23,14 @@ from app.api.routers import (
     auth,
     commodities,
     forecast,
+    hazards,
     health,
     market,
     notifications,
     ports,
     requisitions,
     settings as app_settings_router,
+    vessels,
 )
 from app.core.config import settings as app_settings
 from app.core.exceptions import register_exception_handlers
@@ -146,3 +148,5 @@ app.include_router(ports.router)
 app.include_router(commodities.router)
 app.include_router(app_settings_router.router)
 app.include_router(notifications.router)
+app.include_router(vessels.router)
+app.include_router(hazards.router)

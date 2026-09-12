@@ -6,6 +6,7 @@ const FAQS = [
   { q: "Haldia is 7.5 m. My Capesize needs 18 m. What exactly happens?", a: "The solver refuses direct berthing, splits the parcel into Supramax lots (~50k MT each), routes them via Sandheads lighterage, and shows arrival draft vs tide vs UKC so the refusal is auditable." },
   { q: "Where does the tide number come from?", a: "Open-Meteo marine feed, pulled at evaluation time. No static tide table — the +3.2 m window in the demo is live data, and the UKC margin recomputes with it." },
   { q: "What is P10 / P50 / P90 in plain words?", a: "Cheap case, middle case, expensive case for the daily hire over the next 90 days. Fix the CoA near P10, budget at P50, keep P90 as the risk line for finance." },
+  { q: "Where does the live vessel picture come from?", a: "Terrestrial AIS via AISStream, proxied through our FastAPI backend with demo/stale/unavailable badges. Mid-ocean coverage is limited by receiver range — the globe shows the Bay of Bengal coastal picture, never fake global traffic. Attribution: AISStream.io, Esri, OpenStreetMap contributors, USGS, NASA FIRMS, Open-Meteo." },
   { q: "Does this plug into SAP?", a: "Yes — requisition in, fixture slip out, over REST with schema validation. The jury build uses the same /requisitions/evaluate contract the dashboard calls." },
   { q: "What do we show the SIH jury in 5 minutes?", a: "Set 150,000 MT → Haldia, watch it split. Flip to Dhamra, watch it go direct. Drag the shock slider to 2.0× and watch P90 scream. Three moves, thesis proven." },
 ];

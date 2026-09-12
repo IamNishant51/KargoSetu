@@ -103,7 +103,7 @@ export default function RequisitionsPage() {
   });
 
   const { data: portsData } = useQuery({
-    queryKey: ["ports"],
+    queryKey: ["port-names"],
     queryFn: async () => {
       const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
       const res = await fetch(`${baseUrl}/api/v1/ports`);

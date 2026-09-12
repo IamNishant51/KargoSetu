@@ -107,41 +107,28 @@ export default function InteractiveSandbox() {
       .toString()
       .replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 
-// Constraint calculation logic from API
-  const isDirectFeasible = evaluateMutation.data
-    ? evaluateMutation.data.feasible
-    : volume <= 55000 ||
-      (port === "Dhamra" && volume <= 180000) ||
-      (port === "Paradip" && volume <= 85000);
-  const splitRequired = !isDirectFeasible;
-  const numVessels =
-    evaluateMutation.data?.total_vessels ||
-    (splitRequired ? Math.ceil(volume / 50000) : 1);
-  const vesselClass =
-    evaluateMutation.data?.vessel_class ||
-    (splitRequired
-      ? "Supramax"
-      : volume > 100000
-        ? "Capesize"
-        : volume > 55000
-          ? "Panamax"
-          : "Supramax");
-  const arrivalDraft =
-    evaluateMutation.data?.calculatedDraft ||
-    (splitRequired
-      ? 6.9
-      : volume > 100000
-        ? 18.2
-        : volume > 55000
-          ? 12.8
-          : 7.1);
+// Constraint result comes from the single solver endpoint the dashboard
+// uses (POST /requisitions/evaluate). No duplicated client-side math:
+// while the mutation is pending or failed, show evaluating/unavailable.
+  const evalData = evaluateMutation.data as
+    | {
+        feasible?: boolean;
+        strategy?: string;
+        calculatedDraft?: number;
+        clearance_margin?: number;
+        total_vessels?: number;
+        vessel_class?: string;
+      }
+    | undefined;
+  const isDirectFeasible = evalData?.feasible ?? null;
+  const splitRequired = isDirectFeasible === null ? null : !isDirectFeasible;
+  const numVessels = evalData?.total_vessels ?? null;
+  const vesselClass = evalData?.vessel_class ?? null;
+  const arrivalDraft = evalData?.calculatedDraft ?? null;
   const clearanceMargin =
-    evaluateMutation.data?.clearance_margin ||
-    (
-      currentPortInfo.draft +
-      currentPortInfo.tide -
-      Number(arrivalDraft)
-    ).toFixed(2);
+    typeof evalData?.clearance_margin === "number"
+      ? evalData.clearance_margin.toFixed(2)
+      : null;
 
 // ML Forecast calculation from API
   let baseRate = 18650;
@@ -377,9 +364,13 @@ export default function InteractiveSandbox() {
                       Hydrodynamic Feasibility Status
                     </span>
                     <div className="flex items-center gap-2">
-                      {evaluateMutation.isPending ? (
+                      {evaluateMutation.isPending || isDirectFeasible === null ? (
                         <div className="flex items-center gap-2 text-slate-500 font-bold text-lg animate-pulse">
-                          <span>Evaluating Constraints...</span>
+                          <span>
+                            {evaluateMutation.isError
+                              ? "Solver unavailable — retrying…"
+                              : "Evaluating Constraints..."}
+                          </span>
                         </div>
                       ) : isDirectFeasible ? (
                         <div className="flex items-center gap-2 text-emerald-700 font-bold text-lg">
@@ -406,12 +397,12 @@ export default function InteractiveSandbox() {
                       Recommended Strategy
                     </span>
                     <span className="text-sm font-bold text-[#EA580C] font-mono">
-                      {evaluateMutation.isPending
+                      {evaluateMutation.isPending || !evalData
                         ? "Calculating..."
-                        : evaluateMutation.data?.strategy ||
+                        : evalData.strategy ||
                           (splitRequired
-                            ? `Split into ${numVessels}x ${vesselClass}`
-                            : `Direct 1x ${vesselClass}`)}
+                            ? `Split into ${numVessels ?? "?"}x ${vesselClass ?? ""}`
+                            : `Direct 1x ${vesselClass ?? ""}`)}
                     </span>
                   </div>
                 </div>
@@ -447,10 +438,10 @@ export default function InteractiveSandbox() {
                       Vessel Draft
                     </span>
                     <span className="text-lg font-bold text-amber-900 font-mono">
-                      {arrivalDraft}m
+                      {arrivalDraft ?? "—"}m
                     </span>
                     <span className="text-[10px] text-amber-700 block mt-0.5">
-                      {vesselClass} Laden
+                      {vesselClass ?? "—"} Laden
                     </span>
                   </div>
 
@@ -459,9 +450,9 @@ export default function InteractiveSandbox() {
                       UKC Clearance
                     </span>
                     <span
-                      className={`text-lg font-bold font-mono ${Number(clearanceMargin) >= 1.0 ? "text-emerald-700" : "text-rose-700"}`}
+                      className={`text-lg font-bold font-mono ${clearanceMargin !== null && Number(clearanceMargin) >= 1.0 ? "text-emerald-700" : "text-rose-700"}`}
                     >
-                      {clearanceMargin}m
+                      {clearanceMargin ?? "—"}m
                     </span>
                     <span className="text-[10px] text-slate-400 block mt-0.5">
                       Under Keel
@@ -476,20 +467,26 @@ export default function InteractiveSandbox() {
                     <span>Algorithmic Optimization Details</span>
                   </div>
 
-                  {splitRequired ? (
+                  {splitRequired === null ? (
+                    <p className="text-slate-600 text-xs sm:text-sm leading-relaxed">
+                      {evaluateMutation.isError
+                        ? "Solver unavailable. Check the backend connection — no local estimate is shown."
+                        : "Evaluating against live tide and channel soundings…"}
+                    </p>
+                  ) : splitRequired ? (
                     <p
                       className="text-slate-600 text-xs sm:text-sm leading-relaxed"
                       suppressHydrationWarning
                     >
                       A single {volume > 100000 ? "Capesize" : "Panamax"} vessel
                       carrying {formatNum(volume)} MT requires an arrival draft
-                      of {arrivalDraft}m, dangerously exceeding {port}&apos;s
+                      of {arrivalDraft ?? "—"}m, dangerously exceeding {port}&apos;s
                       permissible draft ({currentPortInfo.draft}m). KargoSetu
                       automatically splits this fixture into{" "}
                       <strong className="text-slate-900">
-                        {numVessels}x Supramax
+                        {numVessels ?? "?"}x {vesselClass ?? "Supramax"}
                       </strong>{" "}
-                      vessels (approx. {formatNum(volume / numVessels)} MT each)
+                      vessels (approx. {numVessels ? formatNum(volume / numVessels) : "?"} MT each)
                       routed via the Sandheads offshore lighterage zone,
                       preserving Under Keel Clearance and preventing{" "}
                       <strong className="text-emerald-700 font-bold">
@@ -500,10 +497,10 @@ export default function InteractiveSandbox() {
                   ) : (
                     <p className="text-slate-600 text-xs sm:text-sm leading-relaxed">
                       Direct berthing approved. The vessel arrival draft of{" "}
-                      {arrivalDraft}m safely complies with {port}&apos;s
+                      {arrivalDraft ?? "—"}m safely complies with {port}&apos;s
                       permissible channel depth of {currentPortInfo.draft}m (+
                       {currentPortInfo.tide}m tidal window). Under Keel
-                      Clearance (UKC) margin of {clearanceMargin}m satisfies
+                      Clearance (UKC) margin of {clearanceMargin ?? "—"}m satisfies
                       Director General of Shipping (DGS) safety mandates.
                     </p>
                   )}

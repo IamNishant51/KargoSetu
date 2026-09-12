@@ -32,6 +32,8 @@ class Settings(BaseSettings):
     # --- External APIs ---
     google_client_id: str = ""
     nvidia_api_key: str = ""
+    aisstream_api_key: str = ""
+    firms_map_key: str = ""
 
     # --- ML Configuration ---
     ml_lookback_days: int = 60

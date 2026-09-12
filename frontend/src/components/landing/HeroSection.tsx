@@ -57,7 +57,7 @@ export default function HeroSection() {
             <p className="mt-5 max-w-lg text-[15.5px] sm:text-[18px] leading-relaxed text-[#3D4F68]">
               Live tide + draft check for SAIL desks —{" "}
               <strong className="text-[#0A2342]">berth direct or split 3× Supramax</strong>,
-              with rupees saved on the slip.
+              with rupees saved on the slip, plus a live coastal vessel picture.
             </p>
 
             <dl className="mt-7 grid grid-cols-3 max-w-lg divide-x divide-[#E2E6EB] border-y border-[#E2E6EB] bg-white/80">
@@ -88,6 +88,12 @@ export default function HeroSection() {
                 <Play size={16} className="text-[#F5B98A]" fill="currentColor" /> 2-min demo
               </button>
             </div>
+            <Link
+              href="/dashboard/globe"
+              className="mt-3 inline-flex items-center gap-1.5 text-[14px] font-bold text-[#B45309] hover:underline"
+            >
+              View live vessel globe <ArrowUpRight size={15} />
+            </Link>
           </div>
 
           {/* Right — larger dossier card to fill vertical rhythm */}

@@ -10,6 +10,14 @@ const FALLBACK = [
   { symbol: "VLSFO", value: "$612/t", delta: "-0.8%" },
 ];
 
+interface TickerItem {
+  symbol?: string;
+  value?: string;
+  delta?: string;
+  price?: number;
+  change_pct?: number;
+}
+
 export default function MarketTicker() {
   const { data } = useQuery({
     queryKey: ["marketTicker"],
@@ -23,7 +31,51 @@ export default function MarketTicker() {
     refetchOnWindowFocus: false,
   });
 
-  const items = Array.isArray(data) && data.length ? data.slice(0, 8) : FALLBACK;
+  const { data: vessels } = useQuery<{ vessels?: Array<unknown>; mode?: string }>({
+    queryKey: ["tickerVessels"],
+    queryFn: async () => {
+      const base = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+      const res = await fetch(
+        `${base}/api/v1/vessels/live?minLon=80&minLat=15&maxLon=95&maxLat=23.5`,
+      );
+      if (!res.ok) throw new Error("vessels");
+      return res.json();
+    },
+    retry: false,
+    refetchOnWindowFocus: false,
+    refetchInterval: 60000,
+    staleTime: 30000,
+  });
+
+  const { data: corridor } = useQuery<Array<{ name?: string; draft?: string }>>({
+    queryKey: ["tickerCorridor"],
+    queryFn: async () => {
+      const base = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+      const res = await fetch(`${base}/api/v1/ports/corridor`);
+      if (!res.ok) throw new Error("corridor");
+      return res.json();
+    },
+    retry: false,
+    refetchOnWindowFocus: false,
+    staleTime: 300000,
+  });
+
+  const items: TickerItem[] = Array.isArray(data) && data.length ? data.slice(0, 8) : [...FALLBACK];
+
+  // Live items only when feeds answer; otherwise they hide (never fake numbers).
+  if (vessels && Array.isArray(vessels.vessels) && vessels.mode !== "unavailable") {
+    items.push({
+      symbol: "BAY TRAFFIC",
+      value: `${vessels.vessels.length} vessels`,
+      delta: vessels.mode === "demo" ? "demo" : "live",
+    });
+  }
+  if (Array.isArray(corridor) && corridor.length > 0) {
+    const haldia = corridor.find((p) => p.name === "Haldia");
+    if (haldia?.draft) {
+      items.push({ symbol: "HALDIA MAX", value: haldia.draft, delta: "corridor" });
+    }
+  }
 
   return (
     <div className="bg-[#0A2342] text-white overflow-hidden select-none" aria-label="Harbour telemetry">
@@ -36,7 +88,7 @@ export default function MarketTicker() {
           <div className="animate-marquee flex w-max will-change-transform py-2.5 font-mono text-[11.5px] sm:text-[12.5px]">
             {[0, 1, 2, 3].map((copy) => (
               <div key={copy} aria-hidden={copy > 0} className="flex shrink-0 items-center">
-                {items.map((it: any, i: number) => {
+                {items.map((it: TickerItem, i: number) => {
                   const displayValue = it.value || (it.price !== undefined ? `${it.price.toLocaleString()}` : "N/A");
                   const displayDelta = it.delta || (it.change_pct !== undefined ? `${it.change_pct > 0 ? '+' : ''}${it.change_pct}%` : "");
                   return (

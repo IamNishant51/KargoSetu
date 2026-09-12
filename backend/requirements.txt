@@ -29,6 +29,7 @@ yfinance>=0.2.40,<1.0.0
 
 # === HTTP Client ===
 httpx>=0.28.0,<1.0.0
+websockets>=14.0,<16.0
 
 # === Security ===
 pyjwt>=2.9.0,<3.0.0

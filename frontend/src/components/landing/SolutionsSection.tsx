@@ -25,6 +25,13 @@ const ITEMS = [
     meta: "Split · Lighterage",
     href: "#ports",
   },
+  {
+    n: "04",
+    title: "Live Corridor Globe",
+    body: "Click-to-track vessels · draft-constrained corridor · hazard overlays. The Bay of Bengal in 3D, live from the desk feed.",
+    meta: "Globe · Live",
+    href: "/dashboard/globe",
+  },
 ];
 
 export default function SolutionsSection() {

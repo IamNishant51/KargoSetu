@@ -24,6 +24,7 @@ export default function PortCorridor() {
   });
 
   const portsData = Array.isArray(data) && data.length ? data : FALLBACK_PORTS;
+  const hasLive = Array.isArray(data) && data.some((p: { liveVesselCount?: number | null }) => typeof p.liveVesselCount === "number");
 
   return (
     <section id="ports" className="bg-[#FAF7F1] border-y border-[#E2E6EB] py-14 sm:py-20 scroll-mt-20 sm:scroll-mt-24">
@@ -71,12 +72,17 @@ export default function PortCorridor() {
               </tr>
             </thead>
             <tbody className="divide-y divide-[#E2E6EB]">
-              {portsData.map((p: { n: string, name: string, sub: string, draft: string, tide: string, ship: string, note: string, flag: string }) => (
+              {portsData.map((p: { n: string, name: string, sub: string, draft: string, tide: string, ship: string, note: string, flag: string, liveVesselCount?: number | null, nearestVesselNm?: number | null }) => (
                 <tr key={p.n} className="hover:bg-[#FAF7F1] transition-colors">
                   <td className="px-5 py-4">
                     <span className="font-mono text-[11px] text-[#6B7D99] mr-2">{p.n}</span>
                     <span className="font-bold text-[15px] text-[#0A2342]">{p.name}</span>
                     <span className="block text-[12.5px] text-[#6B7D99] mt-0.5">{p.sub}</span>
+                    {hasLive && typeof p.liveVesselCount === "number" && (
+                      <span className="mt-1.5 inline-block font-mono text-[10px] uppercase tracking-[0.12em] bg-[#E9F5EE] text-[#0E7A3D] border border-[#BFE3CD] rounded px-2 py-0.5">
+                        {p.liveVesselCount} live · {p.nearestVesselNm ?? "—"} NM
+                      </span>
+                    )}
                   </td>
                   <td className="px-5 py-4 font-mono font-semibold text-[15px] text-[#0A2342]">{p.draft}</td>
                   <td className="px-5 py-4 font-mono text-[13px] text-[#0E7A3D]">{p.tide}</td>

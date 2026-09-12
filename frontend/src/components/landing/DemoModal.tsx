@@ -92,6 +92,26 @@ const DEMO_STEPS = [
       },
     ],
   },
+  {
+    id: 5,
+    title: "5. Live Globe Tour",
+    tag: "Gods Eye View",
+    subtitle: "Five stops from Newcastle to the Haldia rate dip window",
+    description:
+      "Newcastle loading, deep-sea transit, Sandheads lighterage, Haldia draft split, then the CoA dip window. Eight seconds per stop with flyTo captions. Opens the live 3D corridor.",
+    telemetry: [
+      { label: "Stop 1", val: "Newcastle loading — coking coal loads at Newcastle" },
+      { label: "Stop 2", val: "Deep-sea transit — Capesize economical leg" },
+      { label: "Stop 3", val: "Sandheads lighterage — big ships break bulk" },
+      { label: "Stop 4", val: "Haldia draft split — 7.5m forces Supramax splits" },
+      {
+        label: "Globe Tour",
+        val: "Open the live 5-stop tour",
+        highlight: true,
+      },
+    ],
+    cta: "/dashboard/globe?preset=newcastle",
+  },
 ];
 
 export default function DemoModal() {
@@ -155,7 +175,7 @@ export default function DemoModal() {
         {/* Modal Body */}
         <div className="overflow-y-auto p-6 space-y-6">
           {/* Step Selector Pills */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 bg-slate-100 p-1.5 rounded-xl border border-slate-200">
+          <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 bg-slate-100 p-1.5 rounded-xl border border-slate-200">
             {DEMO_STEPS.map((step, idx) => (
               <button
                 key={step.id}
@@ -265,6 +285,15 @@ export default function DemoModal() {
           </div>
 
           <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
+            {"cta" in currentStep && typeof (currentStep as { cta?: string }).cta === "string" && (
+              <Link
+                href={(currentStep as { cta: string }).cta}
+                className="w-full sm:w-auto bg-[#0A2342] hover:bg-[#14315C] text-white text-xs sm:text-sm font-semibold px-4 py-2.5 rounded-xl transition-all flex items-center justify-center gap-2 shadow-sm cursor-pointer"
+              >
+                Open live globe tour
+                <ArrowRight size={16} />
+              </Link>
+            )}
             <Link
               href="/dashboard"
 

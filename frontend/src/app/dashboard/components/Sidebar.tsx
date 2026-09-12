@@ -9,6 +9,7 @@ import {
   FileText,
   TrendingUp,
   Settings,
+  Globe,
   X,
   LogOut,
   ChevronLeft,
@@ -22,6 +23,7 @@ import { clearSessionAndRedirect } from "@/lib/auth";
 
 const NAV = [
   { href: "/dashboard", match: (p: string) => p === "/dashboard", icon: LayoutDashboard, key: "dashboard" as const, label: "Dashboard" },
+  { href: "/dashboard/globe", match: (p: string) => p.includes("/globe"), icon: Globe, key: "globe_nav" as const, label: "Globe" },
   { href: "/dashboard/requisitions", match: (p: string) => p.includes("/requisitions"), icon: FileText, key: "requisitions" as const, label: "Requisitions" },
   { href: "/dashboard/forecasts", match: (p: string) => p.includes("/forecasts"), icon: TrendingUp, key: "forecasts" as const, label: "Forecasts" },
   { href: "/dashboard/settings", match: (p: string) => p.includes("/settings"), icon: Settings, key: "settings" as const, label: "Settings" },

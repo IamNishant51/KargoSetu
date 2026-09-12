@@ -1,6 +1,7 @@
 "use client";
 import React from "react";
 import Link from "next/link";
+import { ATTRIBUTION_LINE } from "@/components/map/attribution";
 
 export default function Footer() {
   return (
@@ -47,6 +48,9 @@ export default function Footer() {
           <p>© 2026 KargoSetu · Smart India Hackathon · All soundings verified.</p>
           <p className="font-mono uppercase tracking-[0.12em]">Haldia · Paradip · Dhamra · Sandheads</p>
         </div>
+        <p className="mt-3 font-mono text-[10.5px] uppercase tracking-[0.12em] text-[#6B7D99]">
+          {ATTRIBUTION_LINE}
+        </p>
       </div>
     </footer>
   );

@@ -11,6 +11,7 @@ const LINKS = [
   { label: "Simulator", href: "#sandbox", live: true },
   { label: "Engine Room", href: "#features" },
   { label: "Corridor", href: "#ports" },
+  { label: "Live Globe", href: "/dashboard/globe" },
   { label: "Queries", href: "#faq" },
 ];
 

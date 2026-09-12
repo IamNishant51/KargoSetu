@@ -21,8 +21,9 @@ const FEATURES = [
     n: "C",
     tag: "Split · Sandheads",
     title: "It knows the workaround.",
-    body: "When direct berthing is impossible it writes the lighterage plan itself — 3× Supramax, tonnage split, barges, savings.",
+    body: "When direct berthing is impossible it writes the lighterage plan itself — 3× Supramax, tonnage split, barges, savings. See it live in the globe.",
     metrics: ["Auto cargo split", "Offshore lighterage", "Demurrage math"],
+    href: "/dashboard/globe",
   },
   {
     n: "D",
@@ -52,7 +53,14 @@ export default function BentoFeatures() {
                 <span className="font-mono text-[10px] uppercase tracking-[0.14em] text-[#6B7D99] border border-[#E2E6EB] bg-white rounded px-2 py-1">{f.tag}</span>
               </div>
               <h3 className="font-display font-bold text-[26px] sm:text-[28px] text-[#0A2342] leading-tight">{f.title}</h3>
-              <p className="mt-2.5 text-[14.5px] leading-relaxed text-[#3D4F68]">{f.body}</p>
+              <p className="mt-2.5 text-[14.5px] leading-relaxed text-[#3D4F68]">
+                {f.body}{" "}
+                {"href" in f && typeof (f as { href?: string }).href === "string" && (
+                  <a href={(f as { href: string }).href} className="font-bold text-[#B45309] hover:underline">
+                    See it live in the globe →
+                  </a>
+                )}
+              </p>
               <ul className="mt-5 pt-4 border-t border-[#E2E6EB] space-y-2">
                 {f.metrics.map((m) => (
                   <li key={m} className="flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.12em] text-[#3D4F68]">
