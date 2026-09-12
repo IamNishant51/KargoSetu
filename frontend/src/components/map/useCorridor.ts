@@ -21,9 +21,9 @@ const PORT_COORDS: Record<string, { lat: number; lon: number }> = {
 export function useCorridor() {
   return useQuery<CorridorPort[]>({
     queryKey: ["corridor"],
-    queryFn: async () => {
+    queryFn: async ({ signal }) => {
       try {
-        const res = await fetch(`${getApiBase()}/api/v1/ports/corridor`);
+        const res = await fetch(`${getApiBase()}/api/v1/ports/corridor`, { signal });
         if (!res.ok) throw new Error("corridor fetch failed");
         const data = (await res.json()) as CorridorPort[];
         if (!Array.isArray(data) || data.length === 0) return FALLBACK_CORRIDOR;
@@ -38,7 +38,9 @@ export function useCorridor() {
     },
     staleTime: 300000,
     refetchInterval: 300000,
-    retry: 1,
+    refetchIntervalInBackground: false,
+    retry: 2,
+    retryDelay: (attempt) => Math.min(1000 * 2 ** attempt, 8000),
     refetchOnWindowFocus: false,
     initialData: FALLBACK_CORRIDOR,
   });

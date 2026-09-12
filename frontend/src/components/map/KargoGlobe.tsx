@@ -1,5 +1,4 @@
 "use client";
-"use no memo";
 
 import React from "react";
 import "cesium/Build/Cesium/Widgets/widgets.css";

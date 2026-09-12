@@ -262,5 +262,15 @@
   "globe.sensors.flir": "FLIR",
   "globe.commands.placeholder": "Type a command: take me to haldia…",
   "globe.retry": "Retry",
+  "globe.sources.title": "డేటా మూలాలు",
+  "globe.sources.vessels": "నౌకలు",
+  "globe.sources.hazards": "ప్రమాదాలు",
+  "globe.sources.golive": "లైవ్ చేయండి",
+  "globe.sources.goliveBody": "Add AISSTREAM_API_KEY and FIRMS_MAP_KEY to backend/.env, then restart the API. Keys stay server-side and are never committed.",
+  "globe.sources.collects": "ఈరోజు {n} సేకరణ",
+  "globe.sources.budget": "కోటా {n}",
+  "globe.error.title": "గ్లోబ్ లోడ్ కాలేదు",
+  "globe.error.body": "3D వీక్షణలో లోపం ఏర్పడింది. మీ డెస్క్ డేటా సురక్షితంగా ఉంది — గ్లోబ్‌ను మళ్లీ ప్రయత్నించండి లేదా సాల్వర్‌కు తిరిగి వెళ్లండి.",
+  "globe.error.desk": "డెస్క్‌కు తిరిగి",
   "globe_nav": "Globe"
 }

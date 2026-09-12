@@ -262,5 +262,15 @@
   "globe.sensors.flir": "FLIR",
   "globe.commands.placeholder": "Type a command: take me to haldia…",
   "globe.retry": "Retry",
+  "globe.sources.title": "தரவு மூலங்கள்",
+  "globe.sources.vessels": "கப்பல்கள்",
+  "globe.sources.hazards": "அபாயங்கள்",
+  "globe.sources.golive": "நேரலை",
+  "globe.sources.goliveBody": "Add AISSTREAM_API_KEY and FIRMS_MAP_KEY to backend/.env, then restart the API. Keys stay server-side and are never committed.",
+  "globe.sources.collects": "இன்று {n} சேகரிப்பு",
+  "globe.sources.budget": "ஒதுக்கீடு {n}",
+  "globe.error.title": "குளோப் ஏற்ற முடியவில்லை",
+  "globe.error.body": "3D காட்சியில் பிழை ஏற்பட்டது. உங்கள் டெஸ்க் தரவு பாதுகாப்பாக உள்ளது — மீண்டும் முயற்சிக்கவும் அல்லது சால்வருக்குத் திரும்பவும்.",
+  "globe.error.desk": "டெஸ்க்கிற்குத் திரும்பு",
   "globe_nav": "Globe"
 }

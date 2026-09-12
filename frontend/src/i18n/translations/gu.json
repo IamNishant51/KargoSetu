@@ -262,5 +262,15 @@
   "globe.sensors.flir": "FLIR",
   "globe.commands.placeholder": "Type a command: take me to haldia…",
   "globe.retry": "Retry",
+  "globe.sources.title": "ડેટા સ્ત્રોત",
+  "globe.sources.vessels": "જહાજો",
+  "globe.sources.hazards": "જોખમો",
+  "globe.sources.golive": "લાઇવ કરો",
+  "globe.sources.goliveBody": "Add AISSTREAM_API_KEY and FIRMS_MAP_KEY to backend/.env, then restart the API. Keys stay server-side and are never committed.",
+  "globe.sources.collects": "આજે {n} સંગ્રહ",
+  "globe.sources.budget": "ક્વોટા {n}",
+  "globe.error.title": "ગ્લોબ લોડ થઈ શક્યો નથી",
+  "globe.error.body": "3D દૃશ્યમાં ભૂલ થઈ. તમારો ડેસ્ક ડેટા સુરક્ષિત છે — ગ્લોબ ફરી પ્રયાસ કરો અથવા સોલ્વર પર પાછા જાઓ.",
+  "globe.error.desk": "ડેસ્ક પર પાછા",
   "globe_nav": "Globe"
 }

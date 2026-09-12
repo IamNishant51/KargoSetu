@@ -28,6 +28,36 @@ _vessel_cache: list[dict] | None = None
 _vessel_cache_time: float = 0.0
 _vessel_lock = asyncio.Lock()
 
+# Daily upstream budget governor (UTC day) for AISStream collects, plus the
+# last served mode for the health endpoint.
+_ais_day: str = ""
+_ais_used: int = 0
+_last_mode: str = "unavailable"
+_last_collect_time: float = 0.0
+
+
+def _ais_budget_hit(budget: int) -> bool:
+    """True when today's AISStream collects reached the configured budget."""
+    global _ais_day, _ais_used
+    today = dt.datetime.now(dt.UTC).strftime("%Y-%m-%d")
+    if today != _ais_day:
+        _ais_day = today
+        _ais_used = 0
+    if _ais_used >= budget:
+        return True
+    _ais_used += 1
+    return False
+
+
+def get_vessel_feed_status() -> dict:
+    """Snapshot of vessel feed health for the health endpoint."""
+    return {
+        "mode": _last_mode,
+        "cachedAt": _vessel_cache_time,
+        "collectsToday": _ais_used,
+        "collectDay": _ais_day,
+    }
+
 
 def validate_bbox(minLon: float, minLat: float, maxLon: float, maxLat: float) -> tuple[float, float, float, float]:
     minLon = max(-180.0, min(180.0, float(minLon)))
@@ -153,21 +183,42 @@ async def get_vessels(
     maxLat: float = DEFAULT_BBOX["maxLat"],
     api_key: str = "",
 ) -> dict:
-    global _vessel_cache, _vessel_cache_time
+    global _vessel_cache, _vessel_cache_time, _last_mode, _last_collect_time
+    from app.core.config import settings as _settings
+
     minLon, minLat, maxLon, maxLat = validate_bbox(minLon, minLat, maxLon, maxLat)
     now = time_module.time()
 
     async with _vessel_lock:
         fresh = _vessel_cache is not None and (now - _vessel_cache_time) < VESSEL_CACHE_TTL
         if fresh and _vessel_cache is not None:
-            return {"mode": "live" if api_key else "demo", "vessels": _vessel_cache, "updatedAt": _utcnow_iso(), "notice": None}
+            _last_mode = "live" if api_key else "demo"
+            return {"mode": _last_mode, "vessels": _vessel_cache, "updatedAt": _utcnow_iso(), "notice": None}
 
     if not api_key:
         demo = get_demo_vessels()
         async with _vessel_lock:
             _vessel_cache = demo
             _vessel_cache_time = now
+        _last_mode = "demo"
         return {"mode": "demo", "vessels": demo, "updatedAt": _utcnow_iso(), "notice": "Set AISSTREAM_API_KEY for live traffic."}
+
+    budget = getattr(_settings, "aisstream_daily_budget", 5000)
+    budget = 5000 if budget is None else int(budget)
+    if _ais_budget_hit(budget):
+        logger.warning("ais_budget_exceeded", used=_ais_used)
+        async with _vessel_lock:
+            if _vessel_cache is not None:
+                age_s = int(now - _vessel_cache_time) if _vessel_cache_time else 0
+                _last_mode = "stale"
+                return {
+                    "mode": "stale",
+                    "vessels": _vessel_cache,
+                    "updatedAt": _utcnow_iso(),
+                    "notice": f"Daily upstream budget reached, showing last known traffic ({age_s}s old).",
+                }
+        _last_mode = "unavailable"
+        return {"mode": "unavailable", "vessels": [], "updatedAt": _utcnow_iso(), "notice": "Daily upstream budget reached. Retry tomorrow."}
 
     try:
         live = await _collect_live(api_key, minLon, minLat, maxLon, maxLat)
@@ -176,18 +227,22 @@ async def get_vessels(
         async with _vessel_lock:
             _vessel_cache = live
             _vessel_cache_time = now
+        _last_mode = "live"
+        _last_collect_time = now
         return {"mode": "live", "vessels": live, "updatedAt": _utcnow_iso(), "notice": None}
     except Exception as exc:
         logger.warning("ais_upstream_failed", error=str(exc))
         async with _vessel_lock:
             if _vessel_cache is not None:
                 age_s = int(now - _vessel_cache_time) if _vessel_cache_time else 0
+                _last_mode = "stale"
                 return {
                     "mode": "stale",
                     "vessels": _vessel_cache,
                     "updatedAt": _utcnow_iso(),
                     "notice": f"Live feed unavailable, showing last known traffic ({age_s}s old).",
                 }
+        _last_mode = "unavailable"
         return {"mode": "unavailable", "vessels": [], "updatedAt": _utcnow_iso(), "notice": "Live vessel feed unavailable. Retry shortly."}
 
 

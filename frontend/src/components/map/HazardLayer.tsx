@@ -1,8 +1,8 @@
 "use client";
-"use no memo";
 
 import React from "react";
 import type { CesiumViewer } from "./KargoGlobe";
+import { cachedSprite, getCesium } from "./api";
 import type { HazardsResponse } from "./api";
 
 interface HazardLayerProps {
@@ -19,12 +19,17 @@ export default function HazardLayer({ viewer, hazards, showHazards, showWeather 
     if (!viewer) return;
     let cancelled = false;
     (async () => {
-      const Cesium = await import("cesium");
+      const Cesium = await getCesium();
       if (cancelled) return;
+      // Remove-then-add: the previous datasource is destroyed before the new
+      // one is created, so repeated polls never leak datasources.
       try {
-        dsRef.current?.removeAll();
+        if (dsRef.current) {
+          viewer.dataSources.remove(dsRef.current as never, true);
+          dsRef.current = null;
+        }
       } catch {
-        // clear best-effort
+        // replace best-effort
       }
       if (!hazards) return;
       const ds = new Cesium.CustomDataSource("hazards");
@@ -85,7 +90,7 @@ export default function HazardLayer({ viewer, hazards, showHazards, showWeather 
         try {
           const w = hazards.weather;
           const label =
-            ` 🌊 Waves ${w.waveHeightM ?? "?"}m · 💨 Wind ${w.windSpeedKmh ?? "?"}km/h (${w.source}) `;
+            ` Waves ${w.waveHeightM ?? "?"} m · Wind ${w.windSpeedKmh ?? "?"} km/h (${w.source}) `;
           ds.entities.add({
             position: Cesium.Cartesian3.fromDegrees(87.5, 19.0),
             label: {
@@ -136,15 +141,17 @@ export default function HazardLayer({ viewer, hazards, showHazards, showWeather 
 }
 
 function fireDot(): string {
-  if (typeof document === "undefined") return "";
-  const c = document.createElement("canvas");
-  c.width = 16;
-  c.height = 16;
-  const ctx = c.getContext("2d");
-  if (!ctx) return "";
-  ctx.beginPath();
-  ctx.arc(8, 8, 5, 0, Math.PI * 2);
-  ctx.fillStyle = "#FF6D00";
-  ctx.fill();
-  return c.toDataURL();
+  return cachedSprite("hazard-fire-dot", () => {
+    if (typeof document === "undefined") return "";
+    const c = document.createElement("canvas");
+    c.width = 16;
+    c.height = 16;
+    const ctx = c.getContext("2d");
+    if (!ctx) return "";
+    ctx.beginPath();
+    ctx.arc(8, 8, 5, 0, Math.PI * 2);
+    ctx.fillStyle = "#FF6D00";
+    ctx.fill();
+    return c.toDataURL();
+  });
 }

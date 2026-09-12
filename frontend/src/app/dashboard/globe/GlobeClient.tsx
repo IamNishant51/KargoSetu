@@ -13,6 +13,8 @@ import Hud from "@/components/map/Hud";
 import TourDirector from "@/components/map/TourDirector";
 import SensorStyles, { sensorFilter } from "@/components/map/SensorStyles";
 import CommandBar from "@/components/map/CommandBar";
+import SourcesPanel from "@/components/map/SourcesPanel";
+import { useFeeds } from "@/components/map/useFeeds";
 import { ATTRIBUTION_ITEMS, ATTRIBUTION_LINE } from "@/components/map/attribution";
 import { DEFAULT_BBOX, getApiBase, haversineNm } from "@/components/map/api";
 import { useVessels } from "@/components/map/useVessels";
@@ -65,6 +67,7 @@ export default function GlobeClient() {
   const vesselsQuery = useVessels(bbox);
   const hazardsQuery = useHazards(bbox);
   const corridorQuery = useCorridor();
+  const feedsQuery = useFeeds();
 
   const vessels = React.useMemo(() => vesselsQuery.data?.vessels ?? [], [vesselsQuery.data?.vessels]);
   const mode = vesselsQuery.data?.mode ?? "unavailable";
@@ -300,6 +303,7 @@ export default function GlobeClient() {
             vessels={vessels}
             corridor={corridor}
           />
+          <SourcesPanel feeds={feedsQuery.data} mode={mode} />
 
           <div className="rounded-2xl bg-white border border-[#E2E6EB] p-3 shadow-sm">
             <button

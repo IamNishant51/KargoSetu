@@ -262,5 +262,15 @@
   "globe.sensors.flir": "FLIR",
   "globe.commands.placeholder": "Type a command: take me to haldia…",
   "globe.retry": "Retry",
+  "globe.sources.title": "ডেটা উৎস",
+  "globe.sources.vessels": "জাহাজ",
+  "globe.sources.hazards": "ঝুঁকি",
+  "globe.sources.golive": "লাইভ করুন",
+  "globe.sources.goliveBody": "Add AISSTREAM_API_KEY and FIRMS_MAP_KEY to backend/.env, then restart the API. Keys stay server-side and are never committed.",
+  "globe.sources.collects": "আজ {n} সংগ্রহ",
+  "globe.sources.budget": "কোটা {n}",
+  "globe.error.title": "গ্লোব লোড করা যায়নি",
+  "globe.error.body": "3D ভিউতে ত্রুটি হয়েছে। আপনার ডেস্ক ডেটা অক্ষত আছে — গ্লোব আবার চেষ্টা করুন বা সলভারে ফিরে যান।",
+  "globe.error.desk": "ডেস্কে ফিরে যান",
   "globe_nav": "Globe"
 }

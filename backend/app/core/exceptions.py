@@ -46,6 +46,17 @@ async def prisma_error_handler(
     )
 
 
+async def value_error_handler(
+    request: Request,
+    exc: ValueError,
+) -> ORJSONResponse:
+    """Handle request validation errors (e.g. bad bbox) as 400, never 500."""
+    return ORJSONResponse(
+        status_code=400,
+        content={"detail": str(exc)},
+    )
+
+
 async def generic_error_handler(
     request: Request,
     exc: Exception,
@@ -67,4 +78,5 @@ async def generic_error_handler(
 def register_exception_handlers(app: FastAPI) -> None:
     """Register all custom exception handlers on the FastAPI app."""
     app.add_exception_handler(PrismaError, prisma_error_handler)
+    app.add_exception_handler(ValueError, value_error_handler)
     app.add_exception_handler(Exception, generic_error_handler)

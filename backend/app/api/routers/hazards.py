@@ -21,6 +21,8 @@ from slowapi.util import get_remote_address
 
 import app.services.maritime_math as maritime_math
 from app.core.config import settings
+from app.services.meteo_common import current_hour_index as _current_hour_index
+from app.services.meteo_common import utcnow_iso as _utcnow_iso
 
 router = APIRouter(prefix="/api/v1/hazards", tags=["hazards"])
 limiter = Limiter(key_func=get_remote_address)
@@ -47,6 +49,38 @@ _meteo_cache: dict | None = None
 _meteo_time: float = 0.0
 _meteo_status: str = "unavailable"
 _lock = asyncio.Lock()
+
+# Daily upstream budget governor (UTC day): caps FIRMS MAP_KEY transactions
+# so a client loop or cache bug can never burn the shared quota. Over budget
+# the proxy serves stale cache instead of hitting upstream.
+_firms_day: str = ""
+_firms_used: int = 0
+
+
+def _firms_budget_hit() -> bool:
+    """True when today's FIRMS upstream calls reached the configured budget."""
+    global _firms_day, _firms_used
+    today = dt.datetime.now(dt.UTC).strftime("%Y-%m-%d")
+    if today != _firms_day:
+        _firms_day = today
+        _firms_used = 0
+    budget = getattr(settings, "firms_daily_budget", 200)
+    budget = 200 if budget is None else int(budget)
+    if _firms_used >= budget:
+        return True
+    _firms_used += 1
+    return False
+
+
+def get_hazard_feed_status() -> dict:
+    """Snapshot of per-source feed health for the health endpoint."""
+    return {
+        "usgs": _usgs_status,
+        "firms": _firms_status,
+        "meteo": _meteo_status,
+        "firmsUsedToday": _firms_used,
+        "firmsDay": _firms_day,
+    }
 
 
 class Earthquake(BaseModel):
@@ -85,8 +119,7 @@ class HazardsSummaryResponse(BaseModel):
     updatedAt: str
 
 
-def _utcnow_iso() -> str:
-    return dt.datetime.now(dt.UTC).isoformat().replace("+00:00", "Z")
+from app.services.meteo_common import utcnow_iso as _utcnow_iso
 
 
 def _client() -> httpx.AsyncClient | None:
@@ -153,6 +186,14 @@ async def _fetch_firms(minLon: float, minLat: float, maxLon: float, maxLat: floa
         return [], "disabled"
     if _firms_cache and (now - _firms_time) < FIRMS_TTL:
         return _firms_cache, "ok"
+    if _firms_budget_hit():
+        logger.warning("hazards_firms_budget_exceeded", used=_firms_used)
+        async with _lock:
+            if _firms_cache:
+                _firms_status = "stale"
+                return _firms_cache, "stale"
+            _firms_status = "unavailable"
+            return [], "unavailable"
     # Allow-listed host only; bbox goes into path as query, never as host.
     url = f"{FIRMS_HOST}/api/area/csv/1.0/{key}/VIIRS_SNPP_NRT/world/1"
     try:
@@ -214,14 +255,18 @@ async def _fetch_meteo(minLon: float, minLat: float, maxLon: float, maxLat: floa
             wind = wind_res.json()
         wave = None
         try:
-            wh = (marine.get("hourly") or {}).get("wave_height") or []
-            wave = float(wh[0]) if wh and wh[0] is not None else None
+            hourly = marine.get("hourly") or {}
+            wh = hourly.get("wave_height") or []
+            idx = _current_hour_index(hourly.get("time") or [])
+            wave = float(wh[idx]) if idx < len(wh) and wh[idx] is not None else None
         except (TypeError, ValueError, IndexError):
             wave = None
         wind_v = None
         try:
-            ws = (wind.get("hourly") or {}).get("wind_speed_10m") or []
-            wind_v = float(ws[0]) if ws and ws[0] is not None else None
+            hourly_w = wind.get("hourly") or {}
+            ws = hourly_w.get("wind_speed_10m") or []
+            idx_w = _current_hour_index(hourly_w.get("time") or [])
+            wind_v = float(ws[idx_w]) if idx_w < len(ws) and ws[idx_w] is not None else None
         except (TypeError, ValueError, IndexError):
             wind_v = None
         payload = {"waveHeightM": wave, "windSpeedKmh": wind_v, "source": "open-meteo"}
@@ -249,6 +294,10 @@ async def get_hazards_summary(
     maxLon: float = Query(default=DEFAULT_BBOX["maxLon"], ge=-180.0, le=180.0),
     maxLat: float = Query(default=DEFAULT_BBOX["maxLat"], ge=-90.0, le=90.0),
 ):
+    if not (minLon < maxLon and minLat < maxLat):
+        raise ValueError("min must be less than max for lon/lat bounds")
+    if (maxLon - minLon) > 30.0 or (maxLat - minLat) > 30.0:
+        raise ValueError("bbox span exceeds 30 degrees per side")
     quakes, firms, meteo = await asyncio.gather(
         _fetch_usgs(minLon, minLat, maxLon, maxLat),
         _fetch_firms(minLon, minLat, maxLon, maxLat),

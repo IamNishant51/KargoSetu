@@ -262,5 +262,15 @@
   "globe.sensors.flir": "FLIR",
   "globe.commands.placeholder": "Type a command: take me to haldia…",
   "globe.retry": "Retry",
+  "globe.sources.title": "Data sources",
+  "globe.sources.vessels": "Vessels",
+  "globe.sources.hazards": "Hazards",
+  "globe.sources.golive": "Go live",
+  "globe.sources.goliveBody": "Add AISSTREAM_API_KEY and FIRMS_MAP_KEY to backend/.env, then restart the API. Keys stay server-side and are never committed.",
+  "globe.sources.collects": "collects today {n}",
+  "globe.sources.budget": "quota used {n}",
+  "globe.error.title": "Globe failed to load",
+  "globe.error.body": "The 3D view hit an error. Your desk data is untouched — retry the globe or return to the solver.",
+  "globe.error.desk": "Back to desk",
   "globe_nav": "Globe"
 }

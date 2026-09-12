@@ -31,9 +31,26 @@ async def health_check():
 
     status = "ok" if (db_healthy and ml_ready) else "degraded"
 
+    # Live-feed snapshot: per-source modes plus upstream budget usage, so the
+    # desk footer and globe source panel report real system state.
+    feeds: dict = {}
+    try:
+        from app.api.routers.hazards import get_hazard_feed_status
+
+        feeds["hazards"] = get_hazard_feed_status()
+    except Exception as exc:
+        logger.error("health_feeds_hazards_failed", error=str(exc))
+    try:
+        from app.services.ais_proxy import get_vessel_feed_status
+
+        feeds["vessels"] = get_vessel_feed_status()
+    except Exception as exc:
+        logger.error("health_feeds_vessels_failed", error=str(exc))
+
     return {
         "status": status,
         "database": "connected" if db_healthy else "disconnected",
         "ml_model": "ready" if ml_ready else "warming_up",
         "version": "2.0.0",
+        "feeds": feeds,
     }

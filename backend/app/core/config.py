@@ -35,6 +35,10 @@ class Settings(BaseSettings):
     aisstream_api_key: str = ""
     firms_map_key: str = ""
 
+    # --- Upstream budget governors (safety ceilings per UTC day) ---
+    firms_daily_budget: int = 200
+    aisstream_daily_budget: int = 5000
+
     # --- ML Configuration ---
     ml_lookback_days: int = 60
     ml_outlook_days: int = 90

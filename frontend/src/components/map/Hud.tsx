@@ -14,6 +14,7 @@ interface HudProps {
 
 export default function Hud({ viewer, vesselCount, hazardCount, selected, mode }: HudProps) {
   const [cam, setCam] = React.useState({ lon: 0, lat: 0, alt: 0 });
+  const lastRef = React.useRef({ lon: 0, lat: 0, alt: 0 });
 
   React.useEffect(() => {
     if (!viewer) return;
@@ -23,11 +24,22 @@ export default function Hud({ viewer, vesselCount, hazardCount, selected, mode }
       try {
         const carto = viewer.scene?.camera?.positionCartographic;
         if (!carto) return;
-        setCam({
+        const next = {
           lon: (carto.longitude * 180) / Math.PI,
           lat: (carto.latitude * 180) / Math.PI,
           alt: carto.height,
-        });
+        };
+        const last = lastRef.current;
+        // Skip re-render when the camera has not moved (static globe = zero HUD churn).
+        if (
+          Math.abs(next.lon - last.lon) < 1e-9 &&
+          Math.abs(next.lat - last.lat) < 1e-9 &&
+          Math.abs(next.alt - last.alt) < 1e-6
+        ) {
+          return;
+        }
+        lastRef.current = next;
+        setCam(next);
       } catch {
         // HUD read best-effort, max 4Hz
       }

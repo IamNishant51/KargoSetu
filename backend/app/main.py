@@ -22,6 +22,7 @@ from app.api.dependencies import prisma
 from app.api.routers import (
     auth,
     commodities,
+    context,
     forecast,
     hazards,
     health,
@@ -150,3 +151,4 @@ app.include_router(app_settings_router.router)
 app.include_router(notifications.router)
 app.include_router(vessels.router)
 app.include_router(hazards.router)
+app.include_router(context.router)

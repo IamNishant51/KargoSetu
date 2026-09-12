@@ -104,3 +104,21 @@ export function haversineNm(
     Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon / 2) ** 2;
   return 2 * Math.asin(Math.sqrt(Math.min(1, Math.max(0, a)))) * r;
 }
+
+// Singleton Cesium module: dynamic-imported once per page lifetime and shared
+// by every map layer. Never import("cesium") inside loops or animation frames.
+let cesiumModule: typeof import("cesium") | null = null;
+export async function getCesium(): Promise<typeof import("cesium")> {
+  if (!cesiumModule) cesiumModule = await import("cesium");
+  return cesiumModule;
+}
+
+// Sprite cache: canvas rasterized once per key, reused across polls/rebuilds.
+const spriteCache = new Map<string, string>();
+export function cachedSprite(key: string, make: () => string): string {
+  const hit = spriteCache.get(key);
+  if (hit) return hit;
+  const url = make();
+  if (url) spriteCache.set(key, url);
+  return url;
+}

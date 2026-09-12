@@ -1,9 +1,9 @@
 "use client";
-"use no memo";
 /* eslint-disable react-hooks/immutability */
 
 import React from "react";
 import type { CesiumViewer } from "./KargoGlobe";
+import { getCesium } from "./api";
 import type { Vessel } from "./api";
 
 interface VesselLayerProps {
@@ -15,28 +15,10 @@ interface VesselLayerProps {
   onSelect: (mmsi: string | null) => void;
 }
 
-function dotImage(color: string): string {
-  if (typeof document === "undefined") return "";
-  const c = document.createElement("canvas");
-  c.width = 36;
-  c.height = 36;
-  const ctx = c.getContext("2d");
-  if (!ctx) return "";
-  // Outer subtle glow / border
-  ctx.beginPath();
-  ctx.arc(18, 18, 14, 0, Math.PI * 2);
-  ctx.fillStyle = "#ffffff";
-  ctx.fill();
-  // Core indicator
-  ctx.beginPath();
-  ctx.arc(18, 18, 11, 0, Math.PI * 2);
-  ctx.fillStyle = color;
-  ctx.fill();
-  ctx.lineWidth = 2.5;
-  ctx.strokeStyle = "#0A2342";
-  ctx.stroke();
-  return c.toDataURL();
-}
+// Vessels render as true 3D models at every zoom level. There is no
+// billboard fallback and no zoom toggle: Cesium scales each model by
+// distance (minimumPixelSize keeps far ships visible, maximumScale caps
+// near ones), so nothing ever pops between representations.
 
 export default function VesselLayer({
   viewer,
@@ -47,6 +29,9 @@ export default function VesselLayer({
   onSelect,
 }: VesselLayerProps) {
   const entitiesRef = React.useRef<Map<string, unknown>>(new Map());
+  // Per-entity position objects, mutated in place by the interpolation loop.
+  // Allocated once per vessel (on create), never per frame.
+  const posRef = React.useRef<Map<string, unknown>>(new Map());
   const prevRef = React.useRef<Map<string, { lat: number; lon: number }>>(new Map());
   const currRef = React.useRef<Map<string, { lat: number; lon: number }>>(new Map());
   const lastUpdateRef = React.useRef<number>(0);
@@ -66,7 +51,7 @@ export default function VesselLayer({
     if (!viewer) return;
     let cancelled = false;
     (async () => {
-      const Cesium = await import("cesium");
+      const Cesium = await getCesium();
       if (cancelled) return;
       const nextCurr = new Map<string, { lat: number; lon: number }>();
       for (const v of shown) nextCurr.set(v.mmsi, { lat: v.lat, lon: v.lon });
@@ -76,29 +61,31 @@ export default function VesselLayer({
 
       const entities = entitiesRef.current;
       const seen = new Set<string>();
-      const liveImg = dotImage("#D95D0F");
-      const demoImg = dotImage("#B45309");
-      const selectedImg = dotImage("#0E7A3D");
+      const selColor = Cesium.Color.fromCssColorString("#2FBF71");
 
       for (const v of shown) {
         seen.add(v.mmsi);
         const isSel = v.mmsi === selectedMmsi;
-        const img = isSel ? selectedImg : v.demo ? demoImg : liveImg;
         let ent = entities.get(v.mmsi) as {
           position?: unknown;
-          billboard?: { image?: string };
+          model?: { color?: unknown };
           label?: { show?: boolean; text?: string };
         } | undefined;
         if (!ent) {
+          const pos = Cesium.Cartesian3.fromDegrees(v.lon, v.lat);
           const added = viewer.entities.add({
             id: `vessel-${v.mmsi}`,
-            position: Cesium.Cartesian3.fromDegrees(v.lon, v.lat),
-            billboard: {
-              image: img,
-              width: isSel ? 20 : 14,
-              height: isSel ? 20 : 14,
-              disableDepthTestDistance: Number.POSITIVE_INFINITY,
-              eyeOffset: new Cesium.Cartesian3(0, 0, -15),
+            position: pos,
+            model: {
+              uri: "/models/ship.glb",
+              scale: 1.0,
+              // Distance-scaled visibility: far ships hold 48 px so the
+              // corridor view still reads as 3D traffic; near ships cap out
+              // instead of filling the screen.
+              minimumPixelSize: 48,
+              maximumScale: 20000,
+              color: isSel ? selColor : Cesium.Color.WHITE,
+              show: true,
             },
             label: {
               text: ` ${v.name || v.mmsi} `,
@@ -117,17 +104,16 @@ export default function VesselLayer({
             },
           }) as unknown;
           entities.set(v.mmsi, added);
+          posRef.current.set(v.mmsi, pos);
           ent = added as never;
         } else {
           try {
             const e = ent as {
-              billboard?: { image?: string; width?: number; height?: number };
+              model?: { color?: unknown };
               label?: { show?: boolean; text?: string };
             };
-            if (e.billboard) {
-              e.billboard.image = img;
-              e.billboard.width = isSel ? 20 : 14;
-              e.billboard.height = isSel ? 20 : 14;
+            if (e.model) {
+              e.model.color = isSel ? selColor : Cesium.Color.WHITE;
             }
             if (e.label) {
               e.label.show = isSel || detection;
@@ -137,11 +123,18 @@ export default function VesselLayer({
             // entity update best-effort
           }
         }
-        // Heading rotation is applied via billboard rotation when cog present.
+        // Selected ships tint green; heading is a true quaternion on the 3D
+        // model (nose −X mesh convention, hence +PI); refreshed per poll.
         try {
-          const e = ent as { billboard?: { rotation?: number } };
-          if (e?.billboard && typeof v.cog === "number") {
-            e.billboard.rotation = ((360 - v.cog) * Math.PI) / 180;
+          const e = ent as { orientation?: unknown };
+          if (typeof v.cog === "number") {
+            const pos = posRef.current.get(v.mmsi);
+            if (pos) {
+              e.orientation = Cesium.Transforms.headingPitchRollQuaternion(
+                pos as never,
+                new Cesium.HeadingPitchRoll(Cesium.Math.toRadians(v.cog) + Math.PI, 0, 0),
+              );
+            }
           }
         } catch {
           // keep last heading
@@ -155,6 +148,7 @@ export default function VesselLayer({
             // remove best-effort
           }
           entities.delete(mmsi);
+          posRef.current.delete(mmsi);
         }
       }
       try {
@@ -169,32 +163,34 @@ export default function VesselLayer({
   }, [viewer, shown, selectedMmsi, detection, visible]);
 
   // Interpolation loop: one interval behind, linear between fixes.
+  // Zero per-frame allocation: the Cesium module is loaded once and each
+  // vessel owns a Cartesian3 that is mutated in place (entity holds the
+  // same reference, so position updates without re-assignment).
   React.useEffect(() => {
     if (!viewer) return;
     let raf = 0;
     let alive = true;
     const INTERVAL = 30000;
     const scratch = { lon: 0, lat: 0 };
+    let Cesium: typeof import("cesium") | null = null;
     async function tick() {
       if (!alive) return;
       try {
-        const Cesium = await import("cesium");
-        if (!alive) return;
+        if (!Cesium) Cesium = await getCesium();
+        if (!alive || !Cesium) return;
+        const C = Cesium;
         const now = Date.now();
         const frac = Math.min(1, Math.max(0, (now - lastUpdateRef.current) / INTERVAL));
         for (const [mmsi, cur] of currRef.current.entries()) {
           const prev = prevRef.current.get(mmsi) ?? cur;
           scratch.lon = prev.lon + (cur.lon - prev.lon) * frac;
           scratch.lat = prev.lat + (cur.lat - prev.lat) * frac;
-          const ent = entitiesRef.current.get(mmsi) as {
-            position?: unknown;
-          } | undefined;
-          if (ent) {
+          const pos = posRef.current.get(mmsi);
+          if (pos) {
             try {
-              (ent as { position: unknown }).position =
-                Cesium.Cartesian3.fromDegrees(scratch.lon, scratch.lat);
+              C.Cartesian3.fromDegrees(scratch.lon, scratch.lat, 0, undefined, pos as never);
             } catch {
-              // position update best-effort, no per-frame allocation beyond scratch
+              // position update best-effort
             }
           }
         }
@@ -215,7 +211,7 @@ export default function VesselLayer({
     if (!viewer) return;
     let handler: { destroy: () => void } | null = null;
     (async () => {
-      const Cesium = await import("cesium");
+      const Cesium = await getCesium();
       handler = new Cesium.ScreenSpaceEventHandler(viewer.scene.canvas) as unknown as {
         destroy: () => void;
       };

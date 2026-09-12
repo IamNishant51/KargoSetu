@@ -1,11 +1,14 @@
 import math
 
 import structlog
-from fastapi import APIRouter
+from fastapi import APIRouter, Request
+from slowapi import Limiter
+from slowapi.util import get_remote_address
 
 from app.api.dependencies import prisma
 
 router = APIRouter(prefix="/api/v1/ports", tags=["ports"])
+limiter = Limiter(key_func=get_remote_address)
 logger = structlog.get_logger(__name__)
 
 
@@ -22,7 +25,8 @@ CORRIDOR_STATIC_DATA = {
 }
 
 @router.get("/corridor")
-async def get_port_corridor():
+@limiter.limit("30/minute")
+async def get_port_corridor(request: Request):
     ports_db = await prisma.port.find_many()
     db_map = {p.name: p for p in ports_db}
 
@@ -37,9 +41,11 @@ async def get_port_corridor():
             **static_info,
             "draft": draft,
         }
-        stats = live_counts.get(name, {"liveVesselCount": None, "nearestVesselNm": None})
+        stats = live_counts.get(name, {"liveVesselCount": None, "nearestVesselNm": None, "loiteringCount": None, "meanSogKn": None})
         merged["liveVesselCount"] = stats["liveVesselCount"]
         merged["nearestVesselNm"] = stats["nearestVesselNm"]
+        merged["loiteringCount"] = stats.get("loiteringCount")
+        merged["meanSogKn"] = stats.get("meanSogKn")
         results.append(merged)
 
     return results
@@ -68,16 +74,22 @@ def _corridor_live_stats() -> dict:
     try:
         import numpy as np
 
+        # Hoist vessel arrays out of the per-port loop: built once, reused 4x.
+        all_lats = np.array([v.get("lat") for v in vessels], dtype=float)
+        all_lons = np.array([v.get("lon") for v in vessels], dtype=float)
+        valid_all = ~(np.isnan(all_lats) | np.isnan(all_lons))
+        all_lats = all_lats[valid_all]
+        all_lons = all_lons[valid_all]
+        all_sogs = all_sogs[valid_all]
+        if all_lats.size == 0:
+            return {name: {"liveVesselCount": None, "nearestVesselNm": None, "loiteringCount": None, "meanSogKn": None} for name in PORT_COORDS}
+
+        all_sogs = np.array([v.get("sog") for v in vessels], dtype=float)
+
         out: dict = {}
         for port_name, (plat, plon) in PORT_COORDS.items():
-            lats = np.array([v.get("lat") for v in vessels], dtype=float)
-            lons = np.array([v.get("lon") for v in vessels], dtype=float)
-            valid = ~(np.isnan(lats) | np.isnan(lons))
-            if not bool(valid.any()):
-                out[port_name] = {"liveVesselCount": None, "nearestVesselNm": None}
-                continue
-            lats = lats[valid]
-            lons = lons[valid]
+            lats = all_lats
+            lons = all_lons
             rlat1 = np.radians(plat)
             rlon1 = np.radians(plon)
             rlat2 = np.radians(lats)
@@ -89,9 +101,18 @@ def _corridor_live_stats() -> dict:
             dist_nm = c * _EARTH_R_NM
             # 50 km radius for live count.
             dist_km = dist_nm * 1.852
-            count = int(bool((dist_km <= 50.0).sum()))
+            within = dist_km <= 50.0
+            count = int(within.sum())
             nearest = round(float(dist_nm.min()), 1)
-            out[port_name] = {"liveVesselCount": count, "nearestVesselNm": nearest}
+            sog_known = within & ~np.isnan(all_sogs)
+            loitering = int((sog_known & (all_sogs < 1.0)).sum())
+            mean_sog = round(float(all_sogs[sog_known].mean()), 1) if bool(sog_known.any()) else None
+            out[port_name] = {
+                "liveVesselCount": count,
+                "nearestVesselNm": nearest,
+                "loiteringCount": loitering,
+                "meanSogKn": mean_sog,
+            }
         return out
     except Exception as exc:
         logger.warning("corridor_vessel_math_failed", error=str(exc))
@@ -100,6 +121,9 @@ def _corridor_live_stats() -> dict:
         for port_name, (plat, plon) in PORT_COORDS.items():
             best = float("inf")
             count = 0
+            loitering = 0
+            sog_sum = 0.0
+            sog_n = 0
             for v in vessels:
                 try:
                     vlat = float(v.get("lat"))
@@ -111,9 +135,21 @@ def _corridor_live_stats() -> dict:
                     best = d
                 if d * 1.852 <= 50.0:
                     count += 1
+                    try:
+                        sog = v.get("sog")
+                        sog_f = float(sog) if sog is not None else None
+                    except (TypeError, ValueError):
+                        sog_f = None
+                    if sog_f is not None:
+                        sog_sum += sog_f
+                        sog_n += 1
+                        if sog_f < 1.0:
+                            loitering += 1
             out[port_name] = {
                 "liveVesselCount": count,
                 "nearestVesselNm": round(best, 1) if best != float("inf") else None,
+                "loiteringCount": loitering,
+                "meanSogKn": round(sog_sum / sog_n, 1) if sog_n else None,
             }
         return out
 

@@ -1,8 +1,8 @@
 "use client";
-"use no memo";
 
 import React from "react";
 import type { CesiumViewer } from "./KargoGlobe";
+import { getCesium } from "./api";
 import type { CorridorPort } from "./api";
 
 interface CorridorLayerProps {
@@ -21,7 +21,7 @@ export default function CorridorLayer({ viewer, corridor, visible, showBoundarie
     if (!viewer) return;
     let cancelled = false;
     (async () => {
-      const Cesium = await import("cesium");
+      const Cesium = await getCesium();
       if (cancelled) return;
       try {
         if (dsRef.current) {
@@ -104,16 +104,39 @@ export default function CorridorLayer({ viewer, corridor, visible, showBoundarie
               ? Cesium.HorizontalOrigin.RIGHT
               : Cesium.HorizontalOrigin.CENTER;
 
+        // Port beacon: true 3D harbor geometry (dark pylon + orange light
+        // sphere), unmistakably different from the vessel ship meshes.
+        const TOWER_H = 12000;
+        try {
+          ds.entities.add({
+            position: Cesium.Cartesian3.fromDegrees(c.lon, c.lat, TOWER_H / 2),
+            cylinder: {
+              length: TOWER_H,
+              topRadius: 2200,
+              bottomRadius: 3400,
+              material: Cesium.Color.fromCssColorString("#0A2342"),
+              outline: true,
+              outlineColor: Cesium.Color.fromCssColorString("#D95D0F"),
+            },
+          });
+        } catch {
+          // tower best-effort
+        }
+        try {
+          ds.entities.add({
+            position: Cesium.Cartesian3.fromDegrees(c.lon, c.lat, TOWER_H),
+            ellipsoid: {
+              radii: new Cesium.Cartesian3(4200, 4200, 4200),
+              material: Cesium.Color.fromCssColorString("#D95D0F"),
+            },
+          });
+        } catch {
+          // beacon light best-effort
+        }
+
         try {
           ds.entities.add({
             position: Cesium.Cartesian3.fromDegrees(c.lon, c.lat),
-            billboard: {
-              image: portDot(),
-              width: 14,
-              height: 14,
-              disableDepthTestDistance: Number.POSITIVE_INFINITY,
-              eyeOffset: new Cesium.Cartesian3(0, 0, -15),
-            },
             label: {
               text: ` ${p.name} · ${p.draft} `,
               font: "bold 12px -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif",
@@ -169,26 +192,4 @@ export default function CorridorLayer({ viewer, corridor, visible, showBoundarie
   }, [viewer]);
 
   return null;
-}
-
-function portDot(): string {
-  if (typeof document === "undefined") return "";
-  const c = document.createElement("canvas");
-  c.width = 32;
-  c.height = 32;
-  const ctx = c.getContext("2d");
-  if (!ctx) return "";
-  ctx.beginPath();
-  ctx.arc(16, 16, 12, 0, Math.PI * 2);
-  ctx.fillStyle = "#FAF7F1";
-  ctx.fill();
-  ctx.lineWidth = 4;
-  ctx.strokeStyle = "#D95D0F";
-  ctx.stroke();
-
-  ctx.beginPath();
-  ctx.arc(16, 16, 6, 0, Math.PI * 2);
-  ctx.fillStyle = "#0A2342";
-  ctx.fill();
-  return c.toDataURL();
 }
