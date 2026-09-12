@@ -81,8 +81,45 @@ export interface CorridorPort {
   flag: string;
   liveVesselCount?: number | null;
   nearestVesselNm?: number | null;
+  loiteringCount?: number | null;
+  meanSogKn?: number | null;
   lat?: number;
   lon?: number;
+}
+
+export interface NewsItem {
+  title: string;
+  url: string | null;
+  source: string | null;
+  date: string | null;
+}
+
+export interface PortNews {
+  query: string;
+  items: NewsItem[];
+  source: string;
+  updatedAt: string;
+}
+
+export interface GeoReverse {
+  label: string | null;
+  lat: number;
+  lon: number;
+  source: string;
+}
+
+export interface RouteWxPoint {
+  id: string;
+  lat: number;
+  lon: number;
+  waveHeightM: number | null;
+  windSpeedKmh: number | null;
+}
+
+export interface RouteWx {
+  points: RouteWxPoint[];
+  source: string;
+  updatedAt: string;
 }
 
 export function bboxToQuery(b: BBox): string {

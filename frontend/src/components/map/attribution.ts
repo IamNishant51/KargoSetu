@@ -31,6 +31,12 @@ export const ATTRIBUTION_ITEMS = [
     href: "https://open-meteo.com",
   },
   {
+    id: "gdelt",
+    label: "GDELT",
+    text: "Port headlines via the GDELT Project (https://www.gdeltproject.org)",
+    href: "https://www.gdeltproject.org",
+  },
+  {
     id: "shipmodel",
     label: "Ship model",
     text: "3D cargo-ship model: Low Poly Cargo Ship by Javier_Fernandez (Sketchfab), CC BY 4.0",
@@ -39,7 +45,7 @@ export const ATTRIBUTION_ITEMS = [
 ] as const;
 
 export const ATTRIBUTION_LINE =
-  "Esri · © OpenStreetMap contributors · AISStream.io · USGS · NASA FIRMS · Open-Meteo · Ship: Javier_Fernandez CC BY";
+  "Esri · © OpenStreetMap contributors · AISStream.io · USGS · NASA FIRMS · Open-Meteo · GDELT · Ship: Javier_Fernandez CC BY";
 
 export const FIRMS_ACK =
   "We acknowledge the use of data and imagery from LANCE FIRMS operated by NASA's Earth Science Data and Information System (ESDIS) with funding provided by NASA Headquarters.";

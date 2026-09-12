@@ -3,18 +3,45 @@
 import React from "react";
 import type { CesiumViewer } from "./KargoGlobe";
 import { getCesium } from "./api";
-import type { CorridorPort } from "./api";
+import type { CorridorPort, RouteWxPoint } from "./api";
 
 interface CorridorLayerProps {
   viewer: CesiumViewer | null;
   corridor: CorridorPort[];
   visible: boolean;
   showBoundaries: boolean;
+  routeWx?: RouteWxPoint[];
 }
 
 const NEWCASTLE = { lat: -32.92, lon: 151.78 };
 
-export default function CorridorLayer({ viewer, corridor, visible, showBoundaries }: CorridorLayerProps) {
+// Metocean leg coloring: green < 1.5 m, orange < 2.5 m, red at/above,
+// corridor orange when no observation. Thresholds match small-bulk comfort.
+function legColor(
+  Cesium: typeof import("cesium"),
+  a: string,
+  b: string,
+  wxById: Map<string, RouteWxPoint>,
+): { color: unknown; width: number } {
+  const LEG_WX: Record<string, string[]> = {
+    "Newcastle|Sandheads": ["sandheads", "midbay"],
+    "Sandheads|Haldia": ["sandheads", "haldia-roads"],
+    "Sandheads|Paradip": ["sandheads", "paradip-roads"],
+    "Sandheads|Dhamra": ["sandheads", "dhamra-roads"],
+  };
+  const ids = LEG_WX[`${a}|${b}`] ?? [];
+  let worst: number | null = null;
+  for (const id of ids) {
+    const w = wxById.get(id)?.waveHeightM;
+    if (typeof w === "number") worst = worst === null ? w : Math.max(worst, w);
+  }
+  if (worst === null) return { color: Cesium.Color.ORANGE, width: 2 };
+  if (worst < 1.5) return { color: Cesium.Color.fromCssColorString("#0E7A3D"), width: 2 };
+  if (worst < 2.5) return { color: Cesium.Color.ORANGE, width: 2 };
+  return { color: Cesium.Color.fromCssColorString("#B42318"), width: 3 };
+}
+
+export default function CorridorLayer({ viewer, corridor, visible, showBoundaries, routeWx }: CorridorLayerProps) {
   const dsRef = React.useRef<{ removeAll: () => void } | null>(null);
 
   React.useEffect(() => {
@@ -66,17 +93,19 @@ export default function CorridorLayer({ viewer, corridor, visible, showBoundarie
         Newcastle: NEWCASTLE,
         ...coords,
       };
+      const wxById = new Map((routeWx ?? []).map((w) => [w.id, w]));
 
       for (const [a, b] of legs) {
         const pa = allCoords[a];
         const pb = allCoords[b];
         if (!pa || !pb) continue;
         try {
+          const style = legColor(Cesium, a, b, wxById);
           ds.entities.add({
             polyline: {
               positions: Cesium.Cartesian3.fromDegreesArray([pa.lon, pa.lat, pb.lon, pb.lat]),
-              width: 2,
-              material: Cesium.Color.ORANGE,
+              width: style.width,
+              material: style.color as never,
               clampToGround: true,
             },
           });
@@ -178,7 +207,7 @@ export default function CorridorLayer({ viewer, corridor, visible, showBoundarie
     return () => {
       cancelled = true;
     };
-  }, [viewer, corridor, visible, showBoundaries]);
+  }, [viewer, corridor, visible, showBoundaries, routeWx]);
 
   React.useEffect(() => {
     return () => {

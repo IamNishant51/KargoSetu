@@ -13,8 +13,10 @@ import Hud from "@/components/map/Hud";
 import TourDirector from "@/components/map/TourDirector";
 import SensorStyles, { sensorFilter } from "@/components/map/SensorStyles";
 import CommandBar from "@/components/map/CommandBar";
+import PortBrief from "@/components/map/PortBrief";
 import SourcesPanel from "@/components/map/SourcesPanel";
 import { useFeeds } from "@/components/map/useFeeds";
+import { usePortNews, useRouteWx } from "@/components/map/useContext";
 import { ATTRIBUTION_ITEMS, ATTRIBUTION_LINE } from "@/components/map/attribution";
 import { DEFAULT_BBOX, getApiBase, haversineNm } from "@/components/map/api";
 import { useVessels } from "@/components/map/useVessels";
@@ -29,6 +31,19 @@ import { useLanguage } from "@/i18n/LanguageContext";
 import { saveJSON } from "@/lib/storage";
 
 const PRESETS: CameraPresetId[] = ["corridor", "haldia", "paradip", "dhamra", "sandheads", "newcastle"];
+
+const PORT_PRESET_NAMES: Partial<Record<CameraPresetId, string>> = {
+  haldia: "Haldia",
+  paradip: "Paradip",
+  dhamra: "Dhamra",
+  sandheads: "Sandheads",
+};
+
+function parseDraftMeters(draft: string | undefined): number | null {
+  if (!draft) return null;
+  const n = parseFloat(draft);
+  return Number.isFinite(n) ? n : null;
+}
 
 function readInitialGlobeState(): GlobePersistedState {
   const stored = loadGlobeState();
@@ -58,6 +73,15 @@ export default function GlobeClient() {
   const [panelOpen, setPanelOpen] = React.useState(
     () => typeof window === "undefined" || window.innerWidth >= 1024,
   );
+  const [briefPort, setBriefPort] = React.useState("Haldia");
+  const [autoTour] = React.useState(() => {
+    if (typeof window === "undefined") return false;
+    try {
+      return new URLSearchParams(window.location.search).get("tour") === "1";
+    } catch {
+      return false;
+    }
+  });
 
   React.useEffect(() => {
     saveGlobeState(persisted);
@@ -68,6 +92,8 @@ export default function GlobeClient() {
   const hazardsQuery = useHazards(bbox);
   const corridorQuery = useCorridor();
   const feedsQuery = useFeeds();
+  const routeWxQuery = useRouteWx();
+  const newsQuery = usePortNews(briefPort);
 
   const vessels = React.useMemo(() => vesselsQuery.data?.vessels ?? [], [vesselsQuery.data?.vessels]);
   const mode = vesselsQuery.data?.mode ?? "unavailable";
@@ -75,10 +101,17 @@ export default function GlobeClient() {
   const corridor = corridorQuery.data ?? [];
 
   const selected = vessels.find((v) => v.mmsi === persisted.selectedMmsi) ?? null;
+  const briefPortData = corridor.find((p) => p.name === briefPort);
+  const draftLimit = React.useMemo(
+    () => parseDraftMeters(briefPortData?.draft),
+    [briefPortData?.draft],
+  );
 
   const setPreset = React.useCallback(
     (preset: CameraPresetId) => {
       setPersisted((p) => ({ ...p, camera: preset }));
+      const portName = PORT_PRESET_NAMES[preset];
+      if (portName) setBriefPort(portName);
       if (viewer) {
         flyCameraTo(viewer, preset);
       }
@@ -155,6 +188,7 @@ export default function GlobeClient() {
           selectedMmsi={persisted.selectedMmsi}
           detection={detection}
           onSelect={setSelected}
+          draftLimit={draftLimit}
         />
         <HazardLayer
           viewer={viewer}
@@ -167,6 +201,7 @@ export default function GlobeClient() {
           corridor={corridor}
           visible={persisted.layers.corridor}
           showBoundaries={persisted.layers.boundaries}
+          routeWx={routeWxQuery.data?.points}
         />
         <div
           aria-hidden
@@ -285,7 +320,16 @@ export default function GlobeClient() {
           </div>
 
           <LayerToggles layers={persisted.layers} onChange={setLayers} />
-          <TourDirector viewer={viewer} onPreset={(preset) => setPreset(preset)} />
+          <PortBrief
+            port={briefPortData}
+            weather={hazards?.weather}
+            news={newsQuery.data}
+            onFlyTo={() => {
+              const id = briefPort.toLowerCase() as CameraPresetId;
+              if ((PRESETS as string[]).includes(id)) setPreset(id);
+            }}
+          />
+          <TourDirector viewer={viewer} onPreset={(preset) => setPreset(preset)} autoStart={autoTour} />
           <SensorStyles value={sensor} onChange={setSensor} />
           <CommandBar
             onPreset={setPreset}

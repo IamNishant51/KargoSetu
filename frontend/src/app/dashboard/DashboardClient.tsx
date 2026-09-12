@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useLanguage } from "@/i18n/LanguageContext";
 import { loadJSON, saveJSON } from "@/lib/storage";
@@ -724,6 +725,20 @@ export default function DashboardPage() {
                             <p className="text-sm font-semibold text-[#0A2342]">
                               {selectedPort?.name}
                             </p>
+                            {(() => {
+                              const p = (selectedPort?.name || "Haldia").toLowerCase();
+                              const preset = ["haldia", "paradip", "dhamra", "sandheads"].includes(p)
+                                ? p
+                                : "corridor";
+                              return (
+                                <Link
+                                  href={`/dashboard/globe?preset=${preset}`}
+                                  className="mt-1 inline-block text-xs font-bold text-[#D95D0F] hover:text-[#B45309] hover:underline"
+                                >
+                                  View live on globe →
+                                </Link>
+                              );
+                            })()}
                           </div>
                           <div className="flex flex-col">
                             <p className="text-sm text-[#6B7D99] mb-1">

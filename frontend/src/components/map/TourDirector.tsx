@@ -9,13 +9,20 @@ import type { CesiumViewer } from "./KargoGlobe";
 interface TourDirectorProps {
   viewer: CesiumViewer | null;
   onPreset: (preset: CameraPresetId, patch?: Partial<GlobePersistedState>) => void;
+  autoStart?: boolean;
 }
 
-export default function TourDirector({ viewer, onPreset }: TourDirectorProps) {
+export default function TourDirector({ viewer, onPreset, autoStart }: TourDirectorProps) {
   const { t } = useLanguage();
-  const [playing, setPlaying] = React.useState(false);
+  const [playing, setPlaying] = React.useState(() => Boolean(autoStart));
   const [step, setStep] = React.useState(0);
   const priorRef = React.useRef<CameraPresetId>("corridor");
+
+  const start = React.useCallback(() => {
+    priorRef.current = "corridor";
+    setStep(0);
+    setPlaying(true);
+  }, []);
 
   const stop = React.useCallback(() => {
     setPlaying(false);
@@ -53,12 +60,6 @@ export default function TourDirector({ viewer, onPreset }: TourDirectorProps) {
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [playing, stop]);
-
-  const start = () => {
-    priorRef.current = "corridor";
-    setStep(0);
-    setPlaying(true);
-  };
 
   return (
     <div className="rounded-2xl bg-white border border-[#E2E6EB] p-3 shadow-sm">

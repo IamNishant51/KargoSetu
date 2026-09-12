@@ -7,6 +7,7 @@ import { useLanguage } from "@/i18n/LanguageContext";
 import { loadJSON, saveJSON } from "@/lib/storage";
 import { getApiBase, haversineNm } from "./api";
 import type { CorridorPort, Vessel, VesselMode } from "./api";
+import { useLocality } from "./useContext";
 
 interface VesselSheetProps {
   vessel: Vessel | null;
@@ -50,9 +51,12 @@ export default function VesselSheet({ vessel, mode, corridor, onClose }: VesselS
     },
   });
 
+  const locality = useLocality(vessel?.lat ?? null, vessel?.lon ?? null);
+
   if (!vessel) return null;
 
   const nearest = nearestPort(vessel.lat, vessel.lon, corridor);
+  const eta = etaToRoads(vessel.sog, nearest?.nm ?? null);
   const badge =
     mode === "live"
       ? { text: t("globe.status.live"), cls: "bg-[#E9F5EE] text-[#0E7A3D] border-[#BFE3CD]" }
@@ -107,6 +111,12 @@ export default function VesselSheet({ vessel, mode, corridor, onClose }: VesselS
       <p className="mt-2.5 text-[12.5px] text-[#3D4F68]">
         {t("globe.sheet.distance").replace("{n}", nearest ? `${nearest.nm.toFixed(1)} NM to ${nearest.name}` : "—")}
       </p>
+      <p className="mt-1 text-[12.5px] text-[#3D4F68]">
+        {eta
+          ? t("globe.sheet.eta").replace("{h}", eta.hours).replace("{t}", eta.clock)
+          : t("globe.sheet.etaUnknown")}
+        {locality.data?.label ? ` · ${t("globe.sheet.locality").replace("{label}", locality.data.label)}` : ""}
+      </p>
 
       <div className="mt-3 flex gap-2">
         <button
@@ -137,4 +147,12 @@ function nearestPort(lat: number, lon: number, corridor: CorridorPort[]) {
     if (!best || nm < best.nm) best = { name: p.name, nm };
   }
   return best;
+}
+
+function etaToRoads(sog: number | null, nm: number | null): { hours: string; clock: string } | null {
+  if (typeof sog !== "number" || !(sog > 0.5) || typeof nm !== "number") return null;
+  const hours = nm / sog;
+  if (!Number.isFinite(hours) || hours > 720) return null;
+  const arrival = new Date(Date.now() + hours * 3600 * 1000);
+  return { hours: hours.toFixed(1), clock: arrival.toISOString().slice(11, 16) };
 }

@@ -13,6 +13,9 @@ interface VesselLayerProps {
   selectedMmsi: string | null;
   detection: boolean;
   onSelect: (mmsi: string | null) => void;
+  // Port permissible draft in meters: vessels drawing more get a red ring,
+  // making the draft constraint visible on the globe. Null disables.
+  draftLimit?: number | null;
 }
 
 // Vessels render as true 3D models at every zoom level. There is no
@@ -27,6 +30,7 @@ export default function VesselLayer({
   selectedMmsi,
   detection,
   onSelect,
+  draftLimit,
 }: VesselLayerProps) {
   const entitiesRef = React.useRef<Map<string, unknown>>(new Map());
   // Per-entity position objects, mutated in place by the interpolation loop.
@@ -66,9 +70,14 @@ export default function VesselLayer({
       for (const v of shown) {
         seen.add(v.mmsi);
         const isSel = v.mmsi === selectedMmsi;
+        const overDraft =
+          typeof draftLimit === "number" &&
+          typeof v.draught === "number" &&
+          v.draught > draftLimit;
         let ent = entities.get(v.mmsi) as {
           position?: unknown;
           model?: { color?: unknown };
+          ellipse?: { show?: boolean };
           label?: { show?: boolean; text?: string };
         } | undefined;
         if (!ent) {
@@ -86,6 +95,14 @@ export default function VesselLayer({
               maximumScale: 20000,
               color: isSel ? selColor : Cesium.Color.WHITE,
               show: true,
+            },
+            ellipse: {
+              semiMajorAxis: 6000,
+              semiMinorAxis: 6000,
+              material: Cesium.Color.RED.withAlpha(0.02),
+              outline: true,
+              outlineColor: Cesium.Color.fromCssColorString("#B42318"),
+              show: overDraft,
             },
             label: {
               text: ` ${v.name || v.mmsi} `,
@@ -110,10 +127,14 @@ export default function VesselLayer({
           try {
             const e = ent as {
               model?: { color?: unknown };
+              ellipse?: { show?: boolean };
               label?: { show?: boolean; text?: string };
             };
             if (e.model) {
               e.model.color = isSel ? selColor : Cesium.Color.WHITE;
+            }
+            if (e.ellipse) {
+              e.ellipse.show = overDraft;
             }
             if (e.label) {
               e.label.show = isSel || detection;
@@ -160,7 +181,7 @@ export default function VesselLayer({
     return () => {
       cancelled = true;
     };
-  }, [viewer, shown, selectedMmsi, detection, visible]);
+  }, [viewer, shown, selectedMmsi, detection, visible, draftLimit]);
 
   // Interpolation loop: one interval behind, linear between fixes.
   // Zero per-frame allocation: the Cesium module is loaded once and each
