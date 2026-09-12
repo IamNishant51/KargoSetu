@@ -2,6 +2,7 @@
 "use no memo";
 
 import React from "react";
+import "cesium/Build/Cesium/Widgets/widgets.css";
 import { CAMERA_PRESETS } from "./globeStore";
 import type { CameraPresetId } from "./globeStore";
 import { ATTRIBUTION_ITEMS } from "./attribution";
@@ -23,6 +24,7 @@ export default function KargoGlobe({ preset, onViewer, onNotice }: KargoGlobePro
   const presetRef = React.useRef(preset);
   const onViewerRef = React.useRef(onViewer);
   const onNoticeRef = React.useRef(onNotice);
+  const [ready, setReady] = React.useState(false);
 
   React.useEffect(() => {
     presetRef.current = preset;
@@ -67,6 +69,10 @@ export default function KargoGlobe({ preset, onViewer, onNotice }: KargoGlobePro
           geocoder: false,
           homeButton: true,
           sceneModePicker: true,
+          navigationHelpButton: false,
+          navigationInstructionsInitiallyVisible: false,
+          infoBox: false,
+          selectionIndicator: false,
           baseLayer: false,
           terrainProvider: terrainProvider as never,
         });
@@ -123,10 +129,20 @@ export default function KargoGlobe({ preset, onViewer, onNotice }: KargoGlobePro
         viewerRef.current = viewer;
         onViewerRef.current?.(viewer);
 
+        // Frame the corridor instantly so the first paint is already correct.
         const p0 = CAMERA_PRESETS[presetRef.current];
-        viewer.camera.flyTo({
+        viewer.camera.setView({
           destination: Cesium.Cartesian3.fromDegrees(p0.lon, p0.lat, p0.height),
-          duration: 2.2,
+        });
+        // Let the canvas settle to its real box, then fade the globe in.
+        requestAnimationFrame(() => {
+          if (cancelled) return;
+          try {
+            viewer.resize();
+          } catch {
+            // resize best-effort
+          }
+          setReady(true);
         });
       } catch {
         onNoticeRef.current?.("3D globe failed to load. Check connection and retry.");
@@ -135,8 +151,29 @@ export default function KargoGlobe({ preset, onViewer, onNotice }: KargoGlobePro
 
     void init();
 
+    // Keep the canvas glued to its box while panels open or the window moves.
+    const onResize = () => {
+      try {
+        viewerRef.current?.resize();
+      } catch {
+        // resize best-effort
+      }
+    };
+    window.addEventListener("resize", onResize);
+    const observer =
+      typeof ResizeObserver !== "undefined" && containerRef.current
+        ? new ResizeObserver(onResize)
+        : null;
+    if (observer && containerRef.current) observer.observe(containerRef.current);
+
     return () => {
       cancelled = true;
+      window.removeEventListener("resize", onResize);
+      try {
+        observer?.disconnect();
+      } catch {
+        // observer cleanup best-effort
+      }
       try {
         viewer?.destroy();
       } catch {
@@ -176,7 +213,10 @@ export default function KargoGlobe({ preset, onViewer, onNotice }: KargoGlobePro
   }, [preset]);
 
   return (
-    <div className="relative h-full w-full overflow-hidden bg-[#0A2342]">
+    <div
+      className="relative h-full w-full overflow-hidden bg-[#0A2342] transition-opacity duration-700"
+      style={{ opacity: ready ? 1 : 0 }}
+    >
       <div ref={containerRef} className="absolute inset-0" aria-label="3D vessel globe" />
     </div>
   );

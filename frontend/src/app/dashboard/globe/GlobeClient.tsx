@@ -53,6 +53,9 @@ export default function GlobeClient() {
   const [detection, setDetection] = React.useState(false);
   const [notice, setNotice] = React.useState<string | null>(null);
   const [showCredits, setShowCredits] = React.useState(false);
+  const [panelOpen, setPanelOpen] = React.useState(
+    () => typeof window === "undefined" || window.innerWidth >= 1024,
+  );
 
   React.useEffect(() => {
     saveGlobeState(persisted);
@@ -129,19 +132,55 @@ export default function GlobeClient() {
 
   const hazardCount = (hazards?.earthquakes.length ?? 0) + (hazards?.fires.length ?? 0);
 
+  const noticeText = notice ?? vesselsQuery.data?.notice ?? null;
+
   return (
-    <div className="flex h-[calc(100vh-4rem)] flex-col bg-[#FAF7F1]">
-      <div className="flex items-center justify-between gap-3 border-b border-[#E2E6EB] bg-white px-4 py-3">
-        <div>
+    <div className="relative -m-4 h-[calc(100vh-6rem)] overflow-hidden bg-[#0A2342] sm:-m-8 sm:h-[calc(100vh-8rem)]">
+      {/* Full-bleed canvas layer */}
+      <div className="absolute inset-0">
+        <KargoGlobe preset={persisted.camera} onViewer={setViewer} onNotice={setNotice} />
+        <VesselLayer
+          viewer={viewer}
+          vessels={persisted.layers.vessels ? vessels : []}
+          visible={persisted.layers.vessels}
+          selectedMmsi={persisted.selectedMmsi}
+          detection={detection}
+          onSelect={setSelected}
+        />
+        <HazardLayer
+          viewer={viewer}
+          hazards={hazards}
+          showHazards={persisted.layers.hazards}
+          showWeather={persisted.layers.weather}
+        />
+        <CorridorLayer
+          viewer={viewer}
+          corridor={corridor}
+          visible={persisted.layers.corridor}
+          showBoundaries={persisted.layers.boundaries}
+        />
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0"
+          style={{ filter: sensorFilter(sensor), background: sensor === "normal" ? "transparent" : "rgba(0,0,0,0.08)" }}
+        />
+      </div>
+
+      {/* Floating header */}
+      <div className="pointer-events-none absolute left-3 right-3 top-3 z-20 flex flex-wrap items-start justify-between gap-2">
+        <div className="pointer-events-auto min-w-0 rounded-2xl border border-[#E2E6EB] bg-white/95 px-4 py-2.5 shadow-lg backdrop-blur">
           <p className="mono-label text-[#B45309]">Gods eye view</p>
-          <h1 className="font-display font-black text-xl text-[#0A2342] leading-tight">
+          <h1 className="font-display text-xl font-black leading-tight text-[#0A2342]">
             {t("globe.title")}
           </h1>
-          <p className="text-[12.5px] text-[#3D4F68]">{t("globe.subtitle")}</p>
+          <p className="hidden text-[12.5px] text-[#3D4F68] sm:block">{t("globe.subtitle")}</p>
+          {noticeText && (
+            <p className="mt-1 text-[12px] font-bold text-[#B45309]">{noticeText}</p>
+          )}
         </div>
-        <div className="flex items-center gap-2">
+        <div className="pointer-events-auto flex shrink-0 items-center gap-2">
           <span
-            className={`font-mono text-[10px] uppercase tracking-[0.12em] px-2 py-1 rounded border ${
+            className={`hidden rounded-full border px-2.5 py-1.5 font-mono text-[10px] uppercase tracking-[0.12em] sm:inline-block ${
               mode === "live"
                 ? "bg-[#E9F5EE] text-[#0E7A3D] border-[#BFE3CD]"
                 : mode === "demo"
@@ -154,7 +193,7 @@ export default function GlobeClient() {
           <button
             type="button"
             onClick={copyLink}
-            className="rounded-lg bg-white border border-[#E2E6EB] px-3 py-2 text-[12.5px] font-bold text-[#0A2342] hover:bg-[#FAF7F1]"
+            className="rounded-xl border border-[#E2E6EB] bg-white/95 px-3 py-2 text-[12.5px] font-bold text-[#0A2342] shadow-lg backdrop-blur hover:bg-[#FAF7F1]"
           >
             Share
           </button>
@@ -162,72 +201,50 @@ export default function GlobeClient() {
             type="button"
             onClick={() => setDetection((d) => !d)}
             aria-pressed={detection}
-            className={`rounded-lg px-3 py-2 text-[12.5px] font-bold border ${
-              detection ? "bg-[#0A2342] text-white border-[#0A2342]" : "bg-white text-[#0A2342] border-[#E2E6EB]"
+            className={`rounded-xl border px-3 py-2 text-[12.5px] font-bold shadow-lg backdrop-blur ${
+              detection ? "bg-[#0A2342] text-white border-[#0A2342]" : "bg-white/95 text-[#0A2342] border-[#E2E6EB]"
             }`}
           >
             Detect
           </button>
+          <button
+            type="button"
+            onClick={() => setPanelOpen((o) => !o)}
+            aria-expanded={panelOpen}
+            aria-label="Toggle control panel"
+            className="rounded-xl border border-[#E2E6EB] bg-white/95 px-3 py-2 text-[12.5px] font-bold text-[#0A2342] shadow-lg backdrop-blur hover:bg-[#FAF7F1]"
+          >
+            {panelOpen ? "Hide panel" : "Show panel"}
+          </button>
         </div>
       </div>
 
-      {(notice || vesselsQuery.data?.notice) && (
-        <p className="border-b border-[#E2E6EB] bg-[#FDF1E7] px-4 py-2 text-[12.5px] font-semibold text-[#B45309]">
-          {notice ?? vesselsQuery.data?.notice}
-        </p>
+      <Hud viewer={viewer} vesselCount={vessels.length} hazardCount={hazardCount} selected={selected} mode={mode} />
+      <VesselSheet
+        key={selected?.mmsi ?? "none"}
+        vessel={selected}
+        mode={mode}
+        corridor={corridor}
+        onClose={() => setSelected(null)}
+      />
+      {vesselsQuery.isError && (
+        <div className="absolute left-3 top-40 z-20 rounded-xl border border-[#E2E6EB] bg-white px-3 py-2 shadow-lg">
+          <p className="text-[12.5px] font-semibold text-[#B42318]">Vessel feed unavailable.</p>
+          <button
+            type="button"
+            onClick={() => vesselsQuery.refetch()}
+            className="mt-1 rounded-lg bg-[#0A2342] px-3 py-1.5 text-[12px] font-bold text-white"
+          >
+            {t("globe.retry")}
+          </button>
+        </div>
       )}
 
-      <div className="flex flex-1 min-h-0 flex-col lg:flex-row">
-        <div className="relative min-h-[50vh] flex-1 lg:min-h-0">
-          <KargoGlobe preset={persisted.camera} onViewer={setViewer} onNotice={setNotice} />
-          <VesselLayer
-            viewer={viewer}
-            vessels={persisted.layers.vessels ? vessels : []}
-            visible={persisted.layers.vessels}
-            selectedMmsi={persisted.selectedMmsi}
-            detection={detection}
-            onSelect={setSelected}
-          />
-          <HazardLayer
-            viewer={viewer}
-            hazards={hazards}
-            showHazards={persisted.layers.hazards}
-            showWeather={persisted.layers.weather}
-          />
-          <CorridorLayer
-            viewer={viewer}
-            corridor={corridor}
-            visible={persisted.layers.corridor}
-            showBoundaries={persisted.layers.boundaries}
-          />
-          <div
-            aria-hidden
-            className="pointer-events-none absolute inset-0"
-            style={{ filter: sensorFilter(sensor), background: sensor === "normal" ? "transparent" : "rgba(0,0,0,0.08)" }}
-          />
-          <Hud viewer={viewer} vesselCount={vessels.length} hazardCount={hazardCount} selected={selected} mode={mode} />
-          <VesselSheet
-            key={selected?.mmsi ?? "none"}
-            vessel={selected}
-            mode={mode}
-            corridor={corridor}
-            onClose={() => setSelected(null)}
-          />
-          {vesselsQuery.isError && (
-            <div className="absolute left-3 top-24 rounded-xl bg-white border border-[#E2E6EB] px-3 py-2 shadow-sm">
-              <p className="text-[12.5px] font-semibold text-[#B42318]">Vessel feed unavailable.</p>
-              <button
-                type="button"
-                onClick={() => vesselsQuery.refetch()}
-                className="mt-1 rounded-lg bg-[#0A2342] px-3 py-1.5 text-[12px] font-bold text-white"
-              >
-                {t("globe.retry")}
-              </button>
-            </div>
-          )}
-        </div>
-
-        <aside className="w-full lg:w-[320px] shrink-0 space-y-3 overflow-y-auto border-t lg:border-t-0 lg:border-l border-[#E2E6EB] bg-[#FAF7F1] p-3">
+        <aside
+          className={`absolute bottom-14 right-3 top-[150px] z-20 w-[300px] max-w-[calc(100vw-24px)] space-y-3 overflow-y-auto rounded-2xl border border-[#E2E6EB] bg-[#FAF7F1]/95 p-3 shadow-xl backdrop-blur transition-transform duration-300 sm:top-[132px] ${
+            panelOpen ? "translate-x-0" : "translate-x-[calc(100%+16px)]"
+          }`}
+        >
           <div className="rounded-2xl bg-white border border-[#E2E6EB] p-3 shadow-sm">
             <p className="mono-label text-[#6B7D99] px-1 pb-2">Camera</p>
             <div className="grid grid-cols-3 gap-1.5">
@@ -289,10 +306,9 @@ export default function GlobeClient() {
             )}
           </div>
         </aside>
-      </div>
 
-      <footer className="border-t border-[#E2E6EB] bg-white px-4 py-2">
-        <p className="truncate font-mono text-[10.5px] uppercase tracking-[0.12em] text-[#6B7D99]">
+      <footer className="absolute bottom-3 left-3 z-20 max-w-[52%] truncate rounded-full border border-[#E2E6EB] bg-white/90 px-3 py-1.5 shadow backdrop-blur">
+        <p className="truncate font-mono text-[10px] uppercase tracking-[0.12em] text-[#6B7D99]">
           {ATTRIBUTION_LINE} ·{" "}
           {hazards ? `USGS:${hazards.sources.usgs} FIRMS:${hazards.sources.firms} Meteo:${hazards.sources.meteo}` : "feeds loading"}
         </p>

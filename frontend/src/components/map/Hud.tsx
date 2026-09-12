@@ -39,7 +39,7 @@ export default function Hud({ viewer, vesselCount, hazardCount, selected, mode }
   }, [viewer]);
 
   return (
-    <div className="pointer-events-none absolute left-3 top-3 flex flex-col gap-2 font-mono text-[11px]">
+    <div className="pointer-events-none absolute left-3 top-[150px] z-10 flex flex-col gap-2 font-mono text-[11px] sm:top-[84px]">
       <div className="pointer-events-auto rounded-xl bg-white/95 border border-[#E2E6EB] px-3 py-2 shadow-sm">
         <span className="uppercase tracking-[0.14em] text-[#6B7D99]">Cam </span>
         <span className="font-bold text-[#0A2342]">
