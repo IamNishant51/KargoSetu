@@ -427,9 +427,7 @@ async def get_vessels(
     async with _vessel_lock:
         fresh = _vessel_cache is not None and (now - _vessel_cache_time) < VESSEL_CACHE_TTL
         if fresh and _vessel_cache is not None:
-            _last_mode = "live" if api_key else "demo"
-            notice = None if api_key else "Set AISSTREAM_API_KEY for live traffic."
-            return {"mode": _last_mode, "vessels": _vessel_cache, "updatedAt": _utcnow_iso(), "notice": notice}
+            return {"mode": _last_mode, "vessels": _vessel_cache, "updatedAt": _utcnow_iso(), "notice": getattr(get_vessels, "_last_notice", None) if _last_mode == "demo" else None}
 
     if not api_key:
         demo = get_demo_vessels()
@@ -438,7 +436,8 @@ async def get_vessels(
             _vessel_cache_time = now
         _last_mode = "demo"
         _last_provider = "demo"
-        return {"mode": "demo", "vessels": demo, "updatedAt": _utcnow_iso(), "notice": "Set AISSTREAM_API_KEY for live traffic."}
+        get_vessels._last_notice = "Set AISSTREAM_API_KEY for live traffic."
+        return {"mode": "demo", "vessels": demo, "updatedAt": _utcnow_iso(), "notice": get_vessels._last_notice}
 
     budget = getattr(_settings, "aisstream_daily_budget", 5000)
     budget = 5000 if budget is None else int(budget)
@@ -484,7 +483,8 @@ async def get_vessels(
                 _vessel_cache_time = now
             _last_mode = "demo"
             _last_provider = "demo"
-            return {"mode": "demo", "vessels": demo, "updatedAt": _utcnow_iso(), "notice": "No live terrestrial coverage in this area right now. Showing representative traffic."}
+            get_vessels._last_notice = "No live terrestrial coverage in this area right now. Showing representative traffic."
+            return {"mode": "demo", "vessels": demo, "updatedAt": _utcnow_iso(), "notice": get_vessels._last_notice}
         async with _vessel_lock:
             _vessel_cache = live
             _vessel_cache_time = now

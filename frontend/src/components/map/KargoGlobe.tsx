@@ -101,7 +101,7 @@ export default function KargoGlobe({ preset, onViewer, onNotice, interactive = t
 
         // Performance-first rendering
         const dpr = typeof window !== "undefined" ? window.devicePixelRatio || 1.0 : 1.0;
-        viewer.resolutionScale = Math.min(dpr, 1.5);
+        viewer.resolutionScale = Math.min(dpr, 1.0);
         viewer.scene.msaaSamples = 2;
         viewer.scene.globe.depthTestAgainstTerrain = false;
 

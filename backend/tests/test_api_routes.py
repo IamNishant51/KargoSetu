@@ -16,7 +16,7 @@ def test_forecast_rates_default_shock(client):
         assert response.status_code == 200
         data = response.json()
         assert len(data) == 1
-        mock_forecast.assert_called_once_with(1.0)
+        mock_forecast.assert_called_once_with(1.0, "Newcastle, Australia", "Haldia")
 
 def test_forecast_rates_invalid_shock(client):
     response = client.get("/api/v1/forecast/rates?shockMultiplier=10.0")

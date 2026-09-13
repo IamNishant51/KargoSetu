@@ -26,13 +26,8 @@ const FALLBACK_PORTS = [
 
 export default function PortCorridor() {
   const [viewMode, setViewMode] = useState<"globe" | "diagram">("globe");
-  const [hasMounted, setHasMounted] = useState(false);
   const [inView, setInView] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    setHasMounted(true);
-  }, []);
 
   useEffect(() => {
     if (!containerRef.current) return;
@@ -111,7 +106,7 @@ export default function PortCorridor() {
         {/* 3D Mini Globe or Schematic Chart */}
         <div className="mt-8">
           {viewMode === "globe" ? (
-            <CorridorMiniGlobe />
+            inView ? <CorridorMiniGlobe /> : <div className="h-[480px] sm:h-[540px] w-full rounded-2xl bg-[#0A2342]" />
           ) : (
             <figure className="card-hard rounded-2xl overflow-hidden bg-white">
               <div className="flex items-center justify-between gap-2 border-b border-[#E2E6EB] px-5 py-3">
