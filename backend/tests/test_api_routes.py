@@ -1,5 +1,5 @@
-from unittest.mock import patch, AsyncMock
-import pytest
+from unittest.mock import AsyncMock, patch
+
 
 def test_health_endpoint_returns_200(client, mock_prisma):
     response = client.get("/api/health/")

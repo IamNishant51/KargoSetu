@@ -8,13 +8,12 @@ the globe reads these through FastAPI only.
 from __future__ import annotations
 
 import asyncio
-import datetime as dt
 import time as time_module
 
 import httpx
 import structlog
 from fastapi import APIRouter, Query, Request
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 from slowapi import Limiter
 from slowapi.util import get_remote_address
 

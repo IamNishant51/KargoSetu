@@ -2,9 +2,10 @@
 
 import asyncio
 import time as time_module
+
+import structlog
 import yfinance as yf
 from fastapi import APIRouter
-import structlog
 
 router = APIRouter(prefix="/api/v1/market", tags=["market"])
 logger = structlog.get_logger(__name__)

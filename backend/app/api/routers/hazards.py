@@ -119,7 +119,6 @@ class HazardsSummaryResponse(BaseModel):
     updatedAt: str
 
 
-from app.services.meteo_common import utcnow_iso as _utcnow_iso
 
 
 def _client() -> httpx.AsyncClient | None:

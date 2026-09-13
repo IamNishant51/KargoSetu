@@ -10,7 +10,7 @@ from contextlib import asynccontextmanager
 
 import httpx
 import structlog
-from fastapi import FastAPI, Request
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.responses import ORJSONResponse
@@ -18,6 +18,7 @@ from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from slowapi.util import get_remote_address
 
+import app.services.maritime_math as maritime_math
 from app.api.dependencies import prisma
 from app.api.routers import (
     auth,
@@ -30,17 +31,21 @@ from app.api.routers import (
     notifications,
     ports,
     requisitions,
-    settings as app_settings_router,
     vessels,
+)
+from app.api.routers import (
+    settings as app_settings_router,
 )
 from app.core.config import settings as app_settings
 from app.core.exceptions import register_exception_handlers
-import app.services.maritime_math as maritime_math
 
 logger = structlog.get_logger(__name__)
 
 # --- Rate Limiter ---
 limiter = Limiter(key_func=get_remote_address)
+
+# Background tasks that must survive for the life of the process.
+_background_tasks: set = set()
 
 
 @asynccontextmanager
@@ -95,11 +100,14 @@ async def lifespan(app: FastAPI):
     # Start ML model initialization in the background
     from app.services.ml_predictor import predictor_instance
 
-    asyncio.create_task(predictor_instance.init_model())
+    # Held module-wide so the tasks are never garbage-collected mid-flight.
+    _background_tasks.add(asyncio.create_task(predictor_instance.init_model()))
     logger.info("ml_model_warmup_started")
-    
-    asyncio.create_task(
-        predictor_instance.schedule_retraining(interval_hours=6)
+
+    _background_tasks.add(
+        asyncio.create_task(
+            predictor_instance.schedule_retraining(interval_hours=6)
+        )
     )
 
     yield

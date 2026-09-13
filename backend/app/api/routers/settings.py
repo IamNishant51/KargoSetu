@@ -1,5 +1,6 @@
 from fastapi import APIRouter
 from pydantic import BaseModel, Field
+
 from app.api.dependencies import prisma
 
 router = APIRouter(prefix="/api/v1/settings", tags=["settings"])

@@ -6,8 +6,7 @@ The application will refuse to start if it is missing (enforced by
 Pydantic Settings in app/core/config.py).
 """
 
-from datetime import datetime, timedelta, timezone
-from typing import Optional
+from datetime import UTC, datetime, timedelta
 
 import bcrypt
 import jwt
@@ -33,7 +32,7 @@ def get_password_hash(password: str) -> str:
 
 def create_access_token(
     data: dict,
-    expires_delta: Optional[timedelta] = None,
+    expires_delta: timedelta | None = None,
 ) -> str:
     """
     Create a signed JWT access token.
@@ -46,7 +45,7 @@ def create_access_token(
         Encoded JWT string.
     """
     to_encode = data.copy()
-    expire = datetime.now(timezone.utc) + (
+    expire = datetime.now(UTC) + (
         expires_delta
         or timedelta(minutes=settings.jwt_expire_minutes)
     )

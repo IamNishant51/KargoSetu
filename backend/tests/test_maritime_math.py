@@ -1,9 +1,9 @@
-import pytest
 from app.services.maritime_math import (
     calculate_brackish_sinkage,
-    calculate_hydrodynamic_squat,
     calculate_dynamic_ukc,
+    calculate_hydrodynamic_squat,
 )
+
 
 def test_calculate_brackish_sinkage_standard_seawater():
     assert calculate_brackish_sinkage(14.0, 1.025) == 0.0

@@ -260,7 +260,7 @@ async def _collect_live(api_key: str, minLon: float, minLat: float, maxLon: floa
                     break
                 try:
                     raw = await asyncio.wait_for(ws.recv(), timeout=remaining)
-                except asyncio.TimeoutError:
+                except TimeoutError:
                     break
                 try:
                     env = json.loads(raw)

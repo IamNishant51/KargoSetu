@@ -1,8 +1,9 @@
 """Shared test fixtures for the KargoSetu backend test suite."""
 
+from unittest.mock import AsyncMock, patch
+
 import pytest
 from fastapi.testclient import TestClient
-from unittest.mock import AsyncMock, patch
 
 from app.main import app
 

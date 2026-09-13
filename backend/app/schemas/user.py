@@ -1,10 +1,11 @@
-from pydantic import BaseModel, EmailStr
-from typing import Optional
 from datetime import datetime
+
+from pydantic import BaseModel, EmailStr
+
 
 class UserBase(BaseModel):
     email: EmailStr
-    name: Optional[str] = None
+    name: str | None = None
 
 class UserCreate(UserBase):
     password: str
@@ -18,7 +19,7 @@ class GoogleLogin(BaseModel):
 
 class UserResponse(UserBase):
     id: str
-    avatarUrl: Optional[str] = None
+    avatarUrl: str | None = None
     createdAt: datetime
 
     class Config:
@@ -29,4 +30,4 @@ class Token(BaseModel):
     token_type: str
 
 class TokenData(BaseModel):
-    email: Optional[str] = None
+    email: str | None = None

@@ -1,7 +1,9 @@
-from fastapi import APIRouter, Query, Response
-from app.api.dependencies import prisma
-from datetime import datetime, timezone
+from datetime import UTC, datetime
+
 import structlog
+from fastapi import APIRouter, Query, Response
+
+from app.api.dependencies import prisma
 
 router = APIRouter(prefix="/api/v1/notifications", tags=["notifications"])
 logger = structlog.get_logger(__name__)
@@ -11,9 +13,9 @@ logger = structlog.get_logger(__name__)
 def _norm_time(value) -> str:
     """Return an ISO string with an explicit offset so sorting is stable."""
     if value is None:
-        return datetime.now(timezone.utc).isoformat()
+        return datetime.now(UTC).isoformat()
     if isinstance(value, datetime):
-        dt = value if value.tzinfo else value.replace(tzinfo=timezone.utc)
+        dt = value if value.tzinfo else value.replace(tzinfo=UTC)
         return dt.isoformat()
     text = str(value)
     if text.endswith("Z"):
@@ -58,7 +60,7 @@ async def get_notifications(response: Response, limit: int = Query(default=20, g
                     "kind": "draft_alert",
                     "title": "Draft Alert",
                     "desc": f"Port {port.name} restricted draft ({port.permissibleDraft}m)",
-                    "time": _norm_time(datetime.now(timezone.utc)),
+                    "time": _norm_time(datetime.now(UTC)),
                     "unread": True,
                 }
             )

@@ -152,7 +152,11 @@ async def test_health_reports_feeds():
 
 
 def test_context_sanitizer_and_geo_cell():
-    from app.api.routers.context import ROUTE_WAYPOINTS, geo_cell_key, sanitize_news_item
+    from app.api.routers.context import (
+        ROUTE_WAYPOINTS,
+        geo_cell_key,
+        sanitize_news_item,
+    )
 
     good = sanitize_news_item(
         {"title": "  Haldia port congestion  ", "url": "https://x.com/a", "domain": "x.com", "seendate": "20260912"}

@@ -142,7 +142,13 @@ graph TD
 
 Run the full SIH demo locally: FastAPI backend on `:8000` + Next.js frontend on `:3000`, then open the live globe.
 
-Prerequisites: Node.js 24.x, Python 3.11.9 (see `.python-version`), and a reachable Postgres `DATABASE_URL`. If the database is unreachable the API still boots in degraded mode (vessel/hazard/corridor feeds keep working; DB-backed endpoints fail per-request).
+Prerequisites: Node.js 24.x, Python 3.11.9 (see `.python-version`), and a reachable Postgres
+`DATABASE_URL`. If the database is unreachable the API still boots in degraded mode (vessel/hazard/corridor feeds keep
+working; DB-backed endpoints fail per-request).
+
+**Backend language:** the active backend is Python/FastAPI in `backend/app/`. Node.js is frontend
+tooling only (Next.js, Tailwind, Cesium assets). The `backend/*.js` Express tree is frozen legacy,
+documented in `DEPRECATED_NODEJS.md`, and is never executed or deployed.
 
 <details open>
   <summary><strong>Terminal 1 - Backend (FastAPI, port 8000)</strong></summary>

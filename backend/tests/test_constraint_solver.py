@@ -1,8 +1,11 @@
+from unittest.mock import MagicMock
+
 import pytest
-from unittest.mock import AsyncMock, MagicMock
 from fastapi import HTTPException
-from app.services.maritime_math import evaluate_requisition
+
 from app.schemas.requisition import RequisitionEvaluateRequest
+from app.services.maritime_math import evaluate_requisition
+
 
 class MockPort:
     def __init__(self, id, name, chartedDepth, permissibleDraft, brackishDensity, lat, lon, typicalTidalRange, maxVesselClass=None):
@@ -46,17 +49,17 @@ def override_get_fleet(monkeypatch):
 @pytest.fixture
 def setup_mock_prisma(monkeypatch):
     mock_prisma = MagicMock()
-    
+
     async def find_unique(where):
         name = where.get("name")
         for p in mock_ports:
             if p.name == name:
                 return p
         return None
-        
+
     async def find_many():
         return mock_ports
-        
+
     mock_prisma.port.find_unique.side_effect = find_unique
     mock_prisma.port.find_many.side_effect = find_many
     monkeypatch.setattr("app.services.maritime_math.prisma", mock_prisma)

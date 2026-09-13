@@ -18,9 +18,9 @@ async def get_ports():
     return ports
 
 CORRIDOR_STATIC_DATA = {
-    "Haldia": {"n": "01", "sub": "Hooghly river · tide-bound", "draft": "7.5 m", "tide": "+2.8 – 4.2 m", "ship": "Supramax direct", "note": "Heavy siltation. The reason splits exist.", "flag": "Watch"},
-    "Paradip": {"n": "02", "sub": "Bay of Bengal · all-weather", "draft": "14.5 m", "tide": "+1.2 – 2.4 m", "ship": "Panamax / baby Cape", "note": "Mechanised coal berths. Laycan discipline matters.", "flag": "Open"},
-    "Dhamra": {"n": "03", "sub": "Deep-sea fairway", "draft": "16.0 m", "tide": "+1.5 – 2.8 m", "ship": "Full Capesize 180k", "note": "Coking-coal front door when Haldia chokes.", "flag": "Open"},
+    "Haldia": {"n": "01", "sub": "Hooghly river · tide-bound", "draft": "7.5 m", "tide": "+2.8 – 4.2 m", "ship": "Supramax direct", "note": "Heavy siltation. The reason splits exist.", "flag": "Watch"},  # noqa: RUF001
+    "Paradip": {"n": "02", "sub": "Bay of Bengal · all-weather", "draft": "14.5 m", "tide": "+1.2 – 2.4 m", "ship": "Panamax / baby Cape", "note": "Mechanised coal berths. Laycan discipline matters.", "flag": "Open"},  # noqa: RUF001
+    "Dhamra": {"n": "03", "sub": "Deep-sea fairway", "draft": "16.0 m", "tide": "+1.5 – 2.8 m", "ship": "Full Capesize 180k", "note": "Coking-coal front door when Haldia chokes.", "flag": "Open"},  # noqa: RUF001
     "Sandheads": {"n": "04", "sub": "Offshore roads · lighterage", "draft": "22 m+", "tide": "Open ocean", "ship": "All classes", "note": "Where big ships break bulk into shuttles.", "flag": "Hub"}
 }
 

@@ -1,10 +1,15 @@
-from fastapi import APIRouter, Query, HTTPException, BackgroundTasks
-from typing import Optional
-from datetime import datetime, timedelta
-from app.schemas.requisition import RequisitionEvaluateRequest, RequisitionCreateRequest, RequisitionUpdateRequest
-from app.services import maritime_math
-from app.api.dependencies import prisma
 import math
+from datetime import datetime, timedelta
+
+from fastapi import APIRouter, HTTPException, Query
+
+from app.api.dependencies import prisma
+from app.schemas.requisition import (
+    RequisitionCreateRequest,
+    RequisitionEvaluateRequest,
+    RequisitionUpdateRequest,
+)
+from app.services import maritime_math
 
 router = APIRouter(prefix="/api/v1/requisitions", tags=["requisitions"])
 
@@ -13,11 +18,11 @@ router = APIRouter(prefix="/api/v1/requisitions", tags=["requisitions"])
 async def get_requisitions(
     page: int = Query(1, ge=1, description="Page number"),
     limit: int = Query(10, ge=1, le=100, description="Items per page"),
-    status: Optional[str] = Query(None, description="Filter by status"),
-    commodity: Optional[str] = Query(None, description="Filter by commodity"),
-    origin: Optional[str] = Query(None, description="Filter by origin"),
-    search: Optional[str] = Query(None, description="Search term"),
-    dateRange: Optional[str] = Query(None, description="Date range"),
+    status: str | None = Query(None, description="Filter by status"),
+    commodity: str | None = Query(None, description="Filter by commodity"),
+    origin: str | None = Query(None, description="Filter by origin"),
+    search: str | None = Query(None, description="Search term"),
+    dateRange: str | None = Query(None, description="Date range"),
 ):
     skip = (page - 1) * limit
     where = {}
@@ -84,13 +89,13 @@ async def create_requisition(req: RequisitionCreateRequest):
         dest_port_name=req.dest_port,
         commodity=req.commodity
     )
-    
+
     try:
         import structlog
         logger = structlog.get_logger(__name__)
         result = await maritime_math.evaluate_requisition(eval_req)
         new_status = "Feasible" if result.get("feasible") else "Infeasible"
-        
+
         updated_req = await prisma.requisition.update(
             where={"id": new_req.id},
             data={"status": new_status}

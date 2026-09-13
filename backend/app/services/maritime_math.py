@@ -1,3 +1,4 @@
+import asyncio
 import math
 import time
 from typing import Any
@@ -9,8 +10,6 @@ from fastapi import HTTPException
 from app.api.dependencies import prisma
 from app.core.config import settings
 from app.schemas.requisition import RequisitionEvaluateRequest
-
-import asyncio
 
 logger = structlog.get_logger(__name__)
 
@@ -74,20 +73,20 @@ def calculate_dynamic_ukc(
 
 def _haversine(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
     """Calculate the great circle distance in nautical miles between two points on the earth."""
-    # Convert decimal degrees to radians 
+    # Convert decimal degrees to radians
     lat1, lon1, lat2, lon2 = map(math.radians, [lat1, lon1, lat2, lon2])
-    # Haversine formula 
-    dlon = lon2 - lon1 
-    dlat = lat2 - lat1 
+    # Haversine formula
+    dlon = lon2 - lon1
+    dlat = lat2 - lat1
     a = math.sin(dlat/2)**2 + math.cos(lat1) * math.cos(lat2) * math.sin(dlon/2)**2
-    c = 2 * math.asin(math.sqrt(a)) 
+    c = 2 * math.asin(math.sqrt(a))
     r = 3440.065 # Radius of earth in nautical miles.
     return c * r
 
 async def evaluate_requisition(req_data: RequisitionEvaluateRequest) -> dict[str, Any]:
     """
     Evaluate if a cargo requisition is feasible at the destination port.
-    
+
     Calculates dynamic draft including brackish water sinkage and squat,
     verifies under keel clearance, and suggests the optimal vessel strategy
     or an alternative port if infeasible.
@@ -118,12 +117,12 @@ async def evaluate_requisition(req_data: RequisitionEvaluateRequest) -> dict[str
         client = http_client
         if client is None:
             client = httpx.AsyncClient(timeout=httpx.Timeout(10.0, connect=5.0))
-        
+
         res = await client.get(
             f"https://marine-api.open-meteo.com/v1/marine?latitude={lat}&longitude={lon}&hourly=ocean_tide",
             timeout=5.0
         )
-        
+
         if res.status_code == 200:
             data = res.json()
             if (
@@ -134,7 +133,7 @@ async def evaluate_requisition(req_data: RequisitionEvaluateRequest) -> dict[str
                 first_tide = data["hourly"]["ocean_tide"][0]
                 if first_tide is not None:
                     tidal_height = first_tide
-                    
+
         if http_client is None:
             await client.aclose()
     except Exception as e:
@@ -175,26 +174,26 @@ async def evaluate_requisition(req_data: RequisitionEvaluateRequest) -> dict[str
         alternative_port_suggestion = None
         all_ports = await prisma.port.find_many()
         best_alt_dist = float('inf')
-        
+
         for alt_port in all_ports:
             if alt_port.id == port.id:
                 continue
-                
+
             alt_valid = False
             for vessel in fleet:
                 if (req_data.commodity in CARGO_RESTRICTIONS and vessel.name not in CARGO_RESTRICTIONS[req_data.commodity]):
                     continue
                 if alt_port.maxVesselClass and VESSEL_CLASS_ORDER.get(vessel.name, 99) > VESSEL_CLASS_ORDER.get(alt_port.maxVesselClass, 99):
                     continue
-                
+
                 alt_delta = calculate_brackish_sinkage(vessel.laden_draft, alt_port.brackishDensity)
                 alt_squat = calculate_hydrodynamic_squat(vessel.block_coeff, vessel.speed_knots)
                 alt_ukc = calculate_dynamic_ukc(alt_port.chartedDepth, alt_port.typicalTidalRange, vessel.laden_draft, alt_delta, alt_squat)
-                
+
                 if alt_ukc >= ukc_margin:
                     alt_valid = True
                     break
-                    
+
             if alt_valid:
                 dist = _haversine(lat, lon, alt_port.lat, alt_port.lon)
                 if dist < best_alt_dist:
@@ -215,7 +214,7 @@ async def evaluate_requisition(req_data: RequisitionEvaluateRequest) -> dict[str
         }
         if alternative_port_suggestion:
             response["alternativePort"] = alternative_port_suggestion
-            
+
         return response
 
     valid_vessels.sort(key=lambda x: x["vessel"].daily_cost / x["vessel"].capacity)
@@ -248,7 +247,7 @@ async def evaluate_requisition(req_data: RequisitionEvaluateRequest) -> dict[str
         f"{ukc_note} "
         f"The optimal logistical strategy recommends deploying {vessel_class} to accommodate the {req_data.volume_mt:,.1f} MT of {req_data.commodity} efficiently. "
     )
-    
+
     if req_data.commodity == "Iron Ore":
         ai_insight += "Iron Ore shipments typically require deep-draft Capesize vessels, which may face challenges at riverine ports."
     elif req_data.commodity == "Grain":

@@ -155,8 +155,14 @@ export default function GlobeClient() {
     onSuccess: (data) => {
       setNotice(data.strategy ?? "Evaluation complete. Open the solver desk.");
     },
-    onError: () => {
-      setNotice("Evaluation failed. Try the solver desk directly.");
+    onError: (err: unknown) => {
+      const reason =
+        err instanceof TypeError
+          ? "API unreachable"
+          : err instanceof Error && err.message
+            ? err.message
+            : "unknown error";
+      setNotice(`Evaluation failed (${reason}). Try the solver desk directly.`);
     },
   });
 

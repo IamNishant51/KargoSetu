@@ -34,7 +34,18 @@ export default function VesselSheet({ vessel, mode, corridor, onClose }: VesselS
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ volume_mt, dest_port_name, commodity }),
       });
-      if (!res.ok) throw new Error("evaluate failed");
+      if (!res.ok) {
+        let detail = "";
+        try {
+          const body = (await res.json()) as { detail?: string };
+          if (typeof body.detail === "string") detail = body.detail;
+        } catch {
+          // non-JSON error body; fall through to status text
+        }
+        throw new Error(
+          (detail ? `${res.status} ${detail}` : `HTTP ${res.status}`).slice(0, 140),
+        );
+      }
       const data = await res.json();
       try {
         saveJSON("kargosetu_eval_v1", { ...saved, lastResult: data });
@@ -46,8 +57,14 @@ export default function VesselSheet({ vessel, mode, corridor, onClose }: VesselS
     onSuccess: (data) => {
       setResult(data.strategy || (data.feasible ? "Feasible" : "Not feasible"));
     },
-    onError: () => {
-      setResult("Evaluation failed. Retry from the solver desk.");
+    onError: (err: unknown) => {
+      const reason =
+        err instanceof TypeError
+          ? "API unreachable"
+          : err instanceof Error && err.message
+            ? err.message
+            : "unknown error";
+      setResult(`Evaluation failed (${reason}). Retry from the solver desk.`);
     },
   });
 
