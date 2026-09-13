@@ -2,6 +2,7 @@
 
 import React from "react";
 import "cesium/Build/Cesium/Widgets/widgets.css";
+import { getCesium } from "./api";
 import { CAMERA_PRESETS } from "./globeStore";
 import type { CameraPresetId } from "./globeStore";
 import { ATTRIBUTION_ITEMS } from "./attribution";
@@ -20,7 +21,7 @@ export async function flyCameraTo(
   const p = CAMERA_PRESETS[preset];
   if (!p) return;
   try {
-    const Cesium = await import("cesium");
+    const Cesium = await getCesium();
     viewer.camera.flyTo({
       destination: Cesium.Cartesian3.fromDegrees(p.lon, p.lat, p.height),
       duration,
@@ -67,7 +68,7 @@ export default function KargoGlobe({ preset, onViewer, onNotice, interactive = t
       if (!containerRef.current) return;
       try {
         (window as unknown as { CESIUM_BASE_URL?: string }).CESIUM_BASE_URL = "/cesium";
-        const Cesium = await import("cesium");
+        const Cesium = await getCesium();
 
         if (cancelled || !containerRef.current) return;
 
@@ -230,7 +231,7 @@ export default function KargoGlobe({ preset, onViewer, onNotice, interactive = t
     let cancelled = false;
     (async () => {
       try {
-        const Cesium = await import("cesium");
+        const Cesium = await getCesium();
         if (cancelled) return;
         const p = CAMERA_PRESETS[preset];
         viewer.camera.flyTo({

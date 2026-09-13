@@ -142,12 +142,47 @@ export function haversineNm(
   return 2 * Math.asin(Math.sqrt(Math.min(1, Math.max(0, a)))) * r;
 }
 
-// Singleton Cesium module: dynamic-imported once per page lifetime and shared
-// by every map layer. Never import("cesium") inside loops or animation frames.
-let cesiumModule: typeof import("cesium") | null = null;
-export async function getCesium(): Promise<typeof import("cesium")> {
-  if (!cesiumModule) cesiumModule = await import("cesium");
-  return cesiumModule;
+// Singleton Cesium runtime: the prebuilt bundle served from /cesium
+// (copied there by scripts/copy-cesium.mjs on postinstall) is loaded once
+// via <script> and shared by every map layer. It is deliberately NEVER
+// bundled: bundling Cesium's Source tree lets binary-adjacent string assets
+// through the minifier as illegal octal escapes, which kills the whole 3D
+// chunk with a SyntaxError in production. The `typeof import("cesium")`
+// annotations below are type-only (erased at compile) and bundle nothing.
+declare global {
+  interface Window {
+    Cesium?: unknown;
+  }
+}
+
+let cesiumPromise: Promise<typeof import("cesium")> | null = null;
+export function getCesium(): Promise<typeof import("cesium")> {
+  if (typeof window === "undefined") {
+    return Promise.reject(new Error("Cesium needs a browser window"));
+  }
+  const win = window as Window & { Cesium?: typeof import("cesium") };
+  if (win.Cesium) return Promise.resolve(win.Cesium);
+  if (!cesiumPromise) {
+    cesiumPromise = new Promise((resolve, reject) => {
+      const el = document.createElement("script");
+      el.src = "/cesium/Cesium.js";
+      el.async = true;
+      el.onload = () => {
+        const loaded = (window as Window & { Cesium?: typeof import("cesium") }).Cesium;
+        if (loaded) resolve(loaded);
+        else {
+          cesiumPromise = null;
+          reject(new Error("Cesium initialised nothing"));
+        }
+      };
+      el.onerror = () => {
+        cesiumPromise = null;
+        reject(new Error("Could not load /cesium/Cesium.js"));
+      };
+      document.head.appendChild(el);
+    });
+  }
+  return cesiumPromise;
 }
 
 // Sprite cache: canvas rasterized once per key, reused across polls/rebuilds.
