@@ -106,7 +106,7 @@ export default function Navbar() {
         </div>
 
         {open && (
-          <nav className="lg:hidden border-t border-[#E2E6EB] bg-white px-4 pt-2 pb-5 space-y-1" aria-label="Mobile">
+          <nav className="lg:hidden border-t border-[#E2E6EB] bg-white px-4 pt-2 pb-5 space-y-1 max-h-[calc(100vh-4rem)] overflow-y-auto" aria-label="Mobile">
             {LINKS.map((l, i) => (
               <a
                 key={l.label}

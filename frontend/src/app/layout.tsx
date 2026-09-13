@@ -86,7 +86,7 @@ export default function RootLayout({
       suppressHydrationWarning
       data-scroll-behavior="smooth"
     >
-      <body className="min-h-full flex flex-col bg-white text-[#0A2342] overflow-x-hidden" suppressHydrationWarning>
+      <body className="min-h-full flex flex-col bg-white text-[#0A2342]" suppressHydrationWarning>
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(ORG_JSONLD) }}

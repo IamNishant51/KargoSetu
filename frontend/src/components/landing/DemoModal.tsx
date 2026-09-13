@@ -284,7 +284,7 @@ export default function DemoModal() {
             </button>
           </div>
 
-          <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
+          <div className="flex flex-col sm:flex-row items-center gap-3 w-full sm:w-auto justify-end">
             {"cta" in currentStep && typeof (currentStep as { cta?: string }).cta === "string" && (
               <Link
                 href={(currentStep as { cta: string }).cta}

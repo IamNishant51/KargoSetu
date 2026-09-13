@@ -581,7 +581,7 @@ export default function DashboardPage() {
                           {t("vol_mt_FMT").replace("{n}", volume)}
                         </p>
                       </div>
-                      <div className="flex flex-col border-l border-[#E2E6EB] pl-4">
+                      <div className="flex flex-col sm:border-l border-[#E2E6EB] sm:pl-4">
                         <p className="text-sm text-[#6B7D99] mb-1 font-medium">{t("stat_vessels")}</p>
                         <p
                           className={`text-lg font-semibold ${result.feasible ? "text-[#0E7A3D]" : "text-[#6B7D99]"}`}
@@ -589,7 +589,7 @@ export default function DashboardPage() {
                           {result.total_vessels || "-"}
                         </p>
                       </div>
-                      <div className="flex flex-col border-l border-[#E2E6EB] pl-4">
+                      <div className="flex flex-col sm:border-l border-[#E2E6EB] sm:pl-4">
                         <p className="text-sm text-[#6B7D99] mb-1 font-medium">{t("stat_per_vessel")}</p>
                         <p className="text-lg font-semibold text-[#0A2342]">
                           {result.feasible
@@ -597,7 +597,7 @@ export default function DashboardPage() {
                             : "-"}
                         </p>
                       </div>
-                      <div className="flex flex-col border-l border-[#E2E6EB] pl-4">
+                      <div className="flex flex-col sm:border-l border-[#E2E6EB] sm:pl-4">
                         <p className="text-sm text-[#6B7D99] mb-1 font-medium">{t("stat_util")}</p>
                         <p className="text-lg font-semibold text-[#0E7A3D]">
                           {result.feasible
@@ -605,7 +605,7 @@ export default function DashboardPage() {
                             : "-"}
                         </p>
                       </div>
-                      <div className="flex flex-col border-l border-[#E2E6EB] pl-4">
+                      <div className="flex flex-col sm:border-l border-[#E2E6EB] sm:pl-4">
                         <p className="text-sm text-[#6B7D99] mb-1 font-medium">{t("stat_status")}</p>
                         <p
                           className={`text-lg font-semibold ${result.feasible ? "text-[#0E7A3D]" : "text-[#B42318]"}`}

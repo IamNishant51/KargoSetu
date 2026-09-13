@@ -110,7 +110,7 @@ export function TopHeader() {
           </button>
 
           {notificationsOpen && (
-            <div className="absolute right-0 mt-2 w-80 rounded-xl border border-[#E2E6EB] bg-white shadow-[4px_4px_0_rgba(10,35,66,0.08)] overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200 z-50">
+            <div className="absolute right-0 mt-2 w-[calc(100vw-2rem)] sm:w-80 max-w-[320px] rounded-xl border border-[#E2E6EB] bg-white shadow-[4px_4px_0_rgba(10,35,66,0.08)] overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200 z-50">
               <div className="px-4 pt-4 pb-3 border-b border-[#E2E6EB] bg-[#FAF7F1]">
                 <div className="flex items-center justify-between">
                   <h3 className="font-bold text-[#0A2342] text-[15px]">{t("notifications")}</h3>
@@ -259,7 +259,7 @@ export function TopHeader() {
           </div>
 
           {profileOpen && (
-            <div className="absolute right-0 mt-3 w-56 rounded-xl border border-[#E2E6EB] bg-white shadow-[4px_4px_0_rgba(10,35,66,0.08)] overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200 z-50">
+            <div className="absolute right-0 mt-3 w-[calc(100vw-2rem)] sm:w-56 rounded-xl border border-[#E2E6EB] bg-white shadow-[4px_4px_0_rgba(10,35,66,0.08)] overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200 z-50">
               <div className="p-4 border-b border-[#E2E6EB] bg-[#FAF7F1]">
                 <p className="text-sm font-bold text-[#0A2342]">
                   {user?.name || "KargoSetu User"}
