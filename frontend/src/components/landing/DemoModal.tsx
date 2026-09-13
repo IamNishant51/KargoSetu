@@ -153,9 +153,9 @@ export default function DemoModal() {
               <Compass size={18} />
             </div>
             <div>
-              <h3 className="text-base font-bold text-slate-900">
+              <h2 className="text-base font-bold text-slate-900">
                 KargoSetu Interactive Walkthrough
-              </h3>
+              </h2>
               <p className="text-xs text-slate-500">
                 Autonomous Freight Intelligence & Constraint Engine Demo
               </p>
@@ -165,7 +165,7 @@ export default function DemoModal() {
           <button
             type="button"
             onClick={closeModal}
-            className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
+            className="p-3 text-slate-500 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
             aria-label="Close modal"
           >
             <X size={20} />
@@ -175,7 +175,7 @@ export default function DemoModal() {
         {/* Modal Body */}
         <div className="overflow-y-auto p-6 space-y-6">
           {/* Step Selector Pills */}
-          <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 bg-slate-100 p-1.5 rounded-xl border border-slate-200">
+          <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 bg-slate-100 p-3 rounded-xl border border-slate-200">
             {DEMO_STEPS.map((step, idx) => (
               <button
                 key={step.id}
@@ -183,7 +183,7 @@ export default function DemoModal() {
                 aria-label={`Go to step ${idx + 1}: ${step.title}`}
                 aria-current={activeStepIndex === idx ? "step" : undefined}
                 onClick={() => setActiveStepIndex(idx)}
-                className={`text-xs font-semibold py-2 px-3 rounded-lg text-left transition-all flex items-center gap-1.5 cursor-pointer ${
+                className={`text-xs font-semibold py-2 px-3 rounded-lg text-left transition-all flex items-center gap-3 cursor-pointer ${
                   activeStepIndex === idx
                     ? "bg-white text-slate-900 shadow-xs border border-slate-200"
                     : "text-slate-600 hover:text-slate-900"
@@ -218,9 +218,9 @@ export default function DemoModal() {
                 </div>
               </div>
 
-              <h4 className="text-lg sm:text-xl font-bold text-slate-900 mb-1">
+              <h3 className="text-lg sm:text-xl font-bold text-slate-900 mb-1">
                 {currentStep.title}
-              </h4>
+              </h3>
               <p className="text-xs sm:text-sm text-slate-500 mb-4">
                 {currentStep.subtitle}
               </p>
@@ -242,7 +242,7 @@ export default function DemoModal() {
                         : "bg-white border-slate-200 text-slate-700"
                     }`}
                   >
-                    <div className="text-[10px] text-slate-400 uppercase tracking-wider mb-0.5">
+                    <div className="text-[10px] text-slate-500 uppercase tracking-wider mb-0.5">
                       {item.label}
                     </div>
                     <div className="font-semibold text-slate-900 text-xs sm:text-sm">

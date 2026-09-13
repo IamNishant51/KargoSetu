@@ -2,6 +2,7 @@
 
 import React, { useEffect } from "react";
 import Image from "next/image";
+import SafeImage from "@/components/ui/SafeImage";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
@@ -62,8 +63,9 @@ export function Sidebar() {
             className={`flex items-center hover:opacity-80 transition-opacity cursor-pointer ${isCollapsed ? "mx-auto px-0" : ""}`}
           >
             <span className={`relative block h-12 w-12 shrink-0 ${isCollapsed ? "" : "mr-2.5"}`}>
-              <Image
-                src="/logo-ks.png"
+              <SafeImage
+                src="https://ik.imagekit.io/iqlpfpvny/KargoSetu/KargoSetu-LOGO.png"
+                fallbackSrc="/logo-ks.png"
                 alt="KargoSetu"
                 fill
                 className="object-contain"
@@ -136,6 +138,8 @@ export function Sidebar() {
                 <img
                   src={user.avatarUrl}
                   alt={user.name || "User avatar"}
+                  width={36}
+                  height={36}
                   className="w-9 h-9 rounded-full shrink-0 border border-[#E2E6EB]"
                 />
               ) : (

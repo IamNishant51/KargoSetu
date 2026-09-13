@@ -26,7 +26,8 @@ export default function FaqSection() {
                 <button
                   type="button"
                   onClick={() => setOpen(isOpen ? null : i)}
-                  aria-expanded={isOpen}
+                  aria-expanded={isOpen ? "true" : "false"}
+                  aria-controls={`faq-answer-${i}`}
                   className="w-full flex items-center gap-4 text-left px-5 sm:px-6 py-4 sm:py-5 hover:bg-[#FAF7F1] transition-colors"
                 >
                   <span className="font-mono text-[12px] text-[#6B7D99] shrink-0 w-7">Q{i + 1}</span>

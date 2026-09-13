@@ -29,7 +29,7 @@ Reloads must never lose desk state. The rule: **lazy `useState` initializers reh
 * **`SolutionsSection.tsx`**: Three-card solutions grid for Market Intelligence, Charter & Freight, and Operations Hub.
 * **`InteractiveSandbox.tsx`**: Interactive simulator featuring Port Constraint Solving, ML Volatility Shock testing, and SAIL PSU Financial ROI calculations. **New Update:** This component is now live-wired to the backend API via React Query, discarding static mock data to display real-time evaluations and forecasts!
 * **`BentoFeatures.tsx`**: Four-pillar bento grid detailing Hydrodynamics, TensorFlow.js LSTM, Sandheads Lighterage, and Green Fleet ESG.
-* **`PortCorridor.tsx`**: East Coast India bathymetry telemetry cards for Haldia, Paradip, Dhamra, and Sandheads.
+* **`PortCorridor.tsx`**: East Coast India bathymetry telemetry cards for Haldia, Paradip, Dhamra, and Sandheads. Uses strict `IntersectionObserver` to completely defer the downloading and execution of the massive Cesium 3D engine until the user scrolls to it, preserving initial LCP and Lighthouse scores.
 * **`WorkflowSection.tsx`**: Four-step automated procurement process from requisition to demurrage-free berthing.
 * **`TestimonialsSection.tsx`**: Persona-driven executive endorsements from SAIL, Haldia Dock Complex, and NMDC.
 * **`FaqSection.tsx`**: Interactive accordion answering key questions on bathymetry, LSTM models, and ERP integration.
@@ -59,6 +59,7 @@ These are the reusable LEGO blocks used to build the dashboard.
 * **`ForecastPriceChart.tsx`**: The full 90-day freight outlook chart. It draws all three bands (P10/P50/P90) with a shaded P10-P90 region, thin date ticks, and the shock-multiplier note in the header. Empty and error states use the same short desk tone as everywhere else. The shock slider covers the full 0.1-5.0 contract range.
 * **`TradeRouteMap.tsx`**: The visual map that draws lines connecting global ports to India.
 * **`IdleFleetManager.tsx`** & **`MarketShockSlider.tsx`**: Smaller interactive widgets on the dashboard.
+* **`ui/SafeImage.tsx`**: Smart Next.js Image wrapper that attempts to load from an external CDN but seamlessly falls back to a local `fallbackSrc` on any HTTP error (like 400 Bad Request from ImageKit limits).
 * **`ui/` folder**: Tiny, basic UI parts like button, card, and badge (provided by Shadcn UI).
 
 ---

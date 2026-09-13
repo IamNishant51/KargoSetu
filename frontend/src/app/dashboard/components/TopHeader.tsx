@@ -247,6 +247,8 @@ export function TopHeader() {
               <img
                 src={user.avatarUrl}
                 alt={user.name || "Avatar"}
+                width={36}
+                height={36}
                 className={`w-8 h-8 sm:w-9 sm:h-9 rounded-full shrink-0 border transition-all ${profileOpen ? "border-[#D95D0F] ring-2 ring-[#D95D0F]/20" : "border-[#E2E6EB] group-hover:border-[#D95D0F]"}`}
               />
             ) : (

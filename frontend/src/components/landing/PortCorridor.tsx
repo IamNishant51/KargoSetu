@@ -1,5 +1,5 @@
 "use client";
-import React from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import dynamic from "next/dynamic";
 import { useQuery } from "@tanstack/react-query";
@@ -25,7 +25,29 @@ const FALLBACK_PORTS = [
 ];
 
 export default function PortCorridor() {
-  const [viewMode, setViewMode] = React.useState<"globe" | "diagram">("globe");
+  const [viewMode, setViewMode] = useState<"globe" | "diagram">("globe");
+  const [hasMounted, setHasMounted] = useState(false);
+  const [inView, setInView] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    setHasMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!containerRef.current) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setInView(true);
+          observer.disconnect();
+        }
+      },
+      { rootMargin: "200px" } // Load slightly before it comes into view
+    );
+    observer.observe(containerRef.current);
+    return () => observer.disconnect();
+  }, []);
 
   const { data } = useQuery({
     queryKey: ["portCorridor"],
@@ -43,7 +65,7 @@ export default function PortCorridor() {
   const hasLive = Array.isArray(data) && data.some((p: { liveVesselCount?: number | null }) => typeof p.liveVesselCount === "number");
 
   return (
-    <section id="ports" className="bg-[#FAF7F1] border-y border-[#E2E6EB] py-14 sm:py-20 scroll-mt-20 sm:scroll-mt-24">
+    <section id="port-corridor" className="py-24 sm:py-32 bg-[#F3F5F8] border-y border-[#E2E6EB]" ref={containerRef}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <p className="mono-label text-[#B45309]">Chart 02 — the corridor</p>
         <div className="mt-2 flex flex-col lg:flex-row lg:items-end justify-between gap-3">

@@ -8,7 +8,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Live Vessel Globe | KargoSetu",
     description: "Real-time Bay of Bengal vessel positions: Capesize lighterage at Sandheads, Haldia Supramax splits, Dhamra coal berths.",
-    images: [{ url: "/hero.png", width: 1200, height: 630, alt: "Live vessel globe — Bay of Bengal" }],
+    images: [{ url: "/hero.png", width: 1200, height: 630, alt: "Live vessel globe \u2014 Bay of Bengal" }],
   },
   robots: { index: false, follow: false },
 };

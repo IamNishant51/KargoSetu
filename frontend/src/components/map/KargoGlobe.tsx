@@ -67,7 +67,7 @@ export default function KargoGlobe({ preset, onViewer, onNotice, interactive = t
     async function init() {
       if (!containerRef.current) return;
       try {
-        (window as unknown as { CESIUM_BASE_URL?: string }).CESIUM_BASE_URL = "/cesium";
+        (window as unknown as { CESIUM_BASE_URL?: string }).CESIUM_BASE_URL = "/cesium/";
         const Cesium = await getCesium();
 
         if (cancelled || !containerRef.current) return;
@@ -95,19 +95,15 @@ export default function KargoGlobe({ preset, onViewer, onNotice, interactive = t
           navigationInstructionsInitiallyVisible: false,
           infoBox: false,
           selectionIndicator: false,
-          baseLayer: false,
+          baseLayer: new Cesium.ImageryLayer(esri),
           terrainProvider: terrainProvider as never,
         });
 
-        // Performance-first rendering: cap pixel ratio (large DPRs cost
-        // fill-rate without visible gain on satellite imagery) and keep MSAA
-        // low. The canvas is exempt from the light theme but not from budget.
+        // Performance-first rendering
         const dpr = typeof window !== "undefined" ? window.devicePixelRatio || 1.0 : 1.0;
         viewer.resolutionScale = Math.min(dpr, 1.5);
         viewer.scene.msaaSamples = 2;
         viewer.scene.globe.depthTestAgainstTerrain = false;
-
-        viewer.imageryLayers.addImageryProvider(esri);
 
         // OSM fallback if Esri tiles error.
         try {
@@ -121,7 +117,7 @@ export default function KargoGlobe({ preset, onViewer, onNotice, interactive = t
               });
               const layers = viewer.imageryLayers;
               layers.removeAll();
-              layers.addImageryProvider(osm);
+              layers.add(new Cesium.ImageryLayer(osm));
               onNoticeRef.current?.("Esri unreachable — using OSM fallback.");
             } catch {
               // keep current imagery; log only

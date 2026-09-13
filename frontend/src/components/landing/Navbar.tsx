@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import SafeImage from "@/components/ui/SafeImage";
 import { Menu, X, ArrowUpRight } from "lucide-react";
 import { useUser } from "@/hooks/useUser";
 
@@ -43,7 +44,7 @@ export default function Navbar() {
             >
               {/* Oversized mark that bleeds past the row without stretching it (-my-2 offsets layout) */}
               <span className="relative h-14 w-14 sm:h-[68px] sm:w-[68px] -my-2 shrink-0">
-                <Image src="/logo-ks.png" alt="KargoSetu harbour mark" fill sizes="68px" className="object-contain" priority />
+                <SafeImage src="https://ik.imagekit.io/iqlpfpvny/KargoSetu/KargoSetu-LOGO.png" fallbackSrc="/logo-ks.png" alt="KargoSetu harbour mark" fill sizes="68px" className="object-contain" priority />
               </span>
               <span className="leading-none">
                 <span className="block font-display font-black text-[22px] sm:text-2xl tracking-tight text-[#0A2342]">
@@ -96,9 +97,9 @@ export default function Navbar() {
             <button
               type="button"
               onClick={() => setOpen(!open)}
-              aria-expanded={open}
+              aria-expanded={open ? "true" : "false"}
               aria-label="Toggle menu"
-              className="lg:hidden p-2 -mr-2 rounded-lg hover:bg-[#F3F5F7] text-[#0A2342]"
+              className="lg:hidden p-3 -mr-3 rounded-lg hover:bg-[#F3F5F7] text-[#0A2342]"
             >
               {open ? <X size={24} /> : <Menu size={24} />}
             </button>

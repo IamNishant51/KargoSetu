@@ -189,9 +189,9 @@ export default function CorridorMiniGlobe() {
           <div className="flex items-start justify-between gap-2">
             <div>
               <p className="mono-label text-[#B45309]">Contact Tracked</p>
-              <h4 className="font-display font-black text-base text-[#0A2342] leading-tight">
+              <h3 className="font-display font-black text-base text-[#0A2342] leading-tight">
                 {selectedVessel.name || selectedVessel.mmsi}
-              </h4>
+              </h3>
               <p className="font-mono text-[10.5px] text-[#6B7D99] mt-0.5">
                 MMSI {selectedVessel.mmsi} · {selectedVessel.shipType || "Vessel"}
               </p>

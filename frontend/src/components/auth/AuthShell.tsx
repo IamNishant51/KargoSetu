@@ -2,6 +2,7 @@
 
 import React from "react";
 import Link from "next/link";
+import SafeImage from "@/components/ui/SafeImage";
 import Image from "next/image";
 import { useLanguage } from "@/i18n/LanguageContext";
 
@@ -37,7 +38,7 @@ export default function AuthShell({
         <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-3">
           <Link href="/" className="flex items-center gap-2.5 min-w-0">
             <span className="relative block w-9 h-9 shrink-0 -my-1">
-              <Image src="/logo-ks.png" alt="KargoSetu" fill sizes="36px" className="object-contain" priority />
+              <SafeImage src="https://ik.imagekit.io/iqlpfpvny/KargoSetu/KargoSetu-LOGO.png" fallbackSrc="/logo-ks.png" alt="KargoSetu" fill sizes="36px" className="object-contain" priority />
             </span>
             <span className="font-display font-black text-[19px] tracking-tight text-[#0A2342]">
               KargoSetu<span className="text-[#D95D0F]">.</span>

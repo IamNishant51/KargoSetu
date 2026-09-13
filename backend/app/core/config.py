@@ -45,10 +45,14 @@ class Settings(BaseSettings):
     nvidia_api_key: str = ""
     aisstream_api_key: str = ""
     firms_map_key: str = ""
+    # MarineTraffic AIS API is commercial credit-based (no free tier) and
+    # strictly opt-in: empty means disabled, AISStream/demo behavior unchanged.
+    marinetraffic_api_key: str = ""
 
     # --- Upstream budget governors (safety ceilings per UTC day) ---
     firms_daily_budget: int = 200
     aisstream_daily_budget: int = 5000
+    marinetraffic_daily_budget: int = 100
 
     # --- ML Configuration ---
     ml_lookback_days: int = 60

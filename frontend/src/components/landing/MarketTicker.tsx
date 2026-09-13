@@ -87,7 +87,7 @@ export default function MarketTicker() {
         <div className="overflow-hidden flex-1 [mask-image:linear-gradient(to_right,transparent,black_6%,black_94%,transparent)]">
           <div className="animate-marquee flex w-max will-change-transform py-2.5 font-mono text-[11.5px] sm:text-[12.5px]">
             {[0, 1, 2, 3].map((copy) => (
-              <div key={copy} aria-hidden={copy > 0} className="flex shrink-0 items-center">
+              <div key={copy} aria-hidden={copy > 0 ? "true" : undefined} className="flex shrink-0 items-center">
                 {items.map((it: TickerItem, i: number) => {
                   const displayValue = it.value || (it.price !== undefined ? `${it.price.toLocaleString()}` : "N/A");
                   const displayDelta = it.delta || (it.change_pct !== undefined ? `${it.change_pct > 0 ? '+' : ''}${it.change_pct}%` : "");

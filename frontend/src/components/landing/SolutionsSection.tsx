@@ -1,6 +1,7 @@
 "use client";
 import React from "react";
 import Image from "next/image";
+import SafeImage from "@/components/ui/SafeImage";
 import { ArrowUpRight } from "lucide-react";
 
 const ITEMS = [
@@ -85,8 +86,9 @@ export default function SolutionsSection() {
           </div>
           <div className="grid lg:grid-cols-12">
             <div className="relative aspect-[1254/808] w-full bg-[#FAF7F1] lg:col-span-7 lg:border-r lg:border-[#E2E6EB]">
-              <Image
-                src="/ukc-explainer-v2.png"
+              <SafeImage
+                src="https://ik.imagekit.io/iqlpfpvny/KargoSetu/ukc-explainer-v2.png"
+                fallbackSrc="/ukc-explainer-v2.png"
                 alt="Cross-section of hull over Haldia channel showing draft squat tide and safe UKC"
                 fill
                 sizes="(max-width: 1024px) 100vw, 640px"

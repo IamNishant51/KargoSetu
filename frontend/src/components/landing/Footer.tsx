@@ -18,7 +18,7 @@ export default function Footer() {
             </p>
           </div>
           <div>
-            <h4 className="mono-label text-[#0A2342] mb-3">Dossier</h4>
+            <h2 className="mono-label text-[#0A2342] mb-3">Dossier</h2>
             <ul className="space-y-2 text-[13.5px] font-medium">
               <li><a href="#solutions" className="hover:text-[#B45309]">The ledger</a></li>
               <li><a href="#sandbox" className="hover:text-[#B45309]">Simulator</a></li>
@@ -26,7 +26,7 @@ export default function Footer() {
             </ul>
           </div>
           <div>
-            <h4 className="mono-label text-[#0A2342] mb-3">Corridor</h4>
+            <h2 className="mono-label text-[#0A2342] mb-3">Corridor</h2>
             <ul className="space-y-2 text-[13.5px] font-medium">
               <li><a href="#ports" className="hover:text-[#B45309]">Haldia 7.5 m</a></li>
               <li><a href="#ports" className="hover:text-[#B45309]">Paradip 14.5 m</a></li>

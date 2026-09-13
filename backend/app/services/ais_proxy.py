@@ -9,6 +9,7 @@ raises 500; it serves stale cache or unavailable.
 from __future__ import annotations
 
 import asyncio
+import collections
 import datetime as dt
 import json
 import time as time_module
@@ -34,6 +35,7 @@ _ais_day: str = ""
 _ais_used: int = 0
 _last_mode: str = "unavailable"
 _last_collect_time: float = 0.0
+_last_provider: str = "none"
 
 
 def _ais_budget_hit(budget: int) -> bool:
@@ -53,6 +55,7 @@ def get_vessel_feed_status() -> dict:
     """Snapshot of vessel feed health for the health endpoint."""
     return {
         "mode": _last_mode,
+        "provider": _last_provider,
         "cachedAt": _vessel_cache_time,
         "collectsToday": _ais_used,
         "collectDay": _ais_day,
@@ -79,6 +82,32 @@ def _utcnow_iso() -> str:
 # keyed by MMSI string to enrich position reports.
 _static_meta_cache: dict[str, dict] = {}
 
+# Per-vessel recent-fix ring buffer backing the track endpoint (our own
+# playback source — no scraped history). Bounded: 20 fixes x 500 vessels.
+_TRACK_MAX_POINTS = 20
+_TRACK_MAX_VESSELS = 500
+_track: dict[str, collections.deque] = {}
+
+
+def _record_track(mmsi: str, lat: float, lon: float, ts: str | None) -> None:
+    """Append one live fix to the vessel's trail. Demo fixes are never recorded."""
+    try:
+        buf = _track.get(mmsi)
+        if buf is None:
+            if len(_track) >= _TRACK_MAX_VESSELS:
+                _track.pop(next(iter(_track)))
+            buf = collections.deque(maxlen=_TRACK_MAX_POINTS)
+            _track[mmsi] = buf
+        buf.append({"lat": lat, "lon": lon, "timestamp": ts})
+    except Exception:
+        pass
+
+
+def get_vessel_track(mmsi: str) -> list[dict]:
+    """Recent live fixes for one MMSI, oldest first. [] when never seen live."""
+    buf = _track.get(str(mmsi or ""))
+    return list(buf) if buf else []
+
 
 def _map_ship_type(type_code: int | None) -> str | None:
     if type_code is None:
@@ -100,6 +129,46 @@ def _map_ship_type(type_code: int | None) -> str | None:
     if 70 <= code <= 79:
         return "Cargo"
     return "Vessel"
+
+
+def _parse_eta(eta: dict | None) -> str | None:
+    """Parse an AIS type-5 ETA (month/day/hour/minute) to the next UTC occurrence.
+
+    Returns an ISO-8601 Z string or None when any component is missing or
+    zero (AIS uses 0 = unavailable). Year rolls forward when the date
+    already passed this year.
+    """
+    if not isinstance(eta, dict):
+        return None
+    try:
+        month = int(eta.get("Month", eta.get("month", 0)))
+        day = int(eta.get("Day", eta.get("day", 0)))
+        hour = int(eta.get("Hour", eta.get("hour", 0)))
+        minute = int(eta.get("Minute", eta.get("minute", 0)))
+    except (TypeError, ValueError):
+        return None
+    if not (1 <= month <= 12 and 1 <= day <= 31 and 0 <= hour <= 24 and 0 <= minute <= 60):
+        return None
+    hour = min(hour, 23)
+    minute = min(minute, 59)
+    now = dt.datetime.now(dt.UTC)
+    for year in (now.year, now.year + 1):
+        try:
+            candidate = dt.datetime(year, month, day, hour, minute, tzinfo=dt.UTC)
+        except ValueError:
+            return None
+        if candidate >= now - dt.timedelta(hours=1):
+            return candidate.isoformat().replace("+00:00", "Z")
+    return None
+
+
+def _clean_destination(raw: object) -> str | None:
+    if not isinstance(raw, str):
+        return None
+    cleaned = raw.strip().strip("@").strip()
+    if not cleaned or cleaned.upper() in {"UNKNOWN", "UNAVAILABLE", "TBD"}:
+        return None
+    return cleaned[:64]
 
 
 def get_demo_vessels() -> list[dict]:
@@ -184,6 +253,16 @@ def _normalize_position(mmsi: str, meta: dict, msg: dict) -> dict | None:
 
         draught = cached_static.get("draught")
         ship_type = cached_static.get("shipType")
+        destination = cached_static.get("destination")
+        eta = _parse_eta(cached_static.get("eta_raw"))
+
+        nav_status_raw = msg.get("NavigationalStatus", msg.get("navigationalStatus", msg.get("NavStatus")))
+        try:
+            nav_status = int(nav_status_raw) if nav_status_raw is not None else None
+        except (TypeError, ValueError):
+            nav_status = None
+        if nav_status is not None and not (0 <= nav_status <= 15):
+            nav_status = None
 
         return {
             "mmsi": str(mmsi),
@@ -194,6 +273,9 @@ def _normalize_position(mmsi: str, meta: dict, msg: dict) -> dict | None:
             "cog": cog_f,
             "draught": draught,
             "shipType": ship_type,
+            "destination": destination,
+            "eta": eta,
+            "navStatus": nav_status,
             "timestamp": ts,
             "demo": False,
         }
@@ -226,6 +308,16 @@ def _update_static_meta(mmsi: str, meta: dict, msg: dict) -> None:
         mapped_type = _map_ship_type(raw_type)
         if mapped_type:
             entry["shipType"] = mapped_type
+
+        # Voyage data (AIS type 5): free-text destination + ETA components.
+        # Stored raw; parsed to ISO on each position report so the cached
+        # ETA never goes stale between collects.
+        dest = _clean_destination(msg.get("Destination", msg.get("destination")))
+        if dest:
+            entry["destination"] = dest
+        eta_raw = msg.get("Eta", msg.get("ETA", msg.get("eta")))
+        if isinstance(eta_raw, dict):
+            entry["eta_raw"] = eta_raw
     except Exception:
         pass
 
@@ -292,11 +384,31 @@ async def _collect_live(api_key: str, minLon: float, minLat: float, maxLon: floa
                     if not (minLat <= norm["lat"] <= maxLat and minLon <= norm["lon"] <= maxLon):
                         continue
                     vessels[mmsi] = norm
+                    _record_track(mmsi, norm["lat"], norm["lon"], norm.get("timestamp"))
                     if len(vessels) >= VESSEL_MAX_RESULTS:
                         break
 
     await asyncio.wait_for(_run(), timeout=AIS_TIMEOUT + 5.0)
     return list(vessels.values())[:VESSEL_MAX_RESULTS]
+
+
+async def _try_marinetraffic(
+    minLon: float, minLat: float, maxLon: float, maxLat: float
+) -> list[dict]:
+    """One MarineTraffic fallback attempt. [] when disabled, over budget, or failed."""
+    try:
+        from app.core.config import settings as _settings
+        from app.services import marinetraffic_proxy as _mt
+    except Exception as exc:
+        logger.warning("marinetraffic_import_failed", error=str(exc))
+        return []
+    key = getattr(_settings, "marinetraffic_api_key", "") or ""
+    budget = getattr(_settings, "marinetraffic_daily_budget", 100)
+    try:
+        budget = 100 if budget is None else int(budget)
+    except (TypeError, ValueError):
+        budget = 100
+    return await _mt.fetch_mt_vessels(key, minLon, minLat, maxLon, maxLat, budget)
 
 
 async def get_vessels(
@@ -306,7 +418,7 @@ async def get_vessels(
     maxLat: float = DEFAULT_BBOX["maxLat"],
     api_key: str = "",
 ) -> dict:
-    global _vessel_cache, _vessel_cache_time, _last_mode, _last_collect_time
+    global _vessel_cache, _vessel_cache_time, _last_mode, _last_collect_time, _last_provider
     from app.core.config import settings as _settings
 
     minLon, minLat, maxLon, maxLat = validate_bbox(minLon, minLat, maxLon, maxLat)
@@ -325,6 +437,7 @@ async def get_vessels(
             _vessel_cache = demo
             _vessel_cache_time = now
         _last_mode = "demo"
+        _last_provider = "demo"
         return {"mode": "demo", "vessels": demo, "updatedAt": _utcnow_iso(), "notice": "Set AISSTREAM_API_KEY for live traffic."}
 
     budget = getattr(_settings, "aisstream_daily_budget", 5000)
@@ -346,6 +459,20 @@ async def get_vessels(
 
     try:
         live = await _collect_live(api_key, minLon, minLat, maxLon, maxLat)
+        provider = "aisstream"
+        if not live:
+            # AISStream key works but no terrestrial receiver covers this
+            # bbox right now. A paid MarineTraffic key (BYOK, disabled by
+            # default) gets one fallback attempt before demo mode.
+            mt = await _try_marinetraffic(minLon, minLat, maxLon, maxLat)
+            if mt:
+                live = mt
+                provider = "marinetraffic"
+                for v in live:
+                    try:
+                        _record_track(str(v.get("mmsi", "")), float(v.get("lat")), float(v.get("lon")), v.get("timestamp"))
+                    except (TypeError, ValueError):
+                        continue
         if not live:
             # Valid empty snapshot: key works but no terrestrial receiver covers
             # this bbox right now. Fall back to badged demo traffic (demo: true
@@ -356,15 +483,32 @@ async def get_vessels(
                 _vessel_cache = demo
                 _vessel_cache_time = now
             _last_mode = "demo"
+            _last_provider = "demo"
             return {"mode": "demo", "vessels": demo, "updatedAt": _utcnow_iso(), "notice": "No live terrestrial coverage in this area right now. Showing representative traffic."}
         async with _vessel_lock:
             _vessel_cache = live
             _vessel_cache_time = now
         _last_mode = "live"
+        _last_provider = provider
         _last_collect_time = now
-        return {"mode": "live", "vessels": live, "updatedAt": _utcnow_iso(), "notice": None}
+        notice = None if provider == "aisstream" else "Live positions via MarineTraffic."
+        return {"mode": "live", "vessels": live, "updatedAt": _utcnow_iso(), "notice": notice}
     except Exception as exc:
         logger.warning("ais_upstream_failed", error=str(exc))
+        mt = await _try_marinetraffic(minLon, minLat, maxLon, maxLat)
+        if mt:
+            for v in mt:
+                try:
+                    _record_track(str(v.get("mmsi", "")), float(v.get("lat")), float(v.get("lon")), v.get("timestamp"))
+                except (TypeError, ValueError):
+                    continue
+            async with _vessel_lock:
+                _vessel_cache = mt
+                _vessel_cache_time = now
+            _last_mode = "live"
+            _last_provider = "marinetraffic"
+            _last_collect_time = now
+            return {"mode": "live", "vessels": mt, "updatedAt": _utcnow_iso(), "notice": "Live positions via MarineTraffic."}
         async with _vessel_lock:
             if _vessel_cache is not None:
                 age_s = int(now - _vessel_cache_time) if _vessel_cache_time else 0

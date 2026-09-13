@@ -68,6 +68,7 @@ jobs:
           JWT_SECRET_KEY: "ci-test-secret-key-minimum-32-chars"
           AISSTREAM_API_KEY: ""
           FIRMS_MAP_KEY: ""
+          MARINETRAFFIC_API_KEY: ""
           FRONTEND_URL: "http://localhost:3000"
 
   frontend:

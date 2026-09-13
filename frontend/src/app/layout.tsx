@@ -54,12 +54,11 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "KargoSetu | Harbour Intelligence, Not Hype",
-    description:
-      "Live draft solver + 90-day freight outlook + live vessel globe for India's east coast.",
+    title: "KargoSetu — River-Sea Draft Optimization",
+    description: "Enterprise constraint solver and market forecasting for the Haldia-Paradip-Dhamra corridor.",
     images: ["/hero.png"],
   },
-  icons: { icon: "/KargoSetu-LOGO.png" },
+  icons: { icon: "https://ik.imagekit.io/iqlpfpvny/KargoSetu/KargoSetu-LOGO.png" },
   alternates: { canonical: "https://kargosetu.com" },
 };
 

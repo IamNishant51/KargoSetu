@@ -28,6 +28,9 @@ export interface Vessel {
   cog: number | null;
   draught: number | null;
   shipType: string | null;
+  destination: string | null;
+  eta: string | null;
+  navStatus: number | null;
   timestamp: string;
   demo: boolean;
 }
@@ -84,6 +87,7 @@ export interface CorridorPort {
   nearestVesselNm?: number | null;
   loiteringCount?: number | null;
   meanSogKn?: number | null;
+  congestion?: "low" | "moderate" | "high" | null;
   lat?: number;
   lon?: number;
 }

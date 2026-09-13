@@ -1,6 +1,7 @@
 "use client";
 import React from "react";
 import Image from "next/image";
+import SafeImage from "@/components/ui/SafeImage";
 
 const STEPS = [
   { n: "01", t: "Drop the indent", d: "Tonnage, coal grade, laycan, destination. Thirty seconds, no manual." },
@@ -47,8 +48,9 @@ export default function WorkflowSection() {
               </span>
             </div>
             <div className="relative aspect-[16/9] w-full bg-[#FAF7F1]">
-              <Image
-                src="/workflow-ship-v2.png"
+              <SafeImage
+                src="https://ik.imagekit.io/iqlpfpvny/KargoSetu/workflow-ship-v2.png"
+                fallbackSrc="/workflow-ship-v2.png"
                 alt="Supramax bulk carrier splitting discharge to barges at Sandheads anchorage"
                 fill
                 sizes="(max-width: 1024px) 100vw, 640px"

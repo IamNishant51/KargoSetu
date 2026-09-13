@@ -203,7 +203,7 @@ export default function InteractiveSandbox() {
           >
             <button
               role="tab"
-              aria-selected={activeTab === "constraint"}
+              aria-selected={activeTab === "constraint" ? "true" : "false"}
               aria-controls="panel-constraint"
               id="tab-constraint"
               onClick={() => setActiveTab("constraint")}
@@ -218,7 +218,7 @@ export default function InteractiveSandbox() {
                 className={
                   activeTab === "constraint"
                     ? "text-[#EA580C]"
-                    : "text-slate-400"
+                    : "text-slate-500"
                 }
               />
               <span>1. Port Constraint & Cargo Splitter</span>
@@ -226,7 +226,7 @@ export default function InteractiveSandbox() {
 
             <button
               role="tab"
-              aria-selected={activeTab === "forecast"}
+              aria-selected={activeTab === "forecast" ? "true" : "false"}
               aria-controls="panel-forecast"
               id="tab-forecast"
               onClick={() => setActiveTab("forecast")}
@@ -242,7 +242,7 @@ export default function InteractiveSandbox() {
 
             <button
               role="tab"
-              aria-selected={activeTab === "roi"}
+              aria-selected={activeTab === "roi" ? "true" : "false"}
               aria-controls="panel-roi"
               id="tab-roi"
               onClick={() => setActiveTab("roi")}
@@ -268,7 +268,7 @@ export default function InteractiveSandbox() {
                   <h3 className="font-bold text-slate-900 text-base">
                     Requisition Parameters
                   </h3>
-                  <span className="text-xs text-slate-400 font-medium">
+                  <span className="text-xs text-slate-500 font-medium">
                     SIH 26006 Problem Engine
                   </span>
                 </div>
@@ -276,7 +276,7 @@ export default function InteractiveSandbox() {
                 {/* Cargo Volume Slider */}
                 <div>
                   <div className="flex justify-between items-center mb-2">
-                    <label className="text-xs font-bold text-slate-700 uppercase tracking-wider">
+                    <label htmlFor="volume-slider" className="text-xs font-bold text-slate-700 uppercase tracking-wider">
                       Cargo Volume
                     </label>
                     <span
@@ -287,6 +287,7 @@ export default function InteractiveSandbox() {
                     </span>
                   </div>
                   <input
+                    id="volume-slider"
                     type="range"
                     min="30000"
                     max="200000"
@@ -295,7 +296,7 @@ export default function InteractiveSandbox() {
                     onChange={(e) => setVolume(Number(e.target.value))}
                     className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-[#EA580C]"
                   />
-                  <div className="flex justify-between text-[11px] text-slate-400 mt-1">
+                  <div className="flex justify-between text-[11px] text-slate-500 mt-1">
                     <span>30k MT (Supramax)</span>
                     <span>75k MT (Panamax)</span>
                     <span>200k MT (Capesize)</span>
@@ -337,10 +338,11 @@ export default function InteractiveSandbox() {
 
                 {/* Commodity Select */}
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                  <label htmlFor="commodity-select" className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
                     Commodity
                   </label>
                   <select
+                    id="commodity-select"
                     value={commodity}
                     onChange={(e) => setCommodity(e.target.value)}
                     className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-sm font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#EA580C]"
@@ -360,7 +362,7 @@ export default function InteractiveSandbox() {
                 {/* Feasibility Banner */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-5 border-b border-slate-100">
                   <div>
-                    <span className="text-xs text-slate-400 font-semibold uppercase tracking-wider block mb-1">
+                    <span className="text-xs text-slate-500 font-semibold uppercase tracking-wider block mb-1">
                       Hydrodynamic Feasibility Status
                     </span>
                     <div className="flex items-center gap-2">
@@ -393,7 +395,7 @@ export default function InteractiveSandbox() {
                   </div>
 
                   <div className="text-left sm:text-right">
-                    <span className="text-[11px] text-slate-400 font-semibold uppercase tracking-wider block">
+                    <span className="text-[11px] text-slate-500 font-semibold uppercase tracking-wider block">
                       Recommended Strategy
                     </span>
                     <span className="text-sm font-bold text-[#EA580C] font-mono">
@@ -416,7 +418,7 @@ export default function InteractiveSandbox() {
                     <span className="text-lg font-bold text-slate-900 font-mono">
                       {currentPortInfo.draft}m
                     </span>
-                    <span className="text-[10px] text-slate-400 block mt-0.5">
+                    <span className="text-[10px] text-slate-500 block mt-0.5">
                       {currentPortInfo.type}
                     </span>
                   </div>
@@ -454,7 +456,7 @@ export default function InteractiveSandbox() {
                     >
                       {clearanceMargin ?? "—"}m
                     </span>
-                    <span className="text-[10px] text-slate-400 block mt-0.5">
+                    <span className="text-[10px] text-slate-500 block mt-0.5">
                       Under Keel
                     </span>
                   </div>
@@ -543,7 +545,7 @@ export default function InteractiveSandbox() {
                     onChange={(e) => setShockMultiplier(Number(e.target.value))}
                     className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-[#A44B2A]"
                   />
-                  <div className="flex justify-between text-[11px] text-slate-400 mt-1">
+                  <div className="flex justify-between text-[11px] text-slate-500 mt-1">
                     <span>0.5x (Calm Trade)</span>
                     <span>1.0x (Historical)</span>
                     <span>2.5x (Severe Shock)</span>
@@ -568,7 +570,7 @@ export default function InteractiveSandbox() {
               <div className="lg:col-span-7 bg-white text-slate-900 p-6 sm:p-8 rounded-2xl shadow-xs border border-slate-200/90 space-y-6">
                 <div className="flex items-center justify-between border-b border-slate-100 pb-4">
                   <div>
-                    <span className="text-xs text-slate-400 font-semibold uppercase tracking-wider block mb-1">
+                    <span className="text-xs text-slate-500 font-semibold uppercase tracking-wider block mb-1">
                       90-Day Forward Rate Projection
                     </span>
                     <h4
@@ -692,7 +694,7 @@ export default function InteractiveSandbox() {
                     onChange={(e) => setAnnualTonnage(Number(e.target.value))}
                     className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-emerald-600"
                   />
-                  <div className="flex justify-between text-[11px] text-slate-400 mt-1">
+                  <div className="flex justify-between text-[11px] text-slate-500 mt-1">
                     <span>1.0M MT</span>
                     <span>5.0M MT</span>
                     <span>10.0M MT</span>
@@ -717,7 +719,7 @@ export default function InteractiveSandbox() {
                     onChange={(e) => setSpotRate(Number(e.target.value))}
                     className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-slate-800"
                   />
-                  <div className="flex justify-between text-[11px] text-slate-400 mt-1">
+                  <div className="flex justify-between text-[11px] text-slate-500 mt-1">
                     <span>$12/MT</span>
                     <span>$22/MT</span>
                     <span>$35/MT</span>
@@ -728,7 +730,7 @@ export default function InteractiveSandbox() {
               {/* Right Monetary Impact Output - Clean Light Theme */}
               <div className="lg:col-span-7 bg-white text-slate-900 p-6 sm:p-8 rounded-2xl shadow-xs border border-slate-200/90 space-y-6">
                 <div className="border-b border-slate-100 pb-4">
-                  <span className="text-xs text-slate-400 font-semibold uppercase tracking-wider block mb-1">
+                  <span className="text-xs text-slate-500 font-semibold uppercase tracking-wider block mb-1">
                     Total Estimated Annual Cost Avoidance
                   </span>
                   <div className="text-3xl sm:text-4xl font-extrabold text-emerald-700 font-mono">
@@ -747,7 +749,7 @@ export default function InteractiveSandbox() {
                     <span className="text-lg font-bold text-amber-800 font-mono">
                       ₹{demurrageSavingsINR_Cr} Cr
                     </span>
-                    <span className="text-[10px] text-slate-400 block mt-0.5">
+                    <span className="text-[10px] text-slate-500 block mt-0.5">
                       {demurrageSavedDays} vessel days saved
                     </span>
                   </div>

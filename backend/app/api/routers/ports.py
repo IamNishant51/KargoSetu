@@ -45,11 +45,12 @@ async def get_port_corridor(request: Request):
             **static_info,
             "draft": draft,
         }
-        stats = live_counts.get(name, {"liveVesselCount": None, "nearestVesselNm": None, "loiteringCount": None, "meanSogKn": None})
+        stats = live_counts.get(name, {"liveVesselCount": None, "nearestVesselNm": None, "loiteringCount": None, "meanSogKn": None, "congestion": None})
         merged["liveVesselCount"] = stats["liveVesselCount"]
         merged["nearestVesselNm"] = stats["nearestVesselNm"]
         merged["loiteringCount"] = stats.get("loiteringCount")
         merged["meanSogKn"] = stats.get("meanSogKn")
+        merged["congestion"] = stats.get("congestion")
         results.append(merged)
 
     return results
@@ -63,6 +64,19 @@ PORT_COORDS = {
 }
 
 _EARTH_R_NM = 3440.065
+
+
+def _congestion_level(count: int, loitering: int) -> str:
+    """Roadstead pressure from live density: high/moderate/low.
+
+    Thresholds are tuned for a 50 km radius around a bulk port: a
+    half-dozen waiting hulls with several loitering is a busy roads.
+    """
+    if count >= 8 or loitering >= 3:
+        return "high"
+    if count >= 4 or loitering >= 1:
+        return "moderate"
+    return "low"
 
 
 def _corridor_live_stats() -> dict:
@@ -96,7 +110,7 @@ def _corridor_live_stats() -> dict:
             dtype=float,
         )[valid_all]
         if all_lats.size == 0:
-            return {name: {"liveVesselCount": None, "nearestVesselNm": None, "loiteringCount": None, "meanSogKn": None} for name in PORT_COORDS}
+            return {name: {"liveVesselCount": None, "nearestVesselNm": None, "loiteringCount": None, "meanSogKn": None, "congestion": None} for name in PORT_COORDS}
 
         out: dict = {}
         for port_name, (plat, plon) in PORT_COORDS.items():
@@ -124,6 +138,7 @@ def _corridor_live_stats() -> dict:
                 "nearestVesselNm": nearest,
                 "loiteringCount": loitering,
                 "meanSogKn": mean_sog,
+                "congestion": _congestion_level(count, loitering),
             }
         return out
     except Exception as exc:
@@ -162,6 +177,7 @@ def _corridor_live_stats() -> dict:
                 "nearestVesselNm": round(best, 1) if best != float("inf") else None,
                 "loiteringCount": loitering,
                 "meanSogKn": round(sog_sum / sog_n, 1) if sog_n else None,
+                "congestion": _congestion_level(count, loitering),
             }
         return out
 

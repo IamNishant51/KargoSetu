@@ -28,7 +28,7 @@ export default function SocialProofLogos() {
       <div className="relative pb-6 sm:pb-8 pt-4 overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_8%,black_92%,transparent)]">
         <div className="animate-marquee flex w-max will-change-transform">
           {[0, 1].map((copy) => (
-            <div key={copy} aria-hidden={copy === 1} className="flex shrink-0 items-stretch gap-4 pr-4">
+            <div key={copy} aria-hidden={copy === 1 ? "true" : undefined} className="flex shrink-0 items-stretch gap-4 pr-4">
               {ROWS.map(([a, b, c]) => (
                 <Card key={`${copy}-${a}`} a={a} b={b} c={c} />
               ))}
