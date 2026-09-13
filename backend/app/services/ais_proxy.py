@@ -254,8 +254,13 @@ async def _collect_live(api_key: str, minLon: float, minLat: float, maxLon: floa
         async with websockets.connect(AIS_WS_URL, max_size=2**20) as ws:
             await ws.send(json.dumps(sub))
             end = time_module.monotonic() + AIS_TIMEOUT
-            async for raw in ws:
-                if time_module.monotonic() >= end:
+            while True:
+                remaining = end - time_module.monotonic()
+                if remaining <= 0:
+                    break
+                try:
+                    raw = await asyncio.wait_for(ws.recv(), timeout=remaining)
+                except asyncio.TimeoutError:
                     break
                 try:
                     env = json.loads(raw)
@@ -290,7 +295,7 @@ async def _collect_live(api_key: str, minLon: float, minLat: float, maxLon: floa
                     if len(vessels) >= VESSEL_MAX_RESULTS:
                         break
 
-    await asyncio.wait_for(_run(), timeout=AIS_TIMEOUT + 1.5)
+    await asyncio.wait_for(_run(), timeout=AIS_TIMEOUT + 5.0)
     return list(vessels.values())[:VESSEL_MAX_RESULTS]
 
 
@@ -342,7 +347,16 @@ async def get_vessels(
     try:
         live = await _collect_live(api_key, minLon, minLat, maxLon, maxLat)
         if not live:
-            raise RuntimeError("empty live snapshot")
+            # Valid empty snapshot: key works but no terrestrial receiver covers
+            # this bbox right now. Fall back to badged demo traffic (demo: true
+            # per vessel + explicit notice) so the globe and corridor stay
+            # useful instead of rendering an empty ocean.
+            demo = get_demo_vessels()
+            async with _vessel_lock:
+                _vessel_cache = demo
+                _vessel_cache_time = now
+            _last_mode = "demo"
+            return {"mode": "demo", "vessels": demo, "updatedAt": _utcnow_iso(), "notice": "No live terrestrial coverage in this area right now. Showing representative traffic."}
         async with _vessel_lock:
             _vessel_cache = live
             _vessel_cache_time = now
