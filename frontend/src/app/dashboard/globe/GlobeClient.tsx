@@ -96,7 +96,7 @@ export default function GlobeClient() {
   const newsQuery = usePortNews(briefPort);
 
   const vessels = React.useMemo(() => vesselsQuery.data?.vessels ?? [], [vesselsQuery.data?.vessels]);
-  const mode = vesselsQuery.data?.mode ?? "unavailable";
+  const mode = vesselsQuery.data?.mode ?? (vesselsQuery.isLoading ? "connecting" : "unavailable");
   const hazards = hazardsQuery.data;
   const corridor = corridorQuery.data ?? [];
 
@@ -229,7 +229,9 @@ export default function GlobeClient() {
                 ? "bg-[#E9F5EE] text-[#0E7A3D] border-[#BFE3CD]"
                 : mode === "demo"
                   ? "bg-[#FDF1E7] text-[#B45309] border-[#F0D3B8]"
-                  : "bg-[#F3F5F7] text-[#3D4F68] border-[#E2E6EB]"
+                  : mode === "connecting"
+                    ? "bg-[#F3F5F7] text-[#3D4F68] border-[#E2E6EB] animate-pulse"
+                    : "bg-[#F3F5F7] text-[#3D4F68] border-[#E2E6EB]"
             }`}
           >
             {t(`globe.status.${mode}`)}
@@ -271,9 +273,10 @@ export default function GlobeClient() {
         corridor={corridor}
         onClose={() => setSelected(null)}
       />
-      {vesselsQuery.isError && (
-        <div className="absolute left-3 top-40 z-20 rounded-xl border border-[#E2E6EB] bg-white px-3 py-2 shadow-lg">
+      {vesselsQuery.isError && !vesselsQuery.isLoading && (
+        <div className="absolute left-3 top-40 z-20 max-w-[300px] rounded-xl border border-[#E2E6EB] bg-white px-3 py-2 shadow-lg">
           <p className="text-[12.5px] font-semibold text-[#B42318]">Vessel feed unavailable.</p>
+          <p className="mt-0.5 font-mono text-[11px] text-[#6B7D99]">API {getApiBase()} unreachable. Start the backend, then retry.</p>
           <button
             type="button"
             onClick={() => vesselsQuery.refetch()}

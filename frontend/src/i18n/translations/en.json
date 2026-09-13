@@ -281,5 +281,6 @@
   "globe.error.title": "Globe failed to load",
   "globe.error.body": "The 3D view hit an error. Your desk data is untouched — retry the globe or return to the solver.",
   "globe.error.desk": "Back to desk",
-  "globe_nav": "Globe"
+  "globe_nav": "Globe",
+  "globe.status.connecting": "Connecting"
 }

@@ -27,7 +27,11 @@ CORRIDOR_STATIC_DATA = {
 @router.get("/corridor")
 @limiter.limit("30/minute")
 async def get_port_corridor(request: Request):
-    ports_db = await prisma.port.find_many()
+    try:
+        ports_db = await prisma.port.find_many()
+    except Exception as exc:
+        logger.warning("corridor_db_unavailable_serving_static", error=str(exc))
+        ports_db = []
     db_map = {p.name: p for p in ports_db}
 
     live_counts = _corridor_live_stats()
@@ -75,16 +79,24 @@ def _corridor_live_stats() -> dict:
         import numpy as np
 
         # Hoist vessel arrays out of the per-port loop: built once, reused 4x.
-        all_lats = np.array([v.get("lat") for v in vessels], dtype=float)
-        all_lons = np.array([v.get("lon") for v in vessels], dtype=float)
+        def _f(v, k):
+            try:
+                x = v.get(k)
+                return float(x) if x is not None else float("nan")
+            except (TypeError, ValueError):
+                return float("nan")
+
+        all_lats = np.array([_f(v, "lat") for v in vessels], dtype=float)
+        all_lons = np.array([_f(v, "lon") for v in vessels], dtype=float)
         valid_all = ~(np.isnan(all_lats) | np.isnan(all_lons))
         all_lats = all_lats[valid_all]
         all_lons = all_lons[valid_all]
-        all_sogs = all_sogs[valid_all]
+        all_sogs = np.array(
+            [float(v.get("sog")) if v.get("sog") is not None else float("nan") for v in vessels],
+            dtype=float,
+        )[valid_all]
         if all_lats.size == 0:
             return {name: {"liveVesselCount": None, "nearestVesselNm": None, "loiteringCount": None, "meanSogKn": None} for name in PORT_COORDS}
-
-        all_sogs = np.array([v.get("sog") for v in vessels], dtype=float)
 
         out: dict = {}
         for port_name, (plat, plon) in PORT_COORDS.items():

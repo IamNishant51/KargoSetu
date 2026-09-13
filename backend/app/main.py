@@ -83,13 +83,14 @@ async def lifespan(app: FastAPI):
     )
     maritime_math.http_client = http_client
 
-    # Connect to database
+    # Connect to database. Non-fatal: the vessel/hazard proxies and corridor
+    # static data serve fine without it; DB-backed endpoints fail per-request
+    # instead of taking the whole API down (SIH stage wifi is unreliable).
     try:
         await prisma.connect()
         logger.info("database_connected")
     except Exception as exc:
-        logger.error("database_connection_failed", error=str(exc))
-        raise
+        logger.error("database_connection_failed_serving_degraded", error=str(exc))
 
     # Start ML model initialization in the background
     from app.services.ml_predictor import predictor_instance
@@ -106,8 +107,11 @@ async def lifespan(app: FastAPI):
     # --- Shutdown ---
     await http_client.aclose()
     logger.info("http_client_closed")
-    await prisma.disconnect()
-    logger.info("database_disconnected")
+    try:
+        await prisma.disconnect()
+        logger.info("database_disconnected")
+    except Exception as exc:
+        logger.warning("database_disconnect_skipped", error=str(exc))
 
 
 # --- Application Factory ---

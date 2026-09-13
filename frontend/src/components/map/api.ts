@@ -31,7 +31,7 @@ export interface Vessel {
   demo: boolean;
 }
 
-export type VesselMode = "live" | "demo" | "stale" | "unavailable";
+export type VesselMode = "live" | "demo" | "stale" | "unavailable" | "connecting";
 
 export interface VesselsResponse {
   mode: VesselMode;

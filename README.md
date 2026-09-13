@@ -138,65 +138,77 @@ graph TD
 ![ONNX Runtime](https://img.shields.io/badge/ONNX_Runtime-005CED?style=for-the-badge&logo=onnx&logoColor=white)
 <hr />
 
-## LOCAL DEVELOPMENT SETUP
+## LOCAL DEMO SETUP (2 terminals, ~5 minutes)
 
-Follow these instructions to run the enterprise platform locally.
+Run the full SIH demo locally: FastAPI backend on `:8000` + Next.js frontend on `:3000`, then open the live globe.
+
+Prerequisites: Node.js 24.x, Python 3.11.9 (see `.python-version`), and a reachable Postgres `DATABASE_URL`. If the database is unreachable the API still boots in degraded mode (vessel/hazard/corridor feeds keep working; DB-backed endpoints fail per-request).
 
 <details open>
-  <summary><strong>1. Initialize the Current Backend Service (Node.js)</strong></summary>
+  <summary><strong>Terminal 1 - Backend (FastAPI, port 8000)</strong></summary>
   <br/>
 
-  The backend is currently running on Node.js/Express (Migration to Python in progress).
-
   ```bash
-  # Navigate to the backend directory
+  # From the repo root
   cd backend
 
-  # Install Node dependencies
-  npm install
-
-  # Boot the Express development server
-  npm run dev
-  ```
-  *The backend API will be live at `http://localhost:3001`*
-</details>
-
-<details>
-  <summary><strong>2. Initialize the Next.js Frontend Application</strong></summary>
-  <br/>
-
-  ```bash
-  # Open a secondary terminal instance
-  cd frontend
-
-  # Install Node dependencies
-  npm install
-
-  # Boot the Next.js development server
-  npm run dev
-  ```
-  *Access the Executive Command Center at `http://localhost:3000`*
-</details>
-
-<details>
-  <summary><strong>3. [Upcoming] Python/FastAPI Backend (Migration Target)</strong></summary>
-  <br/>
-
-  ```bash
-  # Navigate to the backend directory
-  cd backend
-
-  # Install required Python dependencies
+  # Install Python dependencies (first time only)
   pip install -r requirements.txt
 
-  # Setup Prisma Database Connection
-  prisma generate
+  # Configure environment (first time only)
+  copy .env.example .env
+  # Edit .env: set DATABASE_URL, DIRECT_URL, JWT_SECRET_KEY.
+  # Leave AISSTREAM_API_KEY / FIRMS_MAP_KEY empty for demo traffic,
+  # or paste free keys (see FREE LIVE-DATA KEYS below) for live feeds.
 
-  # Boot the FastAPI Server
-  uvicorn app.main:app --reload
-  # Or via Gunicorn: gunicorn app.main:app -w 4 -k uvicorn.workers.UvicornWorker --bind 0.0.0.0:7860
+  # Boot the API with auto-reload
+  uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
+  ```
+  *Health check: `http://127.0.0.1:8000/api/health` — expect `"status": "ok"` (or `"degraded"` without a database). Vessel feed: `http://127.0.0.1:8000/api/v1/vessels/live` — expect `"mode": "demo"` (or `"live"` with a key).*
+</details>
+
+<details open>
+  <summary><strong>Terminal 2 - Frontend (Next.js, port 3000)</strong></summary>
+  <br/>
+
+  ```bash
+  # From the repo root, in a second terminal
+  cd frontend
+
+  # Install Node dependencies (first time only)
+  npm install
+
+  # Point the UI at the local API, then boot
+  # Ensure frontend/.env.local contains: NEXT_PUBLIC_API_URL="http://localhost:8000"
+  npm run dev
+  ```
+  *Open `http://localhost:3000/dashboard/globe` for the Gods Eye View (Connecting badge, then Demo traffic with 28 vessels), or `http://localhost:3000` for the landing page.*
+</details>
+
+<details>
+  <summary><strong>Shortcut - both servers at once</strong></summary>
+  <br/>
+
+  ```bash
+  # From the repo root (needs install done once: make install)
+  make up
   ```
 </details>
+
+### FREE LIVE-DATA KEYS (optional, demo works without them)
+
+Without keys the globe shows badged **Demo traffic** (28 realistic Bay of Bengal vessels) and real USGS/Open-Meteo hazards. Paste these free keys into `backend/.env` and restart the backend for the green **Live** badge.
+
+- **AISStream.io (live vessels)** — free signup, no card:
+  1. Go to `https://aisstream.io` and create an account.
+  2. Open the dashboard and generate an API key.
+  3. Set `AISSTREAM_API_KEY=your_key_here` in `backend/.env` and restart uvicorn.
+  4. Docs: `https://aisstream.io/documentation`. The backend opens a bounded 5-second collect window per request (30s cache), so normal demo use stays far inside free limits.
+- **NASA FIRMS (active fires)** — free MAP_KEY, no card:
+  1. Go to `https://firms.modaps.eosdis.nasa.gov/api/map_key` and request a MAP_KEY with your email.
+  2. Set `FIRMS_MAP_KEY=your_key_here` in `backend/.env` and restart uvicorn.
+  3. Without it the fires layer reports `disabled` and the globe simply hides it — never an error.
+- Keys stay server-side in `.env` (gitignored) and HF Spaces secrets in production. Never commit them.
 
 <hr />
 

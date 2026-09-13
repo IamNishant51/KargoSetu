@@ -281,5 +281,6 @@
   "globe.error.title": "ग्लोब लोड होऊ शकला नाही",
   "globe.error.body": "3D दृश्यात त्रुटी आली। तुमचा डेस्क डेटा सुरक्षित आहे — ग्लोब पुन्हा प्रयत्न करा किंवा सॉल्वरवर परत जा।",
   "globe.error.desk": "डेस्कवर परत",
-  "globe_nav": "Globe"
+  "globe_nav": "Globe",
+  "globe.status.connecting": "Connecting"
 }

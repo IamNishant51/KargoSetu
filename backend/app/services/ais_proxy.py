@@ -311,7 +311,8 @@ async def get_vessels(
         fresh = _vessel_cache is not None and (now - _vessel_cache_time) < VESSEL_CACHE_TTL
         if fresh and _vessel_cache is not None:
             _last_mode = "live" if api_key else "demo"
-            return {"mode": _last_mode, "vessels": _vessel_cache, "updatedAt": _utcnow_iso(), "notice": None}
+            notice = None if api_key else "Set AISSTREAM_API_KEY for live traffic."
+            return {"mode": _last_mode, "vessels": _vessel_cache, "updatedAt": _utcnow_iso(), "notice": notice}
 
     if not api_key:
         demo = get_demo_vessels()

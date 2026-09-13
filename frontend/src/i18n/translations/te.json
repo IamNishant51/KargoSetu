@@ -281,5 +281,6 @@
   "globe.error.title": "గ్లోబ్ లోడ్ కాలేదు",
   "globe.error.body": "3D వీక్షణలో లోపం ఏర్పడింది. మీ డెస్క్ డేటా సురక్షితంగా ఉంది — గ్లోబ్‌ను మళ్లీ ప్రయత్నించండి లేదా సాల్వర్‌కు తిరిగి వెళ్లండి.",
   "globe.error.desk": "డెస్క్‌కు తిరిగి",
-  "globe_nav": "Globe"
+  "globe_nav": "Globe",
+  "globe.status.connecting": "Connecting"
 }

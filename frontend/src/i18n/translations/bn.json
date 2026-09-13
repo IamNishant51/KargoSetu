@@ -281,5 +281,6 @@
   "globe.error.title": "গ্লোব লোড করা যায়নি",
   "globe.error.body": "3D ভিউতে ত্রুটি হয়েছে। আপনার ডেস্ক ডেটা অক্ষত আছে — গ্লোব আবার চেষ্টা করুন বা সলভারে ফিরে যান।",
   "globe.error.desk": "ডেস্কে ফিরে যান",
-  "globe_nav": "Globe"
+  "globe_nav": "Globe",
+  "globe.status.connecting": "Connecting"
 }

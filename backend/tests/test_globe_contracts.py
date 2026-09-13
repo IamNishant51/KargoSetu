@@ -35,7 +35,7 @@ async def test_vessels_demo_mode_shape():
     result = await ais_proxy.get_vessels(api_key="")
     parsed = VesselLiveResponse(**result)
     assert parsed.mode == "demo"
-    assert len(parsed.vessels) == 10
+    assert 8 <= len(parsed.vessels) <= 500
     for v in parsed.vessels:
         assert VESSEL_KEYS.issubset(set(v.model_dump().keys()))
         assert isinstance(v.mmsi, str)

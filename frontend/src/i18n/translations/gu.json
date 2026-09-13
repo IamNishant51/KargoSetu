@@ -281,5 +281,6 @@
   "globe.error.title": "ગ્લોબ લોડ થઈ શક્યો નથી",
   "globe.error.body": "3D દૃશ્યમાં ભૂલ થઈ. તમારો ડેસ્ક ડેટા સુરક્ષિત છે — ગ્લોબ ફરી પ્રયાસ કરો અથવા સોલ્વર પર પાછા જાઓ.",
   "globe.error.desk": "ડેસ્ક પર પાછા",
-  "globe_nav": "Globe"
+  "globe_nav": "Globe",
+  "globe.status.connecting": "Connecting"
 }

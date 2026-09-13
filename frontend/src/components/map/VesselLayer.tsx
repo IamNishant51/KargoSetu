@@ -88,10 +88,10 @@ export default function VesselLayer({
             model: {
               uri: "/models/ship.glb",
               scale: 1.0,
-              // Distance-scaled visibility: far ships hold 48 px so the
-              // corridor view still reads as 3D traffic; near ships cap out
-              // instead of filling the screen.
-              minimumPixelSize: 48,
+              // Distance-scaled visibility: far ships hold 32 px so the
+              // corridor view still reads as 3D traffic without overdraw;
+              // near ships cap out instead of filling the screen.
+              minimumPixelSize: 32,
               maximumScale: 20000,
               color: isSel ? selColor : Cesium.Color.WHITE,
               show: true,

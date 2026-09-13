@@ -100,10 +100,12 @@ export default function KargoGlobe({ preset, onViewer, onNotice, interactive = t
           terrainProvider: terrainProvider as never,
         });
 
-        // High-DPI crisp rendering: scale up resolution to native retina/4K display pixels (max 2.0x for performance)
+        // Performance-first rendering: cap pixel ratio (large DPRs cost
+        // fill-rate without visible gain on satellite imagery) and keep MSAA
+        // low. The canvas is exempt from the light theme but not from budget.
         const dpr = typeof window !== "undefined" ? window.devicePixelRatio || 1.0 : 1.0;
-        viewer.resolutionScale = Math.min(dpr, 2.0);
-        viewer.scene.msaaSamples = 4;
+        viewer.resolutionScale = Math.min(dpr, 1.5);
+        viewer.scene.msaaSamples = 2;
         viewer.scene.globe.depthTestAgainstTerrain = false;
 
         viewer.imageryLayers.addImageryProvider(esri);

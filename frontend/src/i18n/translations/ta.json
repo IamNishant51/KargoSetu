@@ -281,5 +281,6 @@
   "globe.error.title": "குளோப் ஏற்ற முடியவில்லை",
   "globe.error.body": "3D காட்சியில் பிழை ஏற்பட்டது. உங்கள் டெஸ்க் தரவு பாதுகாப்பாக உள்ளது — மீண்டும் முயற்சிக்கவும் அல்லது சால்வருக்குத் திரும்பவும்.",
   "globe.error.desk": "டெஸ்க்கிற்குத் திரும்பு",
-  "globe_nav": "Globe"
+  "globe_nav": "Globe",
+  "globe.status.connecting": "Connecting"
 }
