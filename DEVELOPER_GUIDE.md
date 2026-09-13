@@ -122,3 +122,38 @@ If you create a new file or make a massive change to what a file does, **you mus
 8. The documentation states that notifications from the FastAPI feed are "fault-isolated per source" (requisitions, draft alerts, ML models). Can you explain exactly how this fault isolation is implemented on the frontend during your 30-second polling intervals?
 9. The Landing Page features an "interactive sandbox" tied to the SIH 26006 problem specifications. How does this sandbox actually process user input, and does it use the same live backend calculations as the Dashboard, or is it running mocked data?
 10. For the dashboard's live calculations wired through TanStack React Query, how are you handling cache invalidation and data staleness to ensure the user isn't making critical freight or draft decisions based on cached, outdated numbers?
+
+---
+
+## 5. Live Vessel Globe, SEO, and ML Operations
+
+### Globe Route and Components
+The live vessel globe lives at `/dashboard/globe`. It is a server component that renders `DynamicGlobeClient` (lazy, SSR disabled) which renders `GlobeClient.tsx`. All Cesium code is isolated in `frontend/src/components/map/`. Never import from `cesium` anywhere else.
+
+### Cesium Static Assets
+After `npm install`, the `postinstall` script runs `scripts/copy-cesium.mjs` which copies the Cesium `Build/Cesium` directory to `public/cesium/`. At runtime, `KargoGlobe.tsx` sets `window.CESIUM_BASE_URL = "/cesium"` before constructing the Viewer. The `Cache-Control` header for `/cesium/*` is set to immutable in `next.config.ts`.
+
+### Globe Environment Variables
+- `AISSTREAM_API_KEY`: AISStream.io WebSocket key. Empty string means demo-cache mode (amber badge in UI).
+- `FIRMS_MAP_KEY`: NASA FIRMS map key. Empty string means fires layer reports disabled.
+Both live in HF Spaces secrets and local `.env` (gitignored). Never commit real values.
+
+### Globe Persisted State
+Stored in `localStorage` key `kargosetu_globe_v1` via `globeStore.ts`. Shape: camera preset, layer visibility booleans, selected MMSI, tour step. Ephemeral state (modals, spinners) is not persisted.
+
+### Attribution Constant
+`ATTRIBUTION_LINE` in `frontend/src/components/map/attribution.ts` feeds both the in-app popover and the footer. Add new data sources here only — never in two places.
+
+### API Proxy Architecture
+All live data (vessels, hazards, corridor) goes through the FastAPI backend. No direct third-party data calls from the browser except tile and terrain endpoints (Esri, OSM, Re:Earth). The `next.config.ts` rewrite proxies `/api/*` to `NEXT_PUBLIC_API_URL`.
+
+### SEO and Performance
+Each dashboard route exports its own `metadata` (title, description, noindex for app pages). `robots.ts` disallows `/dashboard/` and `/api/`, `sitemap.ts` lists the landing anchors. The landing page lazy-loads below-the-fold sections with Suspense and carries a WebApplication JSON-LD block. Run `npm run check:i18n` in CI to enforce key parity across all 7 languages.
+
+### ML Model
+- Architecture: Conv1D (64 filters) -> BatchNorm -> LSTM (64) -> Dropout -> Dense (128) -> BatchNorm -> Dropout -> Dense (90)
+- Features: BDRY, S&P 500, crude oil, SMA-14, Wilder RSI-14, 30-day rolling volatility
+- Training split: 75% train, 10% val (for EarlyStopping), 15% unseen test
+- Inference: ONNX Runtime (CPU) with graph optimization; falls back to TF if ONNX fails
+- Persistence: If `models/model.onnx` is less than 6 hours old, it is reused on startup
+- Retraining: Every 6 hours via background asyncio task

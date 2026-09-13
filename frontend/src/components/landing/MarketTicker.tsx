@@ -64,7 +64,7 @@ export default function MarketTicker() {
 
   // Live items only when feeds answer; otherwise they hide (never fake numbers).
   if (vessels && Array.isArray(vessels.vessels) && vessels.mode !== "unavailable") {
-    items.push({
+    items.unshift({
       symbol: "BAY TRAFFIC",
       value: `${vessels.vessels.length} vessels`,
       delta: vessels.mode === "demo" ? "demo" : "live",

@@ -6,6 +6,7 @@ by Pydantic. Any missing required variables will cause a startup crash
 with a clear error message, preventing silent misconfiguration.
 """
 
+from pydantic import field_validator
 from pydantic_settings import BaseSettings
 
 
@@ -25,6 +26,16 @@ class Settings(BaseSettings):
     jwt_secret_key: str
     jwt_algorithm: str = "HS256"
     jwt_expire_minutes: int = 10080  # 7 days
+
+    @field_validator("jwt_secret_key")
+    @classmethod
+    def jwt_secret_minimum_length(cls, v: str) -> str:
+        if len(v) < 32:
+            raise ValueError(
+                "JWT_SECRET_KEY must be at least 32 characters for security. "
+                "Generate one with: python -c \"import secrets; print(secrets.token_hex(32))\""
+            )
+        return v
 
     # --- CORS ---
     frontend_url: str = "http://localhost:3000"
@@ -46,7 +57,8 @@ class Settings(BaseSettings):
     ml_early_stopping_patience: int = 15
     ml_batch_size: int = 32
     ml_learning_rate: float = 0.001
-    ml_huber_delta: float = 0.1
+    ml_huber_delta: float = 1.0
+    ml_num_features: int = 6
 
     # --- Caching ---
     fleet_cache_ttl_seconds: int = 3600

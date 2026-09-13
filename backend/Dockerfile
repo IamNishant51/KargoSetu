@@ -60,4 +60,6 @@ CMD ["gunicorn", "app.main:app", \
      "-k", "uvicorn.workers.UvicornWorker", \
      "--bind", "0.0.0.0:7860", \
      "--timeout", "120", \
-     "--graceful-timeout", "30"]
+     "--graceful-timeout", "30", \
+     "--max-requests", "1000", \
+     "--max-requests-jitter", "50"]

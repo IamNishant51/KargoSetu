@@ -20,6 +20,8 @@ _fleet_cache_time = 0
 _fleet_lock = asyncio.Lock()
 
 CARGO_RESTRICTIONS = {
+    # Coking Coal is intentionally absent: all vessel classes are eligible.
+    # Port draft limits and UKC math are the binding constraints for this commodity.
     "Grain": ["Handysize", "Handymax", "Supramax", "Panamax"],
     "Iron Ore": ["Capesize", "Panamax", "Supramax"],
     "Coal": ["Capesize", "Panamax", "Supramax"],

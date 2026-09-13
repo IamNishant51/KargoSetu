@@ -9,7 +9,7 @@ import time as time_module
 from unittest.mock import AsyncMock, patch
 
 import pytest
-from fastapi import Request
+from fastapi import HTTPException, Request
 
 import app.api.routers.hazards as hazards
 import app.api.routers.ports as ports
@@ -58,8 +58,16 @@ async def test_value_error_maps_to_400():
 
 @pytest.mark.asyncio
 async def test_hazards_bbox_span_raises_value_error():
-    with pytest.raises(ValueError):
+    with pytest.raises(HTTPException) as exc_info:
         await get_hazards_summary(_req(), minLon=0.0, minLat=0.0, maxLon=100.0, maxLat=10.0)
+    assert exc_info.value.status_code == 422
+
+
+@pytest.mark.asyncio
+async def test_hazards_bbox_order_raises_422():
+    with pytest.raises(HTTPException) as exc_info:
+        await get_hazards_summary(_req(), minLon=95.0, minLat=15.0, maxLon=80.0, maxLat=23.5)
+    assert exc_info.value.status_code == 422
 
 
 @pytest.mark.asyncio

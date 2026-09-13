@@ -14,7 +14,7 @@ import time as time_module
 
 import httpx
 import structlog
-from fastapi import APIRouter, Query, Request
+from fastapi import APIRouter, HTTPException, Query, Request
 from pydantic import BaseModel, Field
 from slowapi import Limiter
 from slowapi.util import get_remote_address
@@ -294,9 +294,9 @@ async def get_hazards_summary(
     maxLat: float = Query(default=DEFAULT_BBOX["maxLat"], ge=-90.0, le=90.0),
 ):
     if not (minLon < maxLon and minLat < maxLat):
-        raise ValueError("min must be less than max for lon/lat bounds")
+        raise HTTPException(status_code=422, detail="min must be less than max for lon/lat bounds")
     if (maxLon - minLon) > 30.0 or (maxLat - minLat) > 30.0:
-        raise ValueError("bbox span exceeds 30 degrees per side")
+        raise HTTPException(status_code=422, detail="bbox span exceeds 30 degrees per side")
     quakes, firms, meteo = await asyncio.gather(
         _fetch_usgs(minLon, minLat, maxLon, maxLat),
         _fetch_firms(minLon, minLat, maxLon, maxLat),

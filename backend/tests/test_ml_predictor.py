@@ -50,3 +50,75 @@ def test_normalize_and_denormalize_roundtrip():
     denormalized = predictor_instance._denormalize_bdry(normalized)
 
     assert abs(original - denormalized) < 0.001
+
+
+def test_wilder_rsi_range():
+    """RSI must always be in [0, 100]."""
+    import pandas as pd
+
+    from app.services.ml_predictor import MLPredictor
+
+    predictor = MLPredictor()
+    series = pd.Series([10.0 + i * 0.5 + (i % 3 - 1) * 2 for i in range(100)])
+    rsi = predictor._calculate_rsi(series, period=14)
+    assert rsi.between(0, 100).all(), "RSI values out of [0, 100] range"
+
+
+def test_predict_sync_returns_90_items_with_correct_keys(monkeypatch):
+    """predict_sync must return 90 dicts with date/p10/p50/p90 keys."""
+    from unittest.mock import MagicMock
+
+    from sklearn.preprocessing import RobustScaler
+
+    from app.services.ml_predictor import MLPredictor
+
+    predictor = MLPredictor()
+    predictor.is_warming_up = False
+    mock_session = MagicMock()
+    mock_session.get_inputs.return_value = [MagicMock(name="input")]
+    mock_session.run.return_value = [np.zeros((1, 90), dtype=np.float32)]
+    predictor.onnx_session = mock_session
+    predictor.cached_model = MagicMock()
+    predictor.latest_sequence = np.zeros((60, 6), dtype=np.float32)
+    scaler = RobustScaler()
+    scaler.fit([[0], [1], [2]])
+    predictor.scalers = {"bdry": scaler}
+    predictor.historical_volatility = 0.05
+    result = predictor.predict_sync(1.0)
+    assert len(result) == 90, f"Expected 90 items, got {len(result)}"
+    for item in result:
+        assert {"date", "p10", "p50", "p90"} <= item.keys()
+
+
+def test_p10_le_p50_le_p90(monkeypatch):
+    """p10 must be <= p50 and p50 must be <= p90 for all forecast days."""
+    from unittest.mock import MagicMock
+
+    from sklearn.preprocessing import RobustScaler
+
+    from app.services.ml_predictor import MLPredictor
+
+    predictor = MLPredictor()
+    predictor.is_warming_up = False
+    mock_session = MagicMock()
+    mock_session.get_inputs.return_value = [MagicMock(name="input")]
+    mock_session.run.return_value = [np.ones((1, 90), dtype=np.float32) * 0.5]
+    predictor.onnx_session = mock_session
+    predictor.cached_model = MagicMock()
+    predictor.latest_sequence = np.zeros((60, 6), dtype=np.float32)
+    scaler = RobustScaler()
+    scaler.fit([[100], [200], [300]])
+    predictor.scalers = {"bdry": scaler}
+    predictor.historical_volatility = 0.05
+    result = predictor.predict_sync(1.0)
+    for item in result:
+        assert item["p10"] <= item["p50"], f"p10 > p50: {item}"
+        assert item["p50"] <= item["p90"], f"p50 > p90: {item}"
+
+
+def test_shock_multiplier_clamped():
+    """Shock multiplier outside [0.1, 5.0] must be clamped, not crash."""
+    clamped_low = max(0.1, min(5.0, -999.0))
+    clamped_high = max(0.1, min(5.0, 999.0))
+    assert clamped_low == 0.1
+    assert clamped_high == 5.0

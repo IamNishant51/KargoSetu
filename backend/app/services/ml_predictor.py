@@ -13,7 +13,6 @@ import tensorflow as tf
 import tf2onnx
 import yfinance as yf
 from sklearn.preprocessing import RobustScaler
-from tensorflow.keras import mixed_precision
 from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint, ReduceLROnPlateau
 from tensorflow.keras.layers import LSTM, BatchNormalization, Conv1D, Dense, Dropout
 from tensorflow.keras.losses import Huber
@@ -33,10 +32,6 @@ if gpus:
             tf.config.experimental.set_memory_growth(gpu, True)
     except RuntimeError as e:
         logger.error("gpu_memory_growth_error", error=str(e))
-
-# Enable mixed precision
-policy = mixed_precision.Policy("mixed_float16")
-mixed_precision.set_global_policy(policy)
 
 LOOKBACK_DAYS = settings.ml_lookback_days
 OUTLOOK_DAYS = settings.ml_outlook_days
@@ -77,6 +72,26 @@ class MLPredictor:
         """Asynchronously initialize and train the model on startup."""
         self.is_warming_up = True
         try:
+            onnx_age = float("inf")
+            if os.path.exists(self.onnx_model_path):
+                onnx_age = time_module.time() - os.path.getmtime(self.onnx_model_path)
+
+            if onnx_age < 6 * 3600:
+                logger.info("onnx_model_reused_skipping_training", age_seconds=int(onnx_age))
+                data = await asyncio.to_thread(self._fetch_and_prepare_data)
+                if data is not None:
+                    # _fetch_and_prepare_data updates self.latest_sequence as a side effect
+                    pass
+                sess_options = ort.SessionOptions()
+                sess_options.intra_op_num_threads = 2
+                sess_options.inter_op_num_threads = 2
+                sess_options.graph_optimization_level = ort.GraphOptimizationLevel.ORT_ENABLE_ALL
+                with self._lock:
+                    self.onnx_session = ort.InferenceSession(
+                        self.onnx_model_path, sess_options, providers=["CPUExecutionProvider"]
+                    )
+                    self.is_warming_up = False
+                return
             logger.info("data_fetch_started", symbols=["BDRY", "^GSPC", "CL=F"])
             data = await asyncio.to_thread(self._fetch_and_prepare_data)
 
@@ -128,7 +143,7 @@ class MLPredictor:
     def _export_to_onnx(self, model):
         try:
             input_signature = [
-                tf.TensorSpec([None, LOOKBACK_DAYS, 5], tf.float32, name="input")
+                tf.TensorSpec([None, LOOKBACK_DAYS, settings.ml_num_features], tf.float32, name="input")
             ]
             onnx_model, _ = tf2onnx.convert.from_keras(
                 model, input_signature, opset=13
@@ -152,16 +167,15 @@ class MLPredictor:
             logger.error("onnx_export_failed", error=str(ex))
 
     def _calculate_rsi(self, series: pd.Series, period: int = 14) -> pd.Series:
+        """Wilder's RSI using EWM (alpha=1/period) matching the standard definition."""
         delta = series.diff()
-        gain = (delta.where(delta > 0, 0)).fillna(0)
-        loss = (-delta.where(delta < 0, 0)).fillna(0)
-
-        avg_gain = gain.rolling(window=period, min_periods=period).mean()
-        avg_loss = loss.rolling(window=period, min_periods=period).mean()
-
-        rs = avg_gain / avg_loss
-        rsi = 100 - (100 / (1 + rs))
-        return rsi.fillna(50)
+        gain = delta.clip(lower=0)
+        loss = -delta.clip(upper=0)
+        avg_gain = gain.ewm(alpha=1.0 / period, min_periods=period, adjust=False).mean()
+        avg_loss = loss.ewm(alpha=1.0 / period, min_periods=period, adjust=False).mean()
+        rs = avg_gain / avg_loss.replace(0.0, float("nan"))
+        rsi = 100.0 - (100.0 / (1.0 + rs))
+        return rsi.fillna(50.0)
 
     def _fetch_and_prepare_data(self):
         now = time_module.time()
@@ -225,10 +239,11 @@ class MLPredictor:
 
         df["sma14"] = bdry_series.rolling(window=14, min_periods=1).mean()
         df["rsi14"] = self._calculate_rsi(bdry_series, 14)
+        df["vol30"] = bdry_series.rolling(window=30, min_periods=10).std().bfill()
 
         df = df.dropna()
 
-        features = ["bdry", "sp500", "oil", "sma14", "rsi14"]
+        features = ["bdry", "sp500", "oil", "sma14", "rsi14", "vol30"]
         self.scalers = {}
         for f in features:
             scaler = RobustScaler()
@@ -252,8 +267,8 @@ class MLPredictor:
             return None
 
         X = np.lib.stride_tricks.sliding_window_view(
-            feature_data[:-OUTLOOK_DAYS], (LOOKBACK_DAYS, 5)
-        ).reshape(-1, LOOKBACK_DAYS, 5)
+            feature_data[:-OUTLOOK_DAYS], (LOOKBACK_DAYS, settings.ml_num_features)
+        ).reshape(-1, LOOKBACK_DAYS, settings.ml_num_features)
         Y = np.lib.stride_tricks.sliding_window_view(
             target_data[LOOKBACK_DAYS:], (OUTLOOK_DAYS,)
         ).reshape(-1, OUTLOOK_DAYS)
@@ -262,12 +277,13 @@ class MLPredictor:
         X = X[:min_len]
         Y = Y[:min_len]
 
-        split_idx = int(min_len * 0.85)
-
-        train_x = X[:split_idx]
-        train_y = Y[:split_idx]
-        val_x = X[split_idx:]
-        val_y = Y[split_idx:]
+        val_idx = int(min_len * 0.75)
+        test_idx = int(min_len * 0.85)
+        train_x = X[:val_idx]
+        train_y = Y[:val_idx]
+        val_x = X[val_idx:test_idx]
+        val_y = Y[val_idx:test_idx]
+        # X[test_idx:] and Y[test_idx:] are the unseen test set (not used for training or early stopping)
 
         return train_x, train_y, val_x, val_y
 
@@ -277,7 +293,7 @@ class MLPredictor:
                 filters=64,
                 kernel_size=3,
                 activation="relu",
-                input_shape=(LOOKBACK_DAYS, 5),
+                input_shape=(LOOKBACK_DAYS, settings.ml_num_features),
             ),
             BatchNormalization(),
             LSTM(64, return_sequences=False, recurrent_dropout=0.1),
@@ -351,8 +367,11 @@ class MLPredictor:
         except Exception:
             pass
         vol = self.historical_volatility or 0.02
-        route_hash = sum(ord(c) for c in (origin + destination))
-        route_multiplier = 0.7 + ((route_hash % 60) / 100.0)
+        # Deterministic route scaling bounded in [0.70, 1.30].
+        # Uses Python's built-in hash (stable within a process, seeded differently per
+        # run on CPython 3.3+ with PYTHONHASHSEED). Use abs to handle negative hashes.
+        route_hash = abs(hash(f"{origin.lower().strip()}|{destination.lower().strip()}")) % 1000
+        route_multiplier = 0.70 + (route_hash / 1000.0) * 0.60
         p50 = round(base * route_multiplier, 2)
         result = []
         for i in range(OUTLOOK_DAYS):
@@ -379,14 +398,6 @@ class MLPredictor:
             cached_result, cached_time = self._forecast_cache[cache_key]
             if (now - cached_time) < settings.forecast_cache_ttl_seconds:
                 return cached_result
-
-        # Brief wait if the model is warming up; then serve a heuristic
-        # fallback instead of failing (keeps CI, cold boots and the
-        # forecast desk responsive while training finishes).
-        wait_attempts = 0
-        while self.is_warming_up and wait_attempts < 10:
-            time_module.sleep(1.0)
-            wait_attempts += 1
 
         today = datetime.now()
         with self._lock:
@@ -418,8 +429,11 @@ class MLPredictor:
             )
 
             # Apply a route-specific multiplier based on a deterministic hash of the origin and destination
-            route_hash = sum(ord(c) for c in (origin + destination))
-            route_multiplier = 0.7 + ((route_hash % 60) / 100.0)
+            # Deterministic route scaling bounded in [0.70, 1.30].
+            # Uses Python's built-in hash (stable within a process, seeded differently per
+            # run on CPython 3.3+ with PYTHONHASHSEED). Use abs to handle negative hashes.
+            route_hash = abs(hash(f"{origin.lower().strip()}|{destination.lower().strip()}")) % 1000
+            route_multiplier = 0.70 + (route_hash / 1000.0) * 0.60
             p50_arr = p50_arr * route_multiplier
 
             # Volatility is computed on raw log-returns.
@@ -457,4 +471,9 @@ class MLPredictor:
 predictor_instance = MLPredictor()
 
 async def get_freight_forecast(shockMultiplier: float = 1.0, origin: str = "Newcastle, Australia", destination: str = "Haldia") -> list[dict]:
+    """Wait for model warmup without blocking the event loop, then run inference."""
+    waited = 0
+    while predictor_instance.is_warming_up and waited < 120:
+        await asyncio.sleep(1.0)
+        waited += 1
     return await asyncio.to_thread(predictor_instance.predict_sync, shockMultiplier, origin, destination)

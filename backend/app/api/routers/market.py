@@ -5,9 +5,12 @@ import time as time_module
 
 import structlog
 import yfinance as yf
-from fastapi import APIRouter
+from fastapi import APIRouter, Request
+from slowapi import Limiter
+from slowapi.util import get_remote_address
 
 router = APIRouter(prefix="/api/v1/market", tags=["market"])
+limiter = Limiter(key_func=get_remote_address)
 logger = structlog.get_logger(__name__)
 
 SYMBOLS = {
@@ -51,7 +54,8 @@ def _quote(symbol: str) -> dict:
         return {"symbol": SYMBOLS.get(symbol, symbol), "value": "N/A", "delta": "0.0%"}
 
 @router.get("/ticker")
-async def get_market_ticker():
+@limiter.limit("10/minute")
+async def get_market_ticker(request: Request):
     global _market_cache, _market_cache_time
     now = time_module.time()
     if (
