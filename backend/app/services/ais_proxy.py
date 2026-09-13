@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import asyncio
 import collections
+import contextlib
 import datetime as dt
 import json
 import time as time_module
@@ -87,6 +88,8 @@ _static_meta_cache: dict[str, dict] = {}
 _TRACK_MAX_POINTS = 20
 _TRACK_MAX_VESSELS = 500
 _track: dict[str, collections.deque] = {}
+_active_vessels: dict[str, dict] = {}
+_active_vessels_ts: dict[str, float] = {}
 
 
 def _record_track(mmsi: str, lat: float, lon: float, ts: str | None) -> None:
@@ -339,7 +342,6 @@ async def _collect_live(api_key: str, minLon: float, minLat: float, maxLon: floa
             "StaticDataReport",
         ],
     }
-    vessels: dict[str, dict] = {}
 
     async def _run() -> None:
         async with websockets.connect(AIS_WS_URL, max_size=2**20) as ws:
@@ -382,17 +384,30 @@ async def _collect_live(api_key: str, minLon: float, minLat: float, maxLon: floa
                     # bbox guard (defensive; server already filters)
                     if not (minLat <= norm["lat"] <= maxLat and minLon <= norm["lon"] <= maxLon):
                         continue
-                    vessels[mmsi] = norm
+                    _active_vessels[mmsi] = norm
+                    _active_vessels_ts[mmsi] = time_module.time()
                     _record_track(mmsi, norm["lat"], norm["lon"], norm.get("timestamp"))
                     await asyncio.sleep(0)
-                    if len(vessels) >= VESSEL_MAX_RESULTS:
-                        break
 
-    try:
+    with contextlib.suppress(TimeoutError, asyncio.CancelledError):
         await asyncio.wait_for(_run(), timeout=AIS_TIMEOUT + 5.0)
-    except (TimeoutError, asyncio.CancelledError):
-        pass
-    return list(vessels.values())[:VESSEL_MAX_RESULTS]
+
+    # Purge vessels older than 15 minutes
+    now = time_module.time()
+    to_delete = [mmsi for mmsi, ts in _active_vessels_ts.items() if now - ts > 900.0]
+    for mmsi in to_delete:
+        _active_vessels.pop(mmsi, None)
+        _active_vessels_ts.pop(mmsi, None)
+
+    # Filter by requested bbox
+    res = []
+    for v in _active_vessels.values():
+        if minLat <= v["lat"] <= maxLat and minLon <= v["lon"] <= maxLon:
+            res.append(v)
+            if len(res) >= VESSEL_MAX_RESULTS:
+                break
+
+    return res
 
 
 async def _try_marinetraffic(
