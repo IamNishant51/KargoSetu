@@ -77,21 +77,12 @@ export default function KargoGlobe({ preset, onViewer, onNotice, interactive = t
           credit: "Powered by Esri — Source: Esri, Maxar, Earthstar Geographics, and the GIS User Community",
         });
 
-        let terrainProvider: unknown;
-        try {
-          // Bounded wait: a hung terrain endpoint must never block Viewer
-          // creation (on slow networks this left a permanent navy void).
-          terrainProvider = await Promise.race([
-            Cesium.CesiumTerrainProvider.fromUrl(
-              "https://tiles.reearth.io/cesium-mesh/ellipsoid",
-            ),
-            new Promise<never>((_, reject) =>
-              window.setTimeout(() => reject(new Error("terrain timeout")), 8000),
-            ),
-          ]);
-        } catch {
-          terrainProvider = new Cesium.EllipsoidTerrainProvider();
-        }
+        // Terrain: flat ellipsoid by default. Verified 2026-09: the public
+        // quantized-mesh endpoint (tiles.reearth.io layer.json) 404s and has
+        // no CORS headers, and this build has no ArcGIS terrain provider, so
+        // any mesh attempt only produces console errors. The corridor is
+        // ocean plus coastal plain, where relief adds nothing visually.
+        const terrainProvider = new Cesium.EllipsoidTerrainProvider();
 
         viewer = new Cesium.Viewer(containerRef.current, {
           baseLayerPicker: false,
