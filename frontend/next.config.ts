@@ -20,7 +20,10 @@ const nextConfig: NextConfig = {
   },
   compress: true,
   async rewrites() {
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+    let apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+    if (apiUrl.includes(".hf.space") && apiUrl.startsWith("http://")) {
+      apiUrl = apiUrl.replace("http://", "https://");
+    }
     return [
       {
         source: "/api/:path*",
