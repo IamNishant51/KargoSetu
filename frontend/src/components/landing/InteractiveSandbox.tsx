@@ -30,7 +30,7 @@ export default function InteractiveSandbox() {
       commodity: string;
     }) => {
       const baseUrl =
-        process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+        (String(process.env.NODE_ENV) === "production" ? "" : ((String(process.env.NODE_ENV) === "production" ? "" : (process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"))));
       const res = await fetch(`${baseUrl}/api/v1/requisitions/evaluate`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -58,7 +58,7 @@ export default function InteractiveSandbox() {
     queryKey: ["forecastRates", shockMultiplier],
     queryFn: async () => {
       const baseUrl =
-        process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+        (String(process.env.NODE_ENV) === "production" ? "" : ((String(process.env.NODE_ENV) === "production" ? "" : (process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"))));
       const res = await fetch(
         `${baseUrl}/api/v1/forecast/rates?shockMultiplier=${shockMultiplier}`,
       );
@@ -75,7 +75,7 @@ export default function InteractiveSandbox() {
   const { data: corridorData } = useQuery({
     queryKey: ["portCorridor"],
     queryFn: async () => {
-      const base = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+      const base = (String(process.env.NODE_ENV) === "production" ? "" : ((String(process.env.NODE_ENV) === "production" ? "" : (process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"))));
       const res = await fetch(`${base}/api/v1/ports/corridor`);
       if (!res.ok) throw new Error("corridor fetch failed");
       return res.json();

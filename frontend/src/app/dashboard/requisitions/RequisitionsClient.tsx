@@ -77,7 +77,7 @@ export default function RequisitionsPage() {
   const createMutation = useMutation({
     mutationFn: async (newReq: Record<string, unknown>) => {
       const baseUrl =
-        process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+        (String(process.env.NODE_ENV) === "production" ? "" : ((String(process.env.NODE_ENV) === "production" ? "" : (process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"))));
       const res = await fetch(`${baseUrl}/api/v1/requisitions`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -105,7 +105,7 @@ export default function RequisitionsPage() {
   const { data: portsData } = useQuery({
     queryKey: ["port-names"],
     queryFn: async () => {
-      const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+      const baseUrl = (String(process.env.NODE_ENV) === "production" ? "" : ((String(process.env.NODE_ENV) === "production" ? "" : (process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"))));
       const res = await fetch(`${baseUrl}/api/v1/ports`);
       if (!res.ok) return [];
       const data = await res.json();
@@ -233,7 +233,7 @@ export default function RequisitionsPage() {
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
       const baseUrl =
-        process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+        (String(process.env.NODE_ENV) === "production" ? "" : ((String(process.env.NODE_ENV) === "production" ? "" : (process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"))));
       const res = await fetch(`${baseUrl}/api/v1/requisitions/${id}`, {
         method: "DELETE",
       });
@@ -267,7 +267,7 @@ export default function RequisitionsPage() {
     if (dateRange !== "All Time") params.append("dateRange", dateRange);
     if (debouncedSearch) params.append("search", debouncedSearch);
 
-    const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+    const baseUrl = (String(process.env.NODE_ENV) === "production" ? "" : ((String(process.env.NODE_ENV) === "production" ? "" : (process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"))));
     const res = await fetch(
       `${baseUrl}/api/v1/requisitions?${params.toString()}`,
     );

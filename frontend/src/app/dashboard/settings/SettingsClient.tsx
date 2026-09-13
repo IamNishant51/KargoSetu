@@ -46,7 +46,7 @@ const ToggleSwitch = ({
   </div>
 );
 
-const API_BASE = `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/api/v1`;
+const API_BASE = `${(String(process.env.NODE_ENV) === "production" ? "" : ((String(process.env.NODE_ENV) === "production" ? "" : (process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"))))}/api/v1`;
 
 export default function SettingsPage({
   settingsPromise,

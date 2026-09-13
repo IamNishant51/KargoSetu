@@ -55,7 +55,7 @@ export function useNotifications() {
   const query = useQuery<DeskNotification[]>({
     queryKey: ["notifications"],
     queryFn: async () => {
-      const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+      const baseUrl = (String(process.env.NODE_ENV) === "production" ? "" : ((String(process.env.NODE_ENV) === "production" ? "" : (process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"))));
       const token = Cookies.get("auth_token");
       const res = await fetch(`${baseUrl}/api/v1/notifications?limit=20`, {
         headers: token ? { Authorization: `Bearer ${token}` } : {},

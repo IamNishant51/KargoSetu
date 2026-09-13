@@ -1,8 +1,6 @@
 export function getApiBase(): string {
-  // When NEXT_PUBLIC_API_URL is set (local dev without rewrites), use it directly.
-  // When running on Vercel/production, NEXT_PUBLIC_API_URL is not set and the
-  // next.config.ts rewrite proxies /api/* to the HF Spaces backend.
-  return process.env.NEXT_PUBLIC_API_URL ?? "";
+  if (String(process.env.NODE_ENV) === "production") return "";
+  return process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 }
 
 export interface BBox {

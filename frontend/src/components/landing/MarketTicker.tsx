@@ -22,7 +22,7 @@ export default function MarketTicker() {
   const { data } = useQuery({
     queryKey: ["marketTicker"],
     queryFn: async () => {
-      const base = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+      const base = (String(process.env.NODE_ENV) === "production" ? "" : ((String(process.env.NODE_ENV) === "production" ? "" : (process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"))));
       const res = await fetch(`${base}/api/v1/market/ticker`);
       if (!res.ok) throw new Error("ticker");
       return res.json();
@@ -34,7 +34,7 @@ export default function MarketTicker() {
   const { data: vessels } = useQuery<{ vessels?: Array<unknown>; mode?: string }>({
     queryKey: ["tickerVessels"],
     queryFn: async () => {
-      const base = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+      const base = (String(process.env.NODE_ENV) === "production" ? "" : ((String(process.env.NODE_ENV) === "production" ? "" : (process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"))));
       const res = await fetch(
         `${base}/api/v1/vessels/live?minLon=80&minLat=15&maxLon=95&maxLat=23.5`,
       );
@@ -50,7 +50,7 @@ export default function MarketTicker() {
   const { data: corridor } = useQuery<Array<{ name?: string; draft?: string }>>({
     queryKey: ["tickerCorridor"],
     queryFn: async () => {
-      const base = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+      const base = (String(process.env.NODE_ENV) === "production" ? "" : ((String(process.env.NODE_ENV) === "production" ? "" : (process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"))));
       const res = await fetch(`${base}/api/v1/ports/corridor`);
       if (!res.ok) throw new Error("corridor");
       return res.json();

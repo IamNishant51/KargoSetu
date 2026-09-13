@@ -28,7 +28,7 @@ const ForecastPriceChart = React.memo(function ForecastPriceChart() {
     queryKey: ["forecast", shockMultiplier],
     queryFn: async () => {
       const baseUrl =
-        process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+        (String(process.env.NODE_ENV) === "production" ? "" : ((String(process.env.NODE_ENV) === "production" ? "" : (process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"))));
       const res = await fetch(
         `${baseUrl}/api/v1/forecast/rates?shockMultiplier=${shockMultiplier}`,
       );
