@@ -24,7 +24,7 @@ AIS_TIMEOUT = 5.0
 VESSEL_CACHE_TTL = 30.0
 VESSEL_MAX_RESULTS = 500
 DEFAULT_BBOX = {"minLon": -180.0, "minLat": -90.0, "maxLon": 180.0, "maxLat": 90.0}
-MAX_BBOX_SPAN = 360.0
+MAX_BBOX_SPAN = 30.0
 
 _vessel_cache: list[dict] | None = None
 _vessel_cache_time: float = 0.0
