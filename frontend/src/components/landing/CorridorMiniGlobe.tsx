@@ -27,6 +27,8 @@ export default function CorridorMiniGlobe() {
   const [viewer, setViewer] = React.useState<CesiumViewer | null>(null);
   const [activePreset, setActivePreset] = React.useState<CameraPresetId>("corridor");
   const [selectedMmsi, setSelectedMmsi] = React.useState<string | null>(null);
+  const [notice, setNotice] = React.useState<string | null>(null);
+  const [globeKey, setGlobeKey] = React.useState(0);
 
   const bbox = DEFAULT_BBOX;
   const vesselsQuery = useVessels(bbox);
@@ -34,9 +36,18 @@ export default function CorridorMiniGlobe() {
   const corridorQuery = useCorridor();
 
   const vessels = React.useMemo(() => vesselsQuery.data?.vessels ?? [], [vesselsQuery.data?.vessels]);
-  const mode = vesselsQuery.data?.mode ?? "demo";
+  const mode = vesselsQuery.data?.mode ?? (vesselsQuery.isLoading ? "connecting" : "unavailable");
   const hazards = hazardsQuery.data;
   const corridor = React.useMemo(() => corridorQuery.data ?? [], [corridorQuery.data]);
+
+  const retryFeed = React.useCallback(() => {
+    setNotice(null);
+    setGlobeKey((k) => k + 1);
+    void vesselsQuery.refetch();
+    void hazardsQuery.refetch();
+    void corridorQuery.refetch();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const selectedVessel = React.useMemo(
     () => vessels.find((v) => v.mmsi === selectedMmsi) ?? null,
@@ -77,7 +88,7 @@ export default function CorridorMiniGlobe() {
     <div className="relative h-[480px] sm:h-[540px] w-full rounded-2xl overflow-hidden bg-[#0A2342] border border-[#E2E6EB] shadow-lg">
       {/* 3D WebGL Canvas */}
       <div className="absolute inset-0">
-        <KargoGlobe preset={activePreset} onViewer={setViewer} interactive={true} />
+        <KargoGlobe key={globeKey} preset={activePreset} onViewer={setViewer} onNotice={setNotice} interactive={true} />
         <VesselLayer
           viewer={viewer}
           vessels={vessels}
@@ -106,16 +117,40 @@ export default function CorridorMiniGlobe() {
           <div className="flex items-center gap-2">
             <span
               className={`inline-block h-2 w-2 rounded-full ${
-                mode === "live" ? "bg-[#0E7A3D] animate-pulse" : "bg-[#D95D0F]"
+                mode === "live"
+                  ? "bg-[#0E7A3D] animate-pulse"
+                  : mode === "connecting"
+                    ? "bg-[#6B7D99] animate-pulse"
+                    : mode === "unavailable"
+                      ? "bg-[#B42318]"
+                      : "bg-[#D95D0F]"
               }`}
             />
             <span className="font-mono text-[10px] font-bold uppercase tracking-[0.14em] text-[#0A2342]">
-              {mode === "live" ? "Live AIS Radar" : "Demo Corridor Feed"}
+              {mode === "live"
+                ? "Live AIS Radar"
+                : mode === "connecting"
+                  ? "Connecting"
+                  : mode === "unavailable"
+                    ? "Feed unavailable"
+                    : "Demo Corridor Feed"}
             </span>
             <span className="text-[#6B7D99] text-xs">·</span>
-            <span className="font-mono text-[11px] font-semibold text-[#3D4F68]">
-              {vessels.length} vessels in Bay
-            </span>
+            {vesselsQuery.isError && !vesselsQuery.isLoading ? (
+              <button
+                type="button"
+                onClick={retryFeed}
+                className="font-mono text-[11px] font-bold text-[#B42318] hover:text-[#0A2342] underline underline-offset-2"
+              >
+                Retry feed
+              </button>
+            ) : (
+              <span className="font-mono text-[11px] font-semibold text-[#3D4F68]">
+                {vesselsQuery.isLoading && vessels.length === 0
+                  ? "loading vessels"
+                  : `${vessels.length} vessels in Bay`}
+              </span>
+            )}
           </div>
         </div>
 
@@ -202,6 +237,20 @@ export default function CorridorMiniGlobe() {
               Open in Cargo Solver ➔
             </Link>
           </div>
+        </div>
+      )}
+
+      {/* Canvas failure notice (terrain/tile/WebGL) with one-click rebuild */}
+      {notice && (
+        <div className="pointer-events-auto absolute left-3 top-[68px] z-30 max-w-[320px] rounded-xl border border-[#E2E6EB] bg-white px-3 py-2 shadow-xl">
+          <p className="text-[12px] font-semibold text-[#B42318]">{notice}</p>
+          <button
+            type="button"
+            onClick={retryFeed}
+            className="mt-1.5 rounded-lg bg-[#0A2342] px-3 py-1.5 text-[12px] font-bold text-white hover:bg-[#14315C]"
+          >
+            Reload 3D view
+          </button>
         </div>
       )}
 

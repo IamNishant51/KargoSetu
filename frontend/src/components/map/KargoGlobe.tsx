@@ -78,9 +78,16 @@ export default function KargoGlobe({ preset, onViewer, onNotice, interactive = t
 
         let terrainProvider: unknown;
         try {
-          terrainProvider = await Cesium.CesiumTerrainProvider.fromUrl(
-            "https://tiles.reearth.io/cesium-mesh/ellipsoid",
-          );
+          // Bounded wait: a hung terrain endpoint must never block Viewer
+          // creation (on slow networks this left a permanent navy void).
+          terrainProvider = await Promise.race([
+            Cesium.CesiumTerrainProvider.fromUrl(
+              "https://tiles.reearth.io/cesium-mesh/ellipsoid",
+            ),
+            new Promise<never>((_, reject) =>
+              window.setTimeout(() => reject(new Error("terrain timeout")), 8000),
+            ),
+          ]);
         } catch {
           terrainProvider = new Cesium.EllipsoidTerrainProvider();
         }
