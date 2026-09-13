@@ -18,7 +18,7 @@ export interface CameraPreset {
 }
 
 export const CAMERA_PRESETS: Record<CameraPresetId, CameraPreset> = {
-  corridor: { id: "corridor", lon: 86.5, lat: 19.5, height: 2200000 },
+  corridor: { id: "corridor", lon: 92.0, lat: 10.0, height: 4000000 },
   haldia: { id: "haldia", lon: 88.06, lat: 22.03, height: 180000 },
   paradip: { id: "paradip", lon: 86.68, lat: 20.26, height: 180000 },
   dhamra: { id: "dhamra", lon: 86.99, lat: 20.79, height: 180000 },
