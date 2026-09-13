@@ -370,8 +370,8 @@ export default function RequisitionsPage() {
           </div>
           <div>
               <p className="text-sm font-medium text-[#3D4F68]">{t("stat_total")}</p>
-            <h3 className="text-2xl font-bold text-[#0A2342]">
-              {data?.meta?.total || 0}
+            <h3 className="text-2xl font-bold text-[#0A2342] mt-0.5">
+              {isLoading ? <Skeleton className="h-7 w-12" /> : data?.meta?.total || 0}
             </h3>
             <p className="text-xs font-medium text-[#0E7A3D] mt-1">
               ↑ 12%{" "}
@@ -389,7 +389,9 @@ export default function RequisitionsPage() {
           </div>
           <div>
             <p className="text-sm font-medium text-[#6B7D99]">{t("pending")}</p>
-            <h3 className="text-2xl font-bold text-[#0A2342]">32</h3>
+            <h3 className="text-2xl font-bold text-[#0A2342] mt-0.5">
+              {isLoading ? <Skeleton className="h-7 w-12" /> : data?.meta?.stats?.["Pending Evaluation"] || 0}
+            </h3>
             <p className="text-xs font-medium text-[#D95D0F] mt-1">
               ↑ 8%{" "}
               <span className="text-[#6B7D99] font-normal">
@@ -406,7 +408,9 @@ export default function RequisitionsPage() {
           </div>
           <div>
             <p className="text-sm font-medium text-[#6B7D99]">{t("feasible")}</p>
-            <h3 className="text-2xl font-bold text-[#0A2342]">68</h3>
+            <h3 className="text-2xl font-bold text-[#0A2342] mt-0.5">
+              {isLoading ? <Skeleton className="h-7 w-12" /> : data?.meta?.stats?.["Feasible"] || 0}
+            </h3>
             <p className="text-xs font-medium text-[#0E7A3D] mt-1">
               ↑ 15%{" "}
               <span className="text-[#6B7D99] font-normal">
@@ -423,7 +427,9 @@ export default function RequisitionsPage() {
           </div>
           <div>
             <p className="text-sm font-medium text-[#6B7D99]">{t("infeasible")}</p>
-            <h3 className="text-2xl font-bold text-[#0A2342]">14</h3>
+            <h3 className="text-2xl font-bold text-[#0A2342] mt-0.5">
+              {isLoading ? <Skeleton className="h-7 w-12" /> : data?.meta?.stats?.["Infeasible"] || 0}
+            </h3>
             <p className="text-xs font-medium text-[#B42318] mt-1">
               ↓ 3%{" "}
               <span className="text-[#6B7D99] font-normal">
@@ -442,7 +448,9 @@ export default function RequisitionsPage() {
             <p className="text-sm font-medium text-[#6B7D99]">
               {t("stat_converted")}
             </p>
-            <h3 className="text-2xl font-bold text-[#0A2342]">24</h3>
+            <h3 className="text-2xl font-bold text-[#0A2342] mt-0.5">
+              {isLoading ? <Skeleton className="h-7 w-12" /> : data?.meta?.stats?.["Converted"] || 0}
+            </h3>
             <p className="text-xs font-medium text-[#0E7A3D] mt-1">
               ↑ 10%{" "}
               <span className="text-[#6B7D99] font-normal">

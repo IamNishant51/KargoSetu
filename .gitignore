@@ -25,3 +25,6 @@ POSTGRES_SETUP.md.opencode/
 DEPLOYMENT_GUIDE.md
 DEPLOYMENT_GUIDE.md.opencode/
 oracle_backend_deployment.md
+
+# AI Agent Configs
+.agents/

@@ -37,7 +37,7 @@ METEO_HOST = "https://api.open-meteo.com"
 USGS_TTL = 300.0
 FIRMS_TTL = 1800.0
 METEO_TTL = 300.0
-DEFAULT_BBOX = {"minLon": 80.0, "minLat": 15.0, "maxLon": 95.0, "maxLat": 23.5}
+DEFAULT_BBOX = {"minLon": -180.0, "minLat": -90.0, "maxLon": 180.0, "maxLat": 90.0}
 
 _usgs_cache: list[dict] = []
 _usgs_time: float = 0.0
@@ -295,8 +295,8 @@ async def get_hazards_summary(
 ):
     if not (minLon < maxLon and minLat < maxLat):
         raise HTTPException(status_code=422, detail="min must be less than max for lon/lat bounds")
-    if (maxLon - minLon) > 30.0 or (maxLat - minLat) > 30.0:
-        raise HTTPException(status_code=422, detail="bbox span exceeds 30 degrees per side")
+    if (maxLon - minLon) > 360.0 or (maxLat - minLat) > 360.0:
+        raise HTTPException(status_code=422, detail="bbox span exceeds 360 degrees per side")
     quakes, firms, meteo = await asyncio.gather(
         _fetch_usgs(minLon, minLat, maxLon, maxLat),
         _fetch_firms(minLon, minLat, maxLon, maxLat),

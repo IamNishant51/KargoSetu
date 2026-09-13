@@ -48,7 +48,9 @@ export default function VesselLayer({
     if (lastUpdateRef.current === 0) lastUpdateRef.current = Date.now();
   }, []);
 
-  const shown = React.useMemo(() => vessels.slice(0, 500), [vessels]);
+  const shown = React.useMemo(() => {
+    return vessels.length > 500 ? vessels.slice(0, 500) : vessels;
+  }, [vessels]);
 
   // Sync entity set with latest fixes; keep prev for interpolation.
   React.useEffect(() => {

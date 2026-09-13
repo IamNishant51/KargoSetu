@@ -186,9 +186,15 @@ class MLPredictor:
             start_date = end_date - timedelta(days=5 * 365)
 
             try:
-                data_bdry = yf.download("BDRY", start=start_date, end=end_date, progress=False)
-                data_sp500 = yf.download("^GSPC", start=start_date, end=end_date, progress=False)
-                data_oil = yf.download("CL=F", start=start_date, end=end_date, progress=False)
+                import concurrent.futures
+                with concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor:
+                    f_bdry = executor.submit(yf.download, "BDRY", start=start_date, end=end_date, progress=False)
+                    f_sp500 = executor.submit(yf.download, "^GSPC", start=start_date, end=end_date, progress=False)
+                    f_oil = executor.submit(yf.download, "CL=F", start=start_date, end=end_date, progress=False)
+
+                    data_bdry = f_bdry.result()
+                    data_sp500 = f_sp500.result()
+                    data_oil = f_oil.result()
 
                 df_bdry = self._safe_close(data_bdry, "bdry")
                 df_sp500 = self._safe_close(data_sp500, "sp500")
@@ -289,11 +295,11 @@ class MLPredictor:
 
     def _train_model(self, train_x, train_y, val_x, val_y):
         model = Sequential([
+            tf.keras.layers.Input(shape=(LOOKBACK_DAYS, settings.ml_num_features)),
             Conv1D(
                 filters=64,
                 kernel_size=3,
                 activation="relu",
-                input_shape=(LOOKBACK_DAYS, settings.ml_num_features),
             ),
             BatchNormalization(),
             LSTM(64, return_sequences=False, recurrent_dropout=0.1),
@@ -430,9 +436,9 @@ class MLPredictor:
 
             # Apply a route-specific multiplier based on a deterministic hash of the origin and destination
             # Deterministic route scaling bounded in [0.70, 1.30].
-            # Uses Python's built-in hash (stable within a process, seeded differently per
-            # run on CPython 3.3+ with PYTHONHASHSEED). Use abs to handle negative hashes.
-            route_hash = abs(hash(f"{origin.lower().strip()}|{destination.lower().strip()}")) % 1000
+            import hashlib
+            route_str = f"{origin.lower().strip()}|{destination.lower().strip()}".encode('utf-8')
+            route_hash = int(hashlib.md5(route_str).hexdigest()[:8], 16) % 1000
             route_multiplier = 0.70 + (route_hash / 1000.0) * 0.60
             p50_arr = p50_arr * route_multiplier
 
@@ -452,9 +458,7 @@ class MLPredictor:
             p50_list = p50_arr.tolist()
             p90_list = p90_arr.tolist()
 
-            dates = [
-                (today + timedelta(days=int(i) + 1)).strftime("%Y-%m-%d") for i in i_arr
-            ]
+            dates = pd.date_range(start=today + timedelta(days=1), periods=OUTLOOK_DAYS).strftime("%Y-%m-%d").tolist()
 
             result = [
                 {

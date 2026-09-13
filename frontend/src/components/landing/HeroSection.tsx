@@ -51,7 +51,7 @@ export default function HeroSection() {
 
             <h1 className="mt-5 font-display font-black text-[#0A2342] tracking-[-0.03em] leading-[1.0] text-balance text-[40px] sm:text-[56px] lg:text-[68px] xl:text-[76px]">
               Haldia can&apos;t take a Capesize.{" "}
-              <span className="text-[#D95D0F]">We know first.</span>
+              <span className="text-[#D95D0F] whitespace-nowrap">We know first.</span>
             </h1>
 
             <p className="mt-5 max-w-lg text-[15.5px] sm:text-[18px] leading-relaxed text-[#3D4F68]">

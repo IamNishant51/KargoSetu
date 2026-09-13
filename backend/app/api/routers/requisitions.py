@@ -55,6 +55,26 @@ async def get_requisitions(
 
     total_pages = math.ceil(total_count / limit) if limit > 0 else 0
 
+    # Calculate stats based on the same where clause (or global)
+    # Usually stats reflect the current filter
+    status_counts = await prisma.requisition.group_by(
+        by=["status"],
+        count={"id": True},
+        where=where
+    )
+    
+    stats = {
+        "Pending Evaluation": 0,
+        "Feasible": 0,
+        "Infeasible": 0,
+        "Converted": 0,
+    }
+    for item in status_counts:
+        s = item.get("status")
+        c = item.get("_count", {}).get("id", 0)
+        if s in stats:
+            stats[s] = c
+
     return {
         "data": requisitions,
         "meta": {
@@ -62,6 +82,7 @@ async def get_requisitions(
             "limit": limit,
             "total": total_count,
             "totalPages": total_pages,
+            "stats": stats,
         },
     }
 

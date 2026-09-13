@@ -122,7 +122,7 @@ async def evaluate_requisition(req_data: RequisitionEvaluateRequest) -> dict[str
 
         res = await client.get(
             f"https://marine-api.open-meteo.com/v1/marine?latitude={lat}&longitude={lon}&hourly=ocean_tide",
-            timeout=5.0
+            timeout=2.0
         )
 
         if res.status_code == 200:

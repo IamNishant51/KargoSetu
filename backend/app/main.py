@@ -100,15 +100,18 @@ async def lifespan(app: FastAPI):
     # Start ML model initialization in the background
     from app.services.ml_predictor import predictor_instance
 
-    # Held module-wide so the tasks are never garbage-collected mid-flight.
-    _background_tasks.add(asyncio.create_task(predictor_instance.init_model()))
-    logger.info("ml_model_warmup_started")
+    try:
+        # Held module-wide so the tasks are never garbage-collected mid-flight.
+        _background_tasks.add(asyncio.create_task(predictor_instance.init_model()))
+        logger.info("ml_model_warmup_started")
 
-    _background_tasks.add(
-        asyncio.create_task(
-            predictor_instance.schedule_retraining(interval_hours=6)
+        _background_tasks.add(
+            asyncio.create_task(
+                predictor_instance.schedule_retraining(interval_hours=6)
+            )
         )
-    )
+    except Exception as exc:
+        logger.error("ml_model_warmup_failed", error=str(exc))
 
     yield
 
