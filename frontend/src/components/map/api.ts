@@ -11,10 +11,10 @@ export interface BBox {
 }
 
 export const DEFAULT_BBOX: BBox = {
-  minLon: -180.0,
-  minLat: -90.0,
-  maxLon: 180.0,
-  maxLat: 90.0,
+  minLon: 88.0,
+  minLat: -13.0,
+  maxLon: 118.0,
+  maxLat: 17.0,
 };
 
 export interface Vessel {
