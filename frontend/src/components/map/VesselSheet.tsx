@@ -21,14 +21,26 @@ export default function VesselSheet({ vessel, mode, corridor, onClose }: VesselS
   const [result, setResult] = React.useState<string | null>(null);
 
   const evaluate = useMutation({
-    mutationFn: async () => {      const saved = loadJSON<{ volume?: string; port?: string; commodity?: string }>(
+    mutationFn: async () => {      const saved = loadJSON<{
+        volume?: string | number;
+        port?: string | { name?: string } | null;
+        commodity?: string;
+      }>(
         "kargosetu_eval_v1",
         {},
       );
+      // The solver desk persists `port` as a { name, subtext } object while
+      // landing widgets persist it as a string. Accept both so a stale or
+      // desk-written value can never produce a 422 here.
+      const dest_port_name = asPortName(saved.port) ?? "Haldia";
       const volumeRaw = String(saved.volume ?? "145,000").replace(/,/g, "");
-      const volume_mt = Number(volumeRaw) || 145000;
-      const dest_port_name = saved.port || "Haldia";
-      const commodity = saved.commodity || "Iron Ore";
+      const parsedVolume = Number(volumeRaw);
+      const volume_mt =
+        Number.isFinite(parsedVolume) && parsedVolume > 0 ? parsedVolume : 145000;
+      const commodity =
+        typeof saved.commodity === "string" && saved.commodity.trim()
+          ? saved.commodity
+          : "Iron Ore";
       const res = await fetch(`${getApiBase()}/api/v1/requisitions/evaluate`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -37,13 +49,13 @@ export default function VesselSheet({ vessel, mode, corridor, onClose }: VesselS
       if (!res.ok) {
         let detail = "";
         try {
-          const body = (await res.json()) as { detail?: string };
-          if (typeof body.detail === "string") detail = body.detail;
+          const body = (await res.json()) as { detail?: unknown };
+          detail = formatDetail(body.detail);
         } catch {
           // non-JSON error body; fall through to status text
         }
         throw new Error(
-          (detail ? `${res.status} ${detail}` : `HTTP ${res.status}`).slice(0, 140),
+          (detail ? `${res.status} ${detail}` : `HTTP ${res.status}`).slice(0, 200),
         );
       }
       const data = await res.json();
@@ -156,8 +168,35 @@ export default function VesselSheet({ vessel, mode, corridor, onClose }: VesselS
   );
 }
 
-function nearestPort(lat: number, lon: number, corridor: CorridorPort[]) {
-  let best: { name: string; nm: number } | null = null;
+function asPortName(value: unknown): string | null {
+  if (typeof value === "string" && value.trim()) return value;
+  if (value && typeof value === "object") {
+    const name = (value as { name?: unknown }).name;
+    if (typeof name === "string" && name.trim()) return name;
+  }
+  return null;
+}
+
+function formatDetail(detail: unknown): string {
+  if (typeof detail === "string") return detail;
+  // FastAPI request-validation errors arrive as a list of { loc, msg }.
+  if (Array.isArray(detail)) {
+    return detail
+      .map((d) =>
+        typeof d === "string"
+          ? d
+          : d && typeof d === "object" && typeof (d as { msg?: unknown }).msg === "string"
+            ? ((d as { loc?: unknown; msg: string }).loc
+                ? `${JSON.stringify((d as { loc: unknown }).loc)}: ${(d as { msg: string }).msg}`
+                : (d as { msg: string }).msg)
+            : JSON.stringify(d),
+      )
+      .join("; ");
+  }
+  return "";
+}
+
+function nearestPort(lat: number, lon: number, corridor: CorridorPort[]) {  let best: { name: string; nm: number } | null = null;
   for (const p of corridor) {
     if (typeof p.lat !== "number" || typeof p.lon !== "number") continue;
     const nm = haversineNm(lat, lon, p.lat, p.lon);

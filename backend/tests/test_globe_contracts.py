@@ -10,6 +10,7 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 from fastapi import HTTPException, Request
+from pydantic import ValidationError
 
 import app.api.routers.hazards as hazards
 import app.api.routers.ports as ports
@@ -54,6 +55,31 @@ async def test_value_error_maps_to_400():
     import json
 
     assert "bbox span" in json.loads(res.body.decode())["detail"]
+
+
+def test_globe_evaluate_payload_shape():
+    """The exact body VesselSheet.tsx posts must validate.
+
+    Regression: the solver desk persists `port` as a { name, subtext }
+    object under the shared kargosetu_eval_v1 key. If that object ever
+    reaches dest_port_name the API correctly returns 422, so the globe
+    must normalize it to a string first. Whole-number JS volumes must
+    keep validating as float.
+    """
+    from app.schemas.requisition import RequisitionEvaluateRequest
+
+    ok = RequisitionEvaluateRequest(
+        volume_mt=145000, dest_port_name="Haldia", commodity="Iron Ore"
+    )
+    assert ok.volume_mt == 145000.0
+    assert ok.dest_port_name == "Haldia"
+
+    with pytest.raises(ValidationError):
+        RequisitionEvaluateRequest(
+            volume_mt=145000,
+            dest_port_name={"name": "Haldia"},  # type: ignore[dict-item]
+            commodity="Iron Ore",
+        )
 
 
 @pytest.mark.asyncio
