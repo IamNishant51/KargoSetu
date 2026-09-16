@@ -62,7 +62,7 @@ async def get_requisitions(
         count={"id": True},
         where=where
     )
-    
+
     stats = {
         "Pending Evaluation": 0,
         "Feasible": 0,

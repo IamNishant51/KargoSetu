@@ -437,7 +437,7 @@ class MLPredictor:
             # Apply a route-specific multiplier based on a deterministic hash of the origin and destination
             # Deterministic route scaling bounded in [0.70, 1.30].
             import hashlib
-            route_str = f"{origin.lower().strip()}|{destination.lower().strip()}".encode('utf-8')
+            route_str = f"{origin.lower().strip()}|{destination.lower().strip()}".encode()
             route_hash = int(hashlib.md5(route_str).hexdigest()[:8], 16) % 1000
             route_multiplier = 0.70 + (route_hash / 1000.0) * 0.60
             p50_arr = p50_arr * route_multiplier
