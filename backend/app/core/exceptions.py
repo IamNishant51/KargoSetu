@@ -9,7 +9,7 @@ in the Next.js frontend.
 
 import structlog
 from fastapi import FastAPI, Request
-from fastapi.responses import ORJSONResponse
+from fastapi.responses import JSONResponse
 from prisma.errors import PrismaError
 
 logger = structlog.get_logger(__name__)
@@ -18,20 +18,20 @@ logger = structlog.get_logger(__name__)
 async def prisma_error_handler(
     request: Request,
     exc: PrismaError,
-) -> ORJSONResponse:
+) -> JSONResponse:
     """Handle Prisma ORM errors with appropriate HTTP status codes."""
     error_msg = str(exc)
 
     # Record not found
     if "RecordNotFound" in error_msg:
-        return ORJSONResponse(
+        return JSONResponse(
             status_code=404,
             content={"detail": "Resource not found"},
         )
 
     # Unique constraint violation
     if "Unique constraint" in error_msg:
-        return ORJSONResponse(
+        return JSONResponse(
             status_code=409,
             content={"detail": "Resource already exists"},
         )
@@ -40,7 +40,7 @@ async def prisma_error_handler(
     logger.error(
         "prisma_error", error=error_msg, path=request.url.path
     )
-    return ORJSONResponse(
+    return JSONResponse(
         status_code=500,
         content={"detail": "Database operation failed"},
     )
@@ -49,9 +49,9 @@ async def prisma_error_handler(
 async def value_error_handler(
     request: Request,
     exc: ValueError,
-) -> ORJSONResponse:
+) -> JSONResponse:
     """Handle request validation errors (e.g. bad bbox) as 400, never 500."""
-    return ORJSONResponse(
+    return JSONResponse(
         status_code=400,
         content={"detail": str(exc)},
     )
@@ -60,7 +60,7 @@ async def value_error_handler(
 async def generic_error_handler(
     request: Request,
     exc: Exception,
-) -> ORJSONResponse:
+) -> JSONResponse:
     """Catch-all handler for unhandled exceptions."""
     logger.error(
         "unhandled_exception",
@@ -69,7 +69,7 @@ async def generic_error_handler(
         path=request.url.path,
         method=request.method,
     )
-    return ORJSONResponse(
+    return JSONResponse(
         status_code=500,
         content={"detail": "Internal server error"},
     )

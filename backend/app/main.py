@@ -13,7 +13,7 @@ import structlog
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
-from fastapi.responses import ORJSONResponse
+from fastapi.responses import JSONResponse
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from slowapi.util import get_remote_address
@@ -135,7 +135,7 @@ app = FastAPI(
     ),
     version=app_settings.app_version,
     lifespan=lifespan,
-    default_response_class=ORJSONResponse,
+    default_response_class=JSONResponse,
 )
 
 # --- Middleware Stack (order matters: last added = first executed) ---

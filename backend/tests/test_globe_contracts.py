@@ -33,7 +33,7 @@ def _req() -> Request:
 
 @pytest.mark.asyncio
 async def test_vessels_demo_mode_shape():
-    result = await ais_proxy.get_vessels(api_key="")
+    result = await ais_proxy.get_vessels(api_key="", minLon=0.0, minLat=0.0, maxLon=10.0, maxLat=10.0)
     parsed = VesselLiveResponse(**result)
     assert parsed.mode == "demo"
     assert 8 <= len(parsed.vessels) <= 500
@@ -152,7 +152,7 @@ def test_voyage_fields_flow_to_position():
 @pytest.mark.asyncio
 async def test_hazards_bbox_span_raises_value_error():
     with pytest.raises(HTTPException) as exc_info:
-        await get_hazards_summary(_req(), minLon=0.0, minLat=0.0, maxLon=100.0, maxLat=10.0)
+        await get_hazards_summary(_req(), minLon=0.0, minLat=0.0, maxLon=400.0, maxLat=10.0)
     assert exc_info.value.status_code == 422
 
 
@@ -458,7 +458,7 @@ async def test_vessels_mt_fallback_when_aisstream_empty(monkeypatch):
     monkeypatch.setattr(proxy, "_vessel_cache", None)
     monkeypatch.setattr(proxy, "_vessel_cache_time", 0.0)
 
-    result = await proxy.get_vessels(api_key="AISKEY")
+    result = await proxy.get_vessels(api_key="AISKEY", minLon=0.0, minLat=0.0, maxLon=10.0, maxLat=10.0)
     parsed = VesselLiveResponse(**result)
     assert parsed.mode == "live"
     assert parsed.vessels[0].mmsi == "999000111"

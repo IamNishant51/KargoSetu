@@ -188,9 +188,9 @@ class MLPredictor:
             try:
                 import concurrent.futures
                 with concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor:
-                    f_bdry = executor.submit(yf.download, "BDRY", start=start_date, end=end_date, progress=False)
-                    f_sp500 = executor.submit(yf.download, "^GSPC", start=start_date, end=end_date, progress=False)
-                    f_oil = executor.submit(yf.download, "CL=F", start=start_date, end=end_date, progress=False)
+                    f_bdry = executor.submit(yf.download, "BDRY", start=start_date, end=end_date, progress=False, auto_adjust=False)
+                    f_sp500 = executor.submit(yf.download, "^GSPC", start=start_date, end=end_date, progress=False, auto_adjust=False)
+                    f_oil = executor.submit(yf.download, "CL=F", start=start_date, end=end_date, progress=False, auto_adjust=False)
 
                     data_bdry = f_bdry.result()
                     data_sp500 = f_sp500.result()
