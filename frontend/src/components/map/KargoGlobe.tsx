@@ -105,6 +105,15 @@ export default function KargoGlobe({ preset, onViewer, onNotice, interactive = t
         viewer.scene.msaaSamples = 2;
         viewer.scene.globe.depthTestAgainstTerrain = false;
 
+        // Only render when the scene changes or camera moves
+        viewer.scene.requestRenderMode = true;
+        viewer.scene.maximumRenderTimeChange = Infinity;
+        try {
+          viewer.scene.postProcessStages.fxaa.enabled = false;
+        } catch {
+          // ignore
+        }
+
         // OSM fallback if Esri tiles error.
         try {
           esri.errorEvent.addEventListener(() => {

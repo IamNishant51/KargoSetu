@@ -179,6 +179,11 @@ export default function VesselLayer({
       } catch {
         // show flag best-effort
       }
+      try {
+        viewer.scene.requestRender();
+      } catch {
+        // requestRender best-effort
+      }
     })();
     return () => {
       cancelled = true;
@@ -186,22 +191,23 @@ export default function VesselLayer({
   }, [viewer, shown, selectedMmsi, detection, visible, draftLimit]);
 
   // Interpolation loop: one interval behind, linear between fixes.
-  // Zero per-frame allocation: the Cesium module is loaded once and each
-  // vessel owns a Cartesian3 that is mutated in place (entity holds the
-  // same reference, so position updates without re-assignment).
+  // We run this at 1 FPS via setInterval instead of 60 FPS via rAF to
+  // save massive CPU/GPU cycles. Ships move slowly enough that 1 FPS
+  // is visually perfectly smooth from orbit.
   React.useEffect(() => {
     if (!viewer) return;
-    let raf = 0;
     let alive = true;
     const INTERVAL = 30000;
     const scratch = { lon: 0, lat: 0 };
-    let Cesium: typeof import("cesium") | null = null;
-    async function tick() {
+    let intervalId: number | null = null;
+    
+    (async () => {
+      const Cesium = await getCesium();
       if (!alive) return;
-      try {
-        if (!Cesium) Cesium = await getCesium();
-        if (!alive || !Cesium) return;
-        const C = Cesium;
+      const C = Cesium;
+      
+      function tick() {
+        if (!alive) return;
         const now = Date.now();
         const frac = Math.min(1, Math.max(0, (now - lastUpdateRef.current) / INTERVAL));
         for (const [mmsi, cur] of currRef.current.entries()) {
@@ -217,15 +223,21 @@ export default function VesselLayer({
             }
           }
         }
-      } catch {
-        // interpolation best-effort
+        try {
+          viewer.scene.requestRender();
+        } catch {
+          // render best-effort
+        }
       }
-      raf = requestAnimationFrame(() => void tick());
-    }
-    raf = requestAnimationFrame(() => void tick());
+      
+      // Update at 1 FPS
+      intervalId = window.setInterval(tick, 1000);
+      tick(); // immediate first tick
+    })();
+
     return () => {
       alive = false;
-      cancelAnimationFrame(raf);
+      if (intervalId !== null) window.clearInterval(intervalId);
     };
   }, [viewer]);
 

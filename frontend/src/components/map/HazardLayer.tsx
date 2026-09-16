@@ -118,6 +118,11 @@ export default function HazardLayer({ viewer, hazards, showHazards, showWeather 
       } catch {
         // show flag best-effort
       }
+      try {
+        viewer.scene.requestRender();
+      } catch {
+        // requestRender best-effort
+      }
     })();
     return () => {
       cancelled = true;

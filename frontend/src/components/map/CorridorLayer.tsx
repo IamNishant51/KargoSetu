@@ -68,6 +68,9 @@ export default function CorridorLayer({ viewer, corridor, visible, showBoundarie
         } catch {
           // show flag best-effort
         }
+        try {
+          viewer.scene.requestRender();
+        } catch {}
         return;
       }
 
@@ -202,6 +205,11 @@ export default function CorridorLayer({ viewer, corridor, visible, showBoundarie
         } catch {
           // boundary box best-effort
         }
+      }
+      try {
+        viewer.scene.requestRender();
+      } catch {
+        // requestRender best-effort
       }
     })();
     return () => {
