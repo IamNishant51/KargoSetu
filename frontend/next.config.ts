@@ -24,6 +24,7 @@ const nextConfig: NextConfig = {
     if (apiUrl.includes(".hf.space") && apiUrl.startsWith("http://")) {
       apiUrl = apiUrl.replace("http://", "https://");
     }
+    apiUrl = apiUrl.replace(/\/$/, "");
     return [
       {
         source: "/api/:path*",
@@ -38,7 +39,7 @@ const nextConfig: NextConfig = {
         headers: [
           {
             key: "Cross-Origin-Opener-Policy",
-            value: "same-origin-allow-popups",
+            value: "unsafe-none",
           },
           { key: "X-Content-Type-Options", value: "nosniff" },
           { key: "X-Frame-Options", value: "DENY" },
