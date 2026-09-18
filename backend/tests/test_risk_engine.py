@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 import pytest
 
@@ -12,8 +12,8 @@ def base_request():
         origin_port="INHAL",
         destination_port="INVTZ",
         vessel_class="Panamax",
-        laycan_start=datetime.now(timezone.utc) + timedelta(days=10),
-        laycan_end=datetime.now(timezone.utc) + timedelta(days=20),
+        laycan_start=datetime.now(UTC) + timedelta(days=10),
+        laycan_end=datetime.now(UTC) + timedelta(days=20),
         contract_horizon_days=30,
         forecast_confidence=0.8,
         market_volatility=0.2,

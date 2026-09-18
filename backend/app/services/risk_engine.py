@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from app.schemas.risk import DecisionRisk, RiskFactor, RiskRequest
 
@@ -173,7 +173,7 @@ class RiskEngine:
 
         provenance = {
             "version": "risk-engine-v1",
-            "evaluated_at": datetime.now(timezone.utc).isoformat(),
+            "evaluated_at": datetime.now(UTC).isoformat(),
             "data_freshness_hours": str(request.data_freshness_hours),
         }
 

@@ -129,16 +129,15 @@ class ConstraintEngine:
                 )
             # We don't have a specific "required" handling rate for PASS/FAIL unless specified in voyage_data
             req_rate = voyage_data.get("required_handling_rate")
-            if handling_rate is not None and req_rate is not None:
-                if handling_rate < req_rate:
-                    add_reason(
-                        {
-                            "constraint": f"{p_name}_handling_rate",
-                            "required": req_rate,
-                            "allowed": handling_rate,
-                            "status": "FAIL",
-                        }
-                    )
+            if handling_rate is not None and req_rate is not None and handling_rate < req_rate:
+                add_reason(
+                    {
+                        "constraint": f"{p_name}_handling_rate",
+                        "required": req_rate,
+                        "allowed": handling_rate,
+                        "status": "FAIL",
+                    }
+                )
 
         # 7. Estimated berth/turnaround time
         for port, p_name in [
@@ -156,16 +155,15 @@ class ConstraintEngine:
                     }
                 )
             max_turnaround = voyage_data.get("max_turnaround_time")
-            if turnaround is not None and max_turnaround is not None:
-                if turnaround > max_turnaround:
-                    add_reason(
-                        {
-                            "constraint": f"{p_name}_turnaround_time",
-                            "required": max_turnaround,
-                            "allowed": turnaround,
-                            "status": "FAIL",
-                        }
-                    )  # Note: lower is better here, so if turnaround > max, it's a fail. But check_constraint does (required > allowed) so we wrote custom logic. Wait, our check_constraint takes required (vessel) > allowed (port). For turnaround time, port's turnaround > vessel's max turnaround. Let's manually add:
+            if turnaround is not None and max_turnaround is not None and turnaround > max_turnaround:
+                add_reason(
+                    {
+                        "constraint": f"{p_name}_turnaround_time",
+                        "required": max_turnaround,
+                        "allowed": turnaround,
+                        "status": "FAIL",
+                    }
+                )  # Note: lower is better here, so if turnaround > max, it's a fail. But check_constraint does (required > allowed) so we wrote custom logic. Wait, our check_constraint takes required (vessel) > allowed (port). For turnaround time, port's turnaround > vessel's max turnaround. Let's manually add:
 
         # 8. Voyage duration
         duration = voyage_data.get("duration")
@@ -186,16 +184,15 @@ class ConstraintEngine:
                 )
 
         max_duration = voyage_data.get("max_duration")
-        if duration is not None and max_duration is not None:
-            if duration > max_duration:
-                add_reason(
-                    {
-                        "constraint": "voyage_duration",
-                        "required": max_duration,
-                        "allowed": duration,
-                        "status": "FAIL",
-                    }
-                )
+        if duration is not None and max_duration is not None and duration > max_duration:
+            add_reason(
+                {
+                    "constraint": "voyage_duration",
+                    "required": max_duration,
+                    "allowed": duration,
+                    "status": "FAIL",
+                }
+            )
 
         return {"feasible": status == "PASS", "status": status, "reasons": reasons}
 

@@ -34,6 +34,7 @@ from app.api.routers import (
     ports,
     requisitions,
     risk,
+    simulator,
     vessels,
 )
 from app.api.routers import (
@@ -182,7 +183,4 @@ app.include_router(
     idle_scenarios.router, prefix="/api/v1/idle-scenarios", tags=["idle-scenarios"]
 )
 app.include_router(copilot.router, prefix="/api/v1/copilot", tags=["copilot"])
-
-from app.api.routers import simulator
-
 app.include_router(simulator.router)
