@@ -135,7 +135,7 @@ export default function HeroSection() {
                   className="object-contain p-3 sm:p-5"
                 />
               </div>
-              <figcaption className="grid grid-cols-3 divide-x divide-[#E2E6EB] border-t border-[#E2E6EB] bg-white">
+              <figcaption className="grid grid-cols-1 sm:grid-cols-3 divide-y sm:divide-y-0 sm:divide-x divide-[#E2E6EB] border-t border-[#E2E6EB] bg-white">
                 {[
                   ["Verdict", "3× Supramax", "text-[#B45309] font-bold"],
                   ["UKC", "+1.8 m safe", "text-[#0E7A3D]"],
