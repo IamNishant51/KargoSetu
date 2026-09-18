@@ -46,7 +46,7 @@ export default function ExplainableRiskWidget() {
   } = useQuery<DecisionRisk>({
     queryKey: ["risk-evaluation", params],
     queryFn: async () => {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+      const apiUrl = "";
 
       const payload = {
         ...params,

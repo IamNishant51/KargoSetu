@@ -25,11 +25,7 @@ export function useUser() {
       }
 
       const apiUrl =
-        String(process.env.NODE_ENV) === "production"
-          ? ""
-          : String(process.env.NODE_ENV) === "production"
-            ? ""
-            : process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+        "";
       const res = await fetch(`${apiUrl}/api/v1/auth/me`, {
         headers: {
           Authorization: `Bearer ${token}`,

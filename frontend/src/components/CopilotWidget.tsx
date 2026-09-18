@@ -22,7 +22,7 @@ export function CopilotWidget() {
     setError(null);
     try {
       // In production, we'd use an env var for the API URL
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+      const apiUrl = "";
       const res = await fetch(`${apiUrl}/api/v1/copilot/ask`, {
         method: "POST",
         headers: {

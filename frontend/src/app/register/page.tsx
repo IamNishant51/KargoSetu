@@ -28,7 +28,7 @@ export default function RegisterPage() {
 
     try {
       const res = await fetch(
-        `${String(process.env.NODE_ENV) === "production" ? "" : String(process.env.NODE_ENV) === "production" ? "" : process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/api/v1/auth/register`,
+        `${""}/api/v1/auth/register`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -59,7 +59,7 @@ export default function RegisterPage() {
   ) => {
     try {
       const res = await fetch(
-        `${String(process.env.NODE_ENV) === "production" ? "" : String(process.env.NODE_ENV) === "production" ? "" : process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/api/v1/auth/google`,
+        `${""}/api/v1/auth/google`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },

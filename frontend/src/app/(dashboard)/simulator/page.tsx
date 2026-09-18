@@ -5,7 +5,7 @@ export default function SimulatorPage() {
   const [result, setResult] = useState<Record<string, unknown> | null>(null);
 
   const runSimulation = async () => {
-    const res = await fetch("http://localhost:8000/api/v1/simulator", {
+    const res = await fetch("/api/v1/simulator", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({

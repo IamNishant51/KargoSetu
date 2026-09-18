@@ -83,11 +83,7 @@ export default function PortCorridor() {
     queryKey: ["portCorridor"],
     queryFn: async () => {
       const base =
-        String(process.env.NODE_ENV) === "production"
-          ? ""
-          : String(process.env.NODE_ENV) === "production"
-            ? ""
-            : process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+        "";
       const res = await fetch(`${base}/api/v1/ports/corridor`);
       if (!res.ok) throw new Error("corridor fetch failed");
       return res.json();

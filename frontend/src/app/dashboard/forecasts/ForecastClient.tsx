@@ -60,11 +60,7 @@ export default function ForecastsPage() {
     queryKey: ["port-names"],
     queryFn: async () => {
       const baseUrl =
-        String(process.env.NODE_ENV) === "production"
-          ? ""
-          : String(process.env.NODE_ENV) === "production"
-            ? ""
-            : process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+        "";
       const res = await fetch(`${baseUrl}/api/v1/ports`);
       if (!res.ok) return [];
       const data = await res.json();
@@ -80,11 +76,7 @@ export default function ForecastsPage() {
     queryKey: ["forecast", debouncedShock, origin, destination],
     queryFn: async () => {
       const baseUrl =
-        String(process.env.NODE_ENV) === "production"
-          ? ""
-          : String(process.env.NODE_ENV) === "production"
-            ? ""
-            : process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+        "";
       const res = await fetch(
         `${baseUrl}/api/v1/forecast/rates?shockMultiplier=${debouncedShock}&origin=${encodeURIComponent(origin)}&destination=${encodeURIComponent(destination)}`,
       );

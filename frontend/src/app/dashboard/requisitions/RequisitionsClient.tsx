@@ -85,11 +85,7 @@ export default function RequisitionsPage() {
   const createMutation = useMutation({
     mutationFn: async (newReq: Record<string, unknown>) => {
       const baseUrl =
-        String(process.env.NODE_ENV) === "production"
-          ? ""
-          : String(process.env.NODE_ENV) === "production"
-            ? ""
-            : process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+        "";
       const res = await fetch(`${baseUrl}/api/v1/requisitions`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -118,11 +114,7 @@ export default function RequisitionsPage() {
     queryKey: ["port-names"],
     queryFn: async () => {
       const baseUrl =
-        String(process.env.NODE_ENV) === "production"
-          ? ""
-          : String(process.env.NODE_ENV) === "production"
-            ? ""
-            : process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+        "";
       const res = await fetch(`${baseUrl}/api/v1/ports`);
       if (!res.ok) return [];
       const data = await res.json();
@@ -266,11 +258,7 @@ export default function RequisitionsPage() {
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
       const baseUrl =
-        String(process.env.NODE_ENV) === "production"
-          ? ""
-          : String(process.env.NODE_ENV) === "production"
-            ? ""
-            : process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+        "";
       const res = await fetch(`${baseUrl}/api/v1/requisitions/${id}`, {
         method: "DELETE",
       });
@@ -305,11 +293,7 @@ export default function RequisitionsPage() {
     if (debouncedSearch) params.append("search", debouncedSearch);
 
     const baseUrl =
-      String(process.env.NODE_ENV) === "production"
-        ? ""
-        : String(process.env.NODE_ENV) === "production"
-          ? ""
-          : process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+      "";
     const res = await fetch(
       `${baseUrl}/api/v1/requisitions?${params.toString()}`,
     );

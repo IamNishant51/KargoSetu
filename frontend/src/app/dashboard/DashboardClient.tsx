@@ -103,11 +103,7 @@ export default function DashboardPage() {
     queryKey: ["ports"],
     queryFn: async () => {
       const baseUrl =
-        String(process.env.NODE_ENV) === "production"
-          ? ""
-          : String(process.env.NODE_ENV) === "production"
-            ? ""
-            : process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+        "";
       const res = await fetch(`${baseUrl}/api/v1/ports`);
       if (!res.ok) return [];
       const data = await res.json();
@@ -126,11 +122,7 @@ export default function DashboardPage() {
     queryKey: ["commodities"],
     queryFn: async () => {
       const baseUrl =
-        String(process.env.NODE_ENV) === "production"
-          ? ""
-          : String(process.env.NODE_ENV) === "production"
-            ? ""
-            : process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+        "";
       const res = await fetch(`${baseUrl}/api/v1/commodities`);
       if (!res.ok) return [];
       const data = await res.json();
@@ -155,11 +147,7 @@ export default function DashboardPage() {
       const parsedVolume = Number(volume.replace(/,/g, ""));
       const portName = selectedPort?.name || "Haldia";
       const baseUrl =
-        String(process.env.NODE_ENV) === "production"
-          ? ""
-          : String(process.env.NODE_ENV) === "production"
-            ? ""
-            : process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+        "";
       const res = await fetch(`${baseUrl}/api/v1/requisitions/evaluate`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
