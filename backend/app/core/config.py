@@ -55,6 +55,12 @@ class Settings(BaseSettings):
     marinetraffic_daily_budget: int = 100
 
     # --- ML Configuration ---
+    # SKIP_ML_TRAINING=1 -> inference-only mode for free-tier hosts
+    # (Render 512MB): reuse committed models/model.onnx, skip TF training,
+    # retraining loop disabled. API shapes stay identical (heuristic
+    # fallback when no ONNX file is present).
+    skip_ml_training: bool = False
+    ml_enable_retraining: bool = True
     ml_lookback_days: int = 60
     ml_outlook_days: int = 90
     ml_training_epochs: int = 100
@@ -73,6 +79,9 @@ class Settings(BaseSettings):
         "env_file": ".env",
         "env_file_encoding": "utf-8",
         "case_sensitive": False,
+        # Hosts (Render/HF/CI) inject their own vars (PORT, RENDER_*, ...);
+        # never crash on those.
+        "extra": "ignore",
     }
 
 

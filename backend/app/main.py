@@ -91,27 +91,40 @@ async def lifespan(app: FastAPI):
     # Connect to database. Non-fatal: the vessel/hazard proxies and corridor
     # static data serve fine without it; DB-backed endpoints fail per-request
     # instead of taking the whole API down (SIH stage wifi is unreliable).
+    # Bounded: a dead/unreachable DB must never hang boot (free-tier cold
+    # starts, CI without Postgres). Prisma retries internally, so cap it.
     try:
-        await prisma.connect()
+        await asyncio.wait_for(prisma.connect(), timeout=15)
         logger.info("database_connected")
     except Exception as exc:
         logger.error("database_connection_failed_serving_degraded", error=str(exc))
 
     # Start ML model initialization in the background
+    import sys
+
     from app.services.ml_predictor import predictor_instance
 
-    try:
-        # Held module-wide so the tasks are never garbage-collected mid-flight.
-        _background_tasks.add(asyncio.create_task(predictor_instance.init_model()))
-        logger.info("ml_model_warmup_started")
-
-        _background_tasks.add(
-            asyncio.create_task(
-                predictor_instance.schedule_retraining(interval_hours=6)
+    if "pytest" not in sys.modules:
+        try:
+            # Held module-wide so the tasks are never garbage-collected mid-flight.
+            _background_tasks.add(asyncio.create_task(predictor_instance.init_model()))
+            logger.info(
+                "ml_model_warmup_started",
+                inference_only=app_settings.skip_ml_training,
             )
-        )
-    except Exception as exc:
-        logger.error("ml_model_warmup_failed", error=str(exc))
+
+            if app_settings.ml_enable_retraining and not app_settings.skip_ml_training:
+                _background_tasks.add(
+                    asyncio.create_task(
+                        predictor_instance.schedule_retraining(interval_hours=6)
+                    )
+                )
+            else:
+                logger.info("ml_retraining_disabled")
+        except Exception as exc:
+            logger.error("ml_model_warmup_failed", error=str(exc))
+    else:
+        logger.info("ml_model_warmup_skipped_for_testing")
 
     yield
 

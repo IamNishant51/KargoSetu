@@ -1,0 +1,46 @@
+# === KargoSetu slim inference runtime (free-tier hosts: Render 512MB) ===
+# Same API surface as requirements.txt, minus training-only weight:
+#   dropped: tensorflow, tf2onnx (training + ONNX export; CI job handles it)
+#   dropped: gradio (HF Space UI wrapper, not needed on Render)
+# Kept: pandas + scikit-learn + yfinance (build scalers + latest_sequence
+# for ONNX inverse-transform; no training involved).
+# Set SKIP_ML_TRAINING=1 + ML_ENABLE_RETRAINING=0 in the host env.
+
+# === Web Framework ===
+fastapi>=0.115.0,<1.0.0
+uvicorn[standard]>=0.32.0,<1.0.0
+orjson>=3.10.0,<4.0.0
+
+# === Validation & Serialization ===
+pydantic>=2.10.0,<3.0.0
+pydantic-settings>=2.6.0,<3.0.0
+email-validator>=2.2.0,<3.0.0
+
+# === Database ===
+prisma>=0.15.0,<1.0.0
+
+# === Machine Learning (Inference only) ===
+onnxruntime>=1.19.0,<2.0.0
+scikit-learn>=1.5.0,<2.0.0
+
+# === Data Processing ===
+numpy>=1.26.0,<2.0.0
+pandas>=2.2.0,<3.0.0
+
+# === Financial Data (feature prep only, no training) ===
+yfinance>=0.2.40,<1.0.0
+
+# === HTTP Client ===
+httpx>=0.28.0,<1.0.0
+websockets>=14.0,<16.0
+
+# === Security ===
+pyjwt>=2.9.0,<3.0.0
+bcrypt>=4.2.0,<5.0.0
+google-auth>=2.35.0,<3.0.0
+
+# === Logging ===
+structlog>=24.4.0,<25.0.0
+
+# === Rate Limiting ===
+slowapi>=0.1.9,<1.0.0

@@ -1,0 +1,28 @@
+# === KargoSetu Render blueprint (slim inference backend) ===
+# MUST live at repo root: Render only auto-detects ./render.yaml.
+# Dashboard: New > Blueprint > select repo (auto-detected).
+services:
+  - type: web
+    name: kargosetu-api-render
+    runtime: docker
+    dockerfilePath: ./backend/Dockerfile.light
+    dockerContext: ./backend
+    plan: free
+    region: singapore
+    healthCheckPath: /api/health/ping
+    autoDeploy: true
+    envVars:
+      - key: SKIP_ML_TRAINING
+        value: "1"
+      - key: ML_ENABLE_RETRAINING
+        value: "0"
+      - key: DATABASE_URL
+        sync: false # Neon pooled URL, WITHOUT channel_binding (Prisma chokes on it)
+      - key: DIRECT_URL
+        sync: false # Neon direct URL, WITHOUT channel_binding
+      - key: JWT_SECRET_KEY
+        sync: false # 64-hex chars; generate: python -c "import secrets; print(secrets.token_hex(32))"
+      - key: FRONTEND_URL
+        value: https://kargosetu.vercel.app
+      - key: GOOGLE_CLIENT_ID
+        sync: false

@@ -1,0 +1,53 @@
+name: ml-weekly-retrain
+
+# Preserves the 6-hour retraining feature without running TF on the free host.
+# Weekly: trains with FULL requirements on Actions, commits backend/models/model.onnx,
+# Render auto-redeploys with the fresh snapshot.
+# Manual trigger any time: Actions > ml-weekly-retrain > Run workflow.
+
+on:
+  schedule:
+    - cron: "0 2 * * 0" # Sundays 02:00 UTC
+  workflow_dispatch:
+
+jobs:
+  retrain:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install full training deps
+        working-directory: backend
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Train and export ONNX
+        working-directory: backend
+        env:
+          DATABASE_URL: postgresql://user:password@localhost:5432/kargodb
+          JWT_SECRET_KEY: ci-retrain-dummy-secret-0000000000000000
+        run: |
+          python -c "
+          import asyncio
+          from app.services.ml_predictor import predictor_instance
+          asyncio.run(predictor_instance.init_model())
+          print('warming_up:', predictor_instance.is_warming_up)
+          print('has_onnx:', predictor_instance.onnx_session is not None)
+          "
+
+      - name: Commit fresh model
+        run: |
+          git config user.name "kargosetu-ml-bot"
+          git config user.email "ml-bot@kargosetu.local"
+          git add backend/models/model.onnx
+          git diff --cached --quiet || git commit -m "chore(ml): weekly retrained ONNX snapshot [skip ci]"
+          git push

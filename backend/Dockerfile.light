@@ -1,0 +1,52 @@
+# === KargoSetu slim inference image (Render free tier: 512MB RAM) ===
+# The HF Dockerfile stays for full-training deploys.
+# This image: no TF/training, 1 uvicorn worker, loads models/model.onnx.
+
+FROM python:3.11-slim AS builder
+
+WORKDIR /app
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential python3-dev gcc libssl-dev curl \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN python -m venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
+
+COPY requirements-light.txt .
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir -r requirements-light.txt
+
+COPY prisma ./prisma
+RUN prisma generate
+
+FROM python:3.11-slim
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    openssl curl \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN groupadd -r appuser && useradd -r -g appuser -d /app appuser
+
+WORKDIR /app
+
+COPY --from=builder /opt/venv /opt/venv
+COPY --from=builder /root/.cache/prisma-python /root/.cache/prisma-python
+ENV PATH="/opt/venv/bin:$PATH"
+
+COPY . .
+
+# Prebuilt ONNX snapshot baked in when present (exported via CI/local training).
+RUN mkdir -p /app/models && chown -R appuser:appuser /app
+
+USER appuser
+
+# Render injects $PORT; default 8000 for local `docker run`.
+EXPOSE 8000
+
+HEALTHCHECK --interval=30s --timeout=10s --start-period=90s --retries=3 \
+    CMD curl -f http://localhost:${PORT:-8000}/api/health/ping || exit 1
+
+# Single worker: 512MB cannot hold gunicorn -w 8 + TF. Inference + math
+# are async/light; one worker serves the demo + judge traffic fine.
+CMD ["sh", "-c", "prisma db push --accept-data-loss && uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000} --workers 1"]
