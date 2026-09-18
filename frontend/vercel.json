@@ -2,7 +2,7 @@
   "rewrites": [
     {
       "source": "/api/:path*",
-      "destination": "https://kargosetu-api.hf.space/api/:path*"
+      "destination": "https://Nishant51-kargosetu-api.hf.space/api/:path*"
     }
   ],
   "headers": [
