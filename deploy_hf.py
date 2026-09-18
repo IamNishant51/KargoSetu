@@ -21,7 +21,7 @@ def deploy() -> None:
     if not token:
         print("HF_TOKEN env var is required.", file=sys.stderr)
         raise SystemExit(1)
-    space_id = os.environ.get("SPACE_ID", "Nishant51/kargosetu-api")
+    space_id = os.environ.get("SPACE_ID", "Nishant51/kargosetu_api")
 
     api = HfApi(token=token)
     try:

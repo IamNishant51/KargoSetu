@@ -5,7 +5,7 @@
 | Layer    | Host                              | Identifier / URL                                                                 |
 |----------|-----------------------------------|----------------------------------------------------------------------------------|
 | Frontend | Vercel (Next.js 15)               | `https://kargosetu.vercel.app`                                                   |
-| Backend  | Hugging Face Spaces (Gradio SDK)  | Space `Nishant51/kargosetu-api` → `https://Nishant51-kargosetu-api.hf.space`     |
+| Backend  | Hugging Face Spaces (Gradio SDK, ZeroGPU) | Space `Nishant51/kargosetu_api` → `https://nishant51-kargosetu-api.hf.space` (underscore in ID becomes hyphen in URL) |
 | Database | Supabase Postgres                 | Project ref `zbkngqoznqbduocpopzk` → `https://zbkngqoznqbduocpopzk.supabase.co`   |
 
 Do NOT use Neon for this project (a Neon project/link exists locally from an

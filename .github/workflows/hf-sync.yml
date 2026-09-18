@@ -33,4 +33,5 @@ jobs:
       - name: Push backend to Space
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
+          SPACE_ID: Nishant51/kargosetu_api
         run: python deploy_hf.py
