@@ -5,28 +5,39 @@
 | Layer    | Host                              | Identifier / URL                                                                 |
 |----------|-----------------------------------|----------------------------------------------------------------------------------|
 | Frontend | Vercel (Next.js 15)               | `https://kargosetu.vercel.app`                                                   |
-| Backend  | Hugging Face Spaces (Gradio SDK, ZeroGPU) | Space `Nishant51/kargosetu_api` → `https://nishant51-kargosetu-api.hf.space` (underscore in ID becomes hyphen in URL) |
+| Backend  | Render (Docker, free tier)        | Service `kargosetu-api-render` → `https://kargosetu-api-render.onrender.com`     |
 | Database | Supabase Postgres                 | Project ref `zbkngqoznqbduocpopzk` → `https://zbkngqoznqbduocpopzk.supabase.co`   |
 
 Do NOT use Neon for this project (a Neon project/link exists locally from an
 abandoned experiment — ignore `.neon`, root `.env.local` Neon vars).
+Do NOT use Hugging Face Spaces for the backend either (new Gradio/Docker
+Spaces require PRO; ZeroGPU hardware rejects CPU-only apps) — `deploy_hf.py`
+and `hf-sync.yml` are kept only as dormant references.
 
-## Backend (FastAPI on HF Spaces)
+## Backend (FastAPI slim image on Render)
 
-- Entry point is `backend/app.py`: a Gradio wrapper that mounts the FastAPI
-  app (`gr.mount_gradio_app`). The Space MUST use the **Gradio SDK**
-  (a Docker-SDK Space will not serve this correctly).
-- App port `7860`. Routers live in `backend/app/api/routers/`, health at
-  `/api/health/` (trailing slash).
-- To redeploy: push to `main` — `.github/workflows/hf-sync.yml` uploads
-  `backend/` automatically (code only; secrets and Space README untouched).
-  It needs the repo secret `HF_TOKEN` (write token). Manual equivalent:
-  `HF_TOKEN=<token> python deploy_hf.py` from the repo root.
-  If the build needs system packages, add a root `packages.txt` with
-  `build-essential`.
-- Anti-sleep: `.github/workflows/keepalive.yml` pings `/api/health/` every
-  10 min. It needs the repo Actions variable `BACKEND_URL` set to the Space
-  URL (no trailing slash). Run the workflow once manually after any change.
+- Runtime is `backend/Dockerfile.light` (Blueprint: root `render.yaml`):
+  no TF/training (`SKIP_ML_TRAINING=1`, `ML_ENABLE_RETRAINING=0`), single
+  uvicorn worker on `$PORT`, `libatomic1` installed (Prisma's bundled node
+  needs it), Prisma engines pre-generated at build and reused from
+  `/app/.cache`.
+- Routers live in `backend/app/api/routers/`, health at `/api/health/`
+  (trailing slash), plus ultra-light `/api/health/ping` (no DB/ML).
+- To redeploy: push to `main` (Blueprint `autoDeploy`). Env comes from the
+  Render dashboard service settings.
+- HARD RULE — never run migrations at container boot: Supabase direct
+  (`db.*.supabase.co:5432`) is unreachable from Render egress (P1001), and a
+  `prisma db push && uvicorn` chain kills the boot before any port binds.
+  Schema changes run out-of-band (local/CI with `DIRECT_URL`).
+- `main.py` lifespan: DB connect is capped at 15 s (degraded, never fatal)
+  plus a 60 s `_db_watchdog` that reconnects in background (Supabase
+  idle-pause / slow cold starts). Skipped under pytest.
+- Anti-sleep (three layers): (1) `.github/workflows/render-keepalive.yml`
+  pings `/api/health/ping` every 10 min — needs repo Actions variable
+  `RENDER_BACKEND_URL` (no trailing slash), run once manually after setup;
+  (2) frontend polls `/api/health` every 60 s while open (`useFeeds.ts`);
+  (3) DB watchdog above. The old HF `keepalive.yml`/`BACKEND_URL` pair is
+  dormant.
 - Frontend talks to the backend only via relative `/api/*`, proxied by
   `frontend/next.config.ts` rewrites from `NEXT_PUBLIC_API_URL`.
 
@@ -35,9 +46,12 @@ abandoned experiment — ignore `.neon`, root `.env.local` Neon vars).
 - Prisma schema: `backend/prisma/schema.prisma` (provider `postgresql`).
 - Two URLs, same split Prisma expects:
   - `DATABASE_URL` → Supabase **pooled** connection (port `6543`, Transaction
-    mode) for runtime queries.
+    mode) for runtime queries. MUST include `pgbouncer=true`
+    (`...?sslmode=require&pgbouncer=true`) or queries through the pooler
+    fail and health reports `disconnected`.
   - `DIRECT_URL` → Supabase **direct** connection (port `5432`) for
-    `prisma db push` / migrations.
+    `prisma db push` / migrations — local/CI only, never from Render.
+  - Special chars in the DB password must be URL-encoded (`@` → `%40`).
   - Get both from Supabase Dashboard → Project Settings → Database →
     Connection string. Never paste them anywhere except the secret stores
     below.
@@ -50,12 +64,12 @@ abandoned experiment — ignore `.neon`, root `.env.local` Neon vars).
 
 ## Environment variables (names only — values live in secret stores)
 
-Backend (`backend/.env` locally; HF Space → Settings → Secrets in prod):
+Backend (`backend/.env` locally; Render service → Environment in prod):
 
 | Name                    | Required | Notes                                              |
 |-------------------------|----------|----------------------------------------------------|
-| `DATABASE_URL`          | yes      | Supabase pooled URL                                |
-| `DIRECT_URL`            | yes      | Supabase direct URL                                |
+| `DATABASE_URL`          | yes      | Supabase pooled URL **with `pgbouncer=true`**      |
+| `DIRECT_URL`            | yes      | Supabase direct URL (migrations only)              |
 | `JWT_SECRET_KEY`        | yes      | ≥32 chars: `python -c "import secrets; print(secrets.token_hex(32))"`. Same value on every backend copy or tokens break |
 | `FRONTEND_URL`          | yes      | Exact Vercel origin (`https://kargosetu.vercel.app`), no trailing slash — CORS enforced |
 | `GOOGLE_CLIENT_ID`      | yes      | Same Google OAuth client ID as the frontend        |
@@ -69,7 +83,7 @@ Variables in prod):
 
 | Name                          | Notes                                                        |
 |-------------------------------|--------------------------------------------------------------|
-| `NEXT_PUBLIC_API_URL`         | Backend origin (Space URL). Decides where `/api/*` proxies to |
+| `NEXT_PUBLIC_API_URL`         | Backend origin (Render URL). Decides where `/api/*` proxies to |
 | `NEXT_PUBLIC_GOOGLE_CLIENT_ID`| Same Google OAuth client ID as the backend                   |
 
 ## Secrets discipline (hard rules)
