@@ -20,11 +20,11 @@ const nextConfig: NextConfig = {
   },
   compress: true,
   async rewrites() {
-    let apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+    let apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://Nishant51-kargosetu-api.hf.space";
     
-    // Auto-correct huggingface.co/spaces/ URLs to the direct .hf.space URL
-    if (apiUrl.includes("huggingface.co/spaces/")) {
-      const parts = apiUrl.split("huggingface.co/spaces/")[1].split("/");
+    // Auto-correct any huggingface.co URLs to the direct .hf.space URL
+    if (apiUrl.includes("huggingface.co/")) {
+      const parts = apiUrl.split("huggingface.co/")[1].replace(/^spaces\//, "").split("/");
       if (parts.length >= 2) {
         const username = parts[0];
         const spacename = parts[1];
