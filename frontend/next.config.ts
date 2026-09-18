@@ -21,6 +21,17 @@ const nextConfig: NextConfig = {
   compress: true,
   async rewrites() {
     let apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+    
+    // Auto-correct huggingface.co/spaces/ URLs to the direct .hf.space URL
+    if (apiUrl.includes("huggingface.co/spaces/")) {
+      const parts = apiUrl.split("huggingface.co/spaces/")[1].split("/");
+      if (parts.length >= 2) {
+        const username = parts[0];
+        const spacename = parts[1];
+        apiUrl = `https://${username}-${spacename}.hf.space`;
+      }
+    }
+
     if (apiUrl.includes(".hf.space") && apiUrl.startsWith("http://")) {
       apiUrl = apiUrl.replace("http://", "https://");
     }
