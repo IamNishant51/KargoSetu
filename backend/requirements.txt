@@ -43,4 +43,7 @@ structlog>=24.4.0,<25.0.0
 slowapi>=0.1.9,<1.0.0
 
 # === Hugging Face Spaces UI ===
-gradio>=5.0.0,<6.0.0
+# NOTE: upper bound <7 (not <6): the Space base image ships gradio 6.x with
+# the `spaces` runtime package. Pinning <6 forces a downgrade that conflicts
+# with `spaces` and fails the whole Docker build with exit code 1.
+gradio>=5.0.0,<7.0.0
