@@ -48,6 +48,26 @@ limiter = Limiter(key_func=get_remote_address)
 _background_tasks: set = set()
 
 
+async def _db_watchdog() -> None:
+    """Self-heal the DB connection for free-tier realities.
+
+    Supabase Nano pauses on idle and Render cold-starts slowly; the bounded
+    connect at boot can legitimately lose that race. Without this loop the
+    app would serve degraded until the next redeploy. Runs forever, logs
+    only, never raises.
+    """
+    while True:
+        try:
+            if not prisma.is_connected():
+                await asyncio.wait_for(prisma.connect(), timeout=15)
+                logger.info("database_reconnected_by_watchdog")
+        except asyncio.CancelledError:
+            raise
+        except Exception as exc:
+            logger.warning("database_watchdog_retrying", error=str(exc)[:200])
+        await asyncio.sleep(60)
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """
@@ -99,11 +119,17 @@ async def lifespan(app: FastAPI):
     except Exception as exc:
         logger.error("database_connection_failed_serving_degraded", error=str(exc))
 
-    # Start ML model initialization in the background
+    # DB watchdog: reconnect in background if boot-time connect lost the
+    # race (Supabase idle-pause, slow cold start). Skipped under pytest.
     import sys
 
     from app.services.ml_predictor import predictor_instance
 
+    if "pytest" not in sys.modules:
+        _background_tasks.add(asyncio.create_task(_db_watchdog()))
+        logger.info("database_watchdog_started")
+
+    # Start ML model initialization in the background
     if "pytest" not in sys.modules:
         try:
             # Held module-wide so the tasks are never garbage-collected mid-flight.

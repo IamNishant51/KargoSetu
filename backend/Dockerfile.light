@@ -57,4 +57,9 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=90s --retries=3 \
 
 # Single worker: 512MB cannot hold gunicorn -w 8 + TF. Inference + math
 # are async/light; one worker serves the demo + judge traffic fine.
-CMD ["sh", "-c", "prisma db push --accept-data-loss && uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000} --workers 1"]
+# NOTE: no `prisma db push` at boot, deliberately. The direct URL
+# (db.*.supabase.co:5432) is unreachable from Render's egress (P1001 —
+# documented Render+Supabase issue), and `&&` would kill the boot before
+# uvicorn binds a port. Schema is deployed out-of-band (local/CI with
+# DIRECT_URL); the app only needs the pooled DATABASE_URL at runtime.
+CMD ["sh", "-c", "uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-8000} --workers 1"]
