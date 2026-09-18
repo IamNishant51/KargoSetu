@@ -32,3 +32,6 @@ oracle_backend_deployment.md
 # Local secrets / tool state (never commit)
 .neon
 .env.local
+
+# SIH playbook: strategy doc, stays local-only (never commit)
+KargoSetu_SIH26006_Production_Upgrade_Playbook.md
