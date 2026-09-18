@@ -41,6 +41,11 @@ COPY --from=builder /opt/venv /opt/venv
 COPY --from=builder /root/.cache/prisma-python /app/.cache/prisma-python
 ENV PATH="/opt/venv/bin:$PATH"
 ENV XDG_CACHE_HOME=/app/.cache
+# CRITICAL: prisma-client-py resolves its engine binaries via $HOME, ignoring
+# XDG_CACHE_HOME — and Docker does NOT update $HOME on `USER appuser` (it stays
+# /root). Without this, boot fails with
+# "Permission denied: '/root/.cache/prisma-python/binaries/.../query-engine...'".
+ENV HOME=/app
 
 COPY . .
 
