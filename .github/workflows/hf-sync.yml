@@ -1,0 +1,36 @@
+name: Sync backend to Hugging Face Space
+
+# Code-only sync: uploads backend/ to the Space on every push that touches
+# it. Never touches Space secrets (manage in Space Settings) or the Space
+# README (declares the Gradio SDK). Needs repo secret HF_TOKEN (write token).
+# Run manually any time: Actions > Sync backend to Hugging Face Space.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "backend/**"
+      - "deploy_hf.py"
+      - ".github/workflows/hf-sync.yml"
+  workflow_dispatch:
+
+jobs:
+  sync-to-hub:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install huggingface_hub
+        run: pip install huggingface_hub
+
+      - name: Push backend to Space
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: python deploy_hf.py

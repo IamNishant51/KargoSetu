@@ -18,9 +18,10 @@ abandoned experiment — ignore `.neon`, root `.env.local` Neon vars).
   (a Docker-SDK Space will not serve this correctly).
 - App port `7860`. Routers live in `backend/app/api/routers/`, health at
   `/api/health/` (trailing slash).
-- To redeploy: upload the contents of `backend/` to the Space repo, EXCLUDING
-  `.venv/`, `node_modules/`, `__pycache__/`, `.env*`, and `README.md`
-  (the local README declares the wrong SDK — keep the Space README).
+- To redeploy: push to `main` — `.github/workflows/hf-sync.yml` uploads
+  `backend/` automatically (code only; secrets and Space README untouched).
+  It needs the repo secret `HF_TOKEN` (write token). Manual equivalent:
+  `HF_TOKEN=<token> python deploy_hf.py` from the repo root.
   If the build needs system packages, add a root `packages.txt` with
   `build-essential`.
 - Anti-sleep: `.github/workflows/keepalive.yml` pings `/api/health/` every
