@@ -20,7 +20,6 @@ import {
   Info,
   ClipboardCheck,
 } from "lucide-react";
-import { CopilotWidget } from "@/components/CopilotWidget";
 
 const EVAL_KEY = "kargosetu_eval_v1";
 
@@ -842,7 +841,6 @@ export default function DashboardPage() {
           </div>
         </div>
       )}
-      <CopilotWidget />
     </div>
   );
 }
