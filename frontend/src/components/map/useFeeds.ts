@@ -23,7 +23,7 @@ export function useFeeds() {
   return useQuery<FeedSnapshot>({
     queryKey: ["feeds"],
     queryFn: async ({ signal }) => {
-      const res = await fetch(`${getApiBase()}/api/health/`, { signal });
+      const res = await fetch(`${getApiBase()}/api/health`, { signal });
       if (!res.ok) throw new Error("feeds fetch failed");
       return res.json() as Promise<FeedSnapshot>;
     },

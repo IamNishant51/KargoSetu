@@ -10,7 +10,7 @@ router = APIRouter(prefix="/api/health", tags=["health"])
 logger = structlog.get_logger(__name__)
 
 
-@router.get("/")
+@router.get("")
 async def health_check():
     """
     Comprehensive health check.
