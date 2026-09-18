@@ -18,6 +18,15 @@ RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir -r requirements-light.txt
 
 COPY prisma ./prisma
+# Generate with the FINAL runtime cache location: `prisma generate` bakes the
+# resolved engine paths into the generated client code, so generating as root
+# (default HOME=/root) would hardcode /root/.cache paths that appuser cannot
+# use at runtime. Forcing everything to /app/.cache here makes build-time and
+# runtime paths identical. (Hash must match the prisma-engine version.)
+ENV HOME=/app
+ENV PRISMA_HOME_DIR=/app
+ENV PRISMA_NODEENV_CACHE_DIR=/app/.cache/prisma-python/nodeenv
+ENV PRISMA_BINARY_CACHE_DIR=/app/.cache/prisma-python/binaries/5.17.0/393aa359c9ad4a4bb28630fb5613f9c281cde053
 RUN prisma generate
 
 FROM python:3.11-slim
@@ -35,10 +44,10 @@ RUN groupadd -r appuser && useradd -r -g appuser -d /app appuser
 WORKDIR /app
 
 COPY --from=builder /opt/venv /opt/venv
-# Reuse the builder's Prisma cache (node + engines) instead of re-downloading
-# at boot: appuser's HOME is /app, so it must live in /app/.cache, owned by
-# appuser. (Builder ran as root → /root/.cache, invisible to appuser.)
-COPY --from=builder /root/.cache/prisma-python /app/.cache/prisma-python
+# Reuse the builder's Prisma cache (node + engines, generated with the same
+# /app/.cache location above): appuser's HOME is /app, so it must live in
+# /app/.cache, owned by appuser.
+COPY --from=builder /app/.cache/prisma-python /app/.cache/prisma-python
 ENV PATH="/opt/venv/bin:$PATH"
 ENV XDG_CACHE_HOME=/app/.cache
 # CRITICAL: prisma-client-py resolves its engine binaries via $HOME-derived
