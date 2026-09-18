@@ -29,6 +29,26 @@ and `hf-sync.yml` are kept only as dormant references.
   (`db.*.supabase.co:5432`) is unreachable from Render egress (P1001), and a
   `prisma db push && uvicorn` chain kills the boot before any port binds.
   Schema changes run out-of-band (local/CI with `DIRECT_URL`).
+- HARD RULE — Prisma engine paths are **baked in at `generate` time**: the
+  generated client hardcodes the engine binary paths resolved during
+  `prisma generate`, and no runtime env var can redirect them afterwards.
+  Therefore the builder MUST generate with the final runtime location:
+  `HOME=/app`, `PRISMA_HOME_DIR=/app`,
+  `PRISMA_NODEENV_CACHE_DIR=/app/.cache/prisma-python/nodeenv`,
+  `PRISMA_BINARY_CACHE_DIR=/app/.cache/prisma-python/binaries/<cli>/<hash>`
+  set before `RUN prisma generate`, cache copied to `/app/.cache` and
+  chowned to `appuser`. Symptoms of getting this wrong:
+  `Permission denied: '/root/.cache/prisma-python/binaries/.../query-engine...'`
+  (Docker does NOT update `$HOME` on `USER`, and Prisma ignores
+  `XDG_CACHE_HOME`). Update the hash in `PRISMA_BINARY_CACHE_DIR` whenever
+  the `prisma` package version changes (match `prisma --version` output).
+- `libatomic1` MUST be in the runtime image: Prisma's bundled node binary
+  links `libatomic.so.1`, which `python:3.11-slim` lacks (boot dies with
+  `error while loading shared libraries` otherwise).
+- When a deploy fails, read Render → Logs for `database_*` events first:
+  `EACCES /root/.cache` = engine-path mismatch (see above);
+  `P1001` at boot = something is migrating/connecting via direct URL;
+  persistent `disconnected` with good URL = check `pgbouncer=true`.
 - `main.py` lifespan: DB connect is capped at 15 s (degraded, never fatal)
   plus a 60 s `_db_watchdog` that reconnects in background (Supabase
   idle-pause / slow cold starts). Skipped under pytest.
