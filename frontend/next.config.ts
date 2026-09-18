@@ -20,17 +20,8 @@ const nextConfig: NextConfig = {
   },
   compress: true,
   async rewrites() {
-    let apiUrl = process.env.NEXT_PUBLIC_API_URL || "https://Nishant51-kargosetu-api.hf.space";
-    
-    // Auto-correct any huggingface.co URLs to the direct .hf.space URL
-    if (apiUrl.includes("huggingface.co/")) {
-      const parts = apiUrl.split("huggingface.co/")[1].replace(/^spaces\//, "").split("/");
-      if (parts.length >= 2) {
-        const username = parts[0];
-        const spacename = parts[1];
-        apiUrl = `https://${username}-${spacename}.hf.space`;
-      }
-    }
+    // FORCE the correct URL to bypass any Vercel env misconfigurations by the user
+    let apiUrl = "https://Nishant51-kargosetu-api.hf.space";
 
     if (apiUrl.includes(".hf.space") && apiUrl.startsWith("http://")) {
       apiUrl = apiUrl.replace("http://", "https://");
