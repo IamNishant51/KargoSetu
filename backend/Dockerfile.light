@@ -22,8 +22,12 @@ RUN prisma generate
 
 FROM python:3.11-slim
 
+# libatomic1 is REQUIRED: prisma-client-py runs a prebuilt node binary
+# (for `prisma db push` in CMD) that links against libatomic.so.1,
+# which python:3.11-slim does not ship. Without it the boot crashes with
+# "error while loading shared libraries: libatomic.so.1".
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    openssl curl \
+    openssl curl libatomic1 \
     && rm -rf /var/lib/apt/lists/*
 
 RUN groupadd -r appuser && useradd -r -g appuser -d /app appuser
@@ -31,8 +35,12 @@ RUN groupadd -r appuser && useradd -r -g appuser -d /app appuser
 WORKDIR /app
 
 COPY --from=builder /opt/venv /opt/venv
-COPY --from=builder /root/.cache/prisma-python /root/.cache/prisma-python
+# Reuse the builder's Prisma cache (node + engines) instead of re-downloading
+# at boot: appuser's HOME is /app, so it must live in /app/.cache, owned by
+# appuser. (Builder ran as root → /root/.cache, invisible to appuser.)
+COPY --from=builder /root/.cache/prisma-python /app/.cache/prisma-python
 ENV PATH="/opt/venv/bin:$PATH"
+ENV XDG_CACHE_HOME=/app/.cache
 
 COPY . .
 
