@@ -28,3 +28,7 @@ oracle_backend_deployment.md
 
 # AI Agent Configs
 .agents/
+
+# Local secrets / tool state (never commit)
+.neon
+.env.local
