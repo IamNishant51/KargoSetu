@@ -58,9 +58,7 @@ async def get_requisitions(
     # Calculate stats based on the same where clause (or global)
     # Usually stats reflect the current filter
     status_counts = await prisma.requisition.group_by(
-        by=["status"],
-        count={"id": True},
-        where=where
+        by=["status"], count={"id": True}, where=where
     )
 
     stats = {
@@ -106,32 +104,31 @@ async def create_requisition(req: RequisitionCreateRequest):
     )
 
     eval_req = RequisitionEvaluateRequest(
-        volume_mt=req.volume_mt,
-        dest_port_name=req.dest_port,
-        commodity=req.commodity
+        volume_mt=req.volume_mt, dest_port_name=req.dest_port, commodity=req.commodity
     )
 
     try:
         import structlog
+
         logger = structlog.get_logger(__name__)
         result = await maritime_math.evaluate_requisition(eval_req)
         new_status = "Feasible" if result.get("feasible") else "Infeasible"
 
         updated_req = await prisma.requisition.update(
-            where={"id": new_req.id},
-            data={"status": new_status}
+            where={"id": new_req.id}, data={"status": new_status}
         )
         return updated_req
     except Exception as e:
         import structlog
+
         logger = structlog.get_logger(__name__)
         logger.error("evaluation_failed_during_create", error=str(e))
         # Fallback to Infeasible if evaluation crashes
         updated_req = await prisma.requisition.update(
-            where={"id": new_req.id},
-            data={"status": "Infeasible"}
+            where={"id": new_req.id}, data={"status": "Infeasible"}
         )
         return updated_req
+
 
 @router.get("/{req_id}")
 async def get_requisition(req_id: str):

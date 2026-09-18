@@ -17,20 +17,32 @@ import PortBrief from "@/components/map/PortBrief";
 import SourcesPanel from "@/components/map/SourcesPanel";
 import { useFeeds } from "@/components/map/useFeeds";
 import { usePortNews, useRouteWx } from "@/components/map/useContext";
-import { ATTRIBUTION_ITEMS, ATTRIBUTION_LINE } from "@/components/map/attribution";
+import {
+  ATTRIBUTION_ITEMS,
+  ATTRIBUTION_LINE,
+} from "@/components/map/attribution";
 import { DEFAULT_BBOX, getApiBase, haversineNm } from "@/components/map/api";
 import { useVessels } from "@/components/map/useVessels";
 import { useHazards } from "@/components/map/useHazards";
 import { useCorridor } from "@/components/map/useCorridor";
-import {
-  loadGlobeState,
-  saveGlobeState,
+import { loadGlobeState, saveGlobeState } from "@/components/map/globeStore";
+import type {
+  CameraPresetId,
+  GlobePersistedState,
+  LayerVisibility,
+  SensorStyle,
 } from "@/components/map/globeStore";
-import type { CameraPresetId, GlobePersistedState, LayerVisibility, SensorStyle } from "@/components/map/globeStore";
 import { useLanguage } from "@/i18n/LanguageContext";
 import { saveJSON } from "@/lib/storage";
 
-const PRESETS: CameraPresetId[] = ["corridor", "haldia", "paradip", "dhamra", "sandheads", "newcastle"];
+const PRESETS: CameraPresetId[] = [
+  "corridor",
+  "haldia",
+  "paradip",
+  "dhamra",
+  "sandheads",
+  "newcastle",
+];
 
 const PORT_PRESET_NAMES: Partial<Record<CameraPresetId, string>> = {
   haldia: "Haldia",
@@ -53,7 +65,11 @@ function readInitialGlobeState(): GlobePersistedState {
     const preset = params.get("preset") as CameraPresetId | null;
     const mmsi = params.get("mmsi");
     if (preset && (PRESETS as string[]).includes(preset)) {
-      return { ...stored, camera: preset, selectedMmsi: mmsi ?? stored.selectedMmsi };
+      return {
+        ...stored,
+        camera: preset,
+        selectedMmsi: mmsi ?? stored.selectedMmsi,
+      };
     }
     if (mmsi) return { ...stored, selectedMmsi: mmsi };
   } catch {
@@ -68,6 +84,7 @@ export default function GlobeClient() {
   const [viewer, setViewer] = React.useState<CesiumViewer | null>(null);
   const [sensor, setSensor] = React.useState<SensorStyle>("normal");
   const [detection, setDetection] = React.useState(false);
+  const [autoRotate, setAutoRotate] = React.useState(false);
   const [notice, setNotice] = React.useState<string | null>(null);
   const [showCredits, setShowCredits] = React.useState(false);
   const [panelOpen, setPanelOpen] = React.useState(
@@ -95,12 +112,18 @@ export default function GlobeClient() {
   const routeWxQuery = useRouteWx();
   const newsQuery = usePortNews(briefPort);
 
-  const vessels = React.useMemo(() => vesselsQuery.data?.vessels ?? [], [vesselsQuery.data?.vessels]);
-  const mode = vesselsQuery.data?.mode ?? (vesselsQuery.isLoading ? "connecting" : "unavailable");
+  const vessels = React.useMemo(
+    () => vesselsQuery.data?.vessels ?? [],
+    [vesselsQuery.data?.vessels],
+  );
+  const mode =
+    vesselsQuery.data?.mode ??
+    (vesselsQuery.isLoading ? "connecting" : "unavailable");
   const hazards = hazardsQuery.data;
   const corridor = corridorQuery.data ?? [];
 
-  const selected = vessels.find((v) => v.mmsi === persisted.selectedMmsi) ?? null;
+  const selected =
+    vessels.find((v) => v.mmsi === persisted.selectedMmsi) ?? null;
   const briefPortData = corridor.find((p) => p.name === briefPort);
   const draftLimit = React.useMemo(
     () => parseDraftMeters(briefPortData?.draft),
@@ -145,11 +168,20 @@ export default function GlobeClient() {
       const res = await fetch(`${getApiBase()}/api/v1/requisitions/evaluate`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ volume_mt: volume, dest_port_name: port, commodity: "Coking Coal" }),
+        body: JSON.stringify({
+          volume_mt: volume,
+          dest_port_name: port,
+          commodity: "Coking Coal",
+        }),
       });
       if (!res.ok) throw new Error("evaluate failed");
       const data = await res.json();
-      saveJSON("kargosetu_eval_v1", { volume: String(volume), port, commodity: "Coking Coal", lastResult: data });
+      saveJSON("kargosetu_eval_v1", {
+        volume: String(volume),
+        port,
+        commodity: "Coking Coal",
+        lastResult: data,
+      });
       return data as { strategy?: string };
     },
     onSuccess: (data) => {
@@ -170,7 +202,8 @@ export default function GlobeClient() {
     try {
       const url = new URL(window.location.href);
       url.searchParams.set("preset", persisted.camera);
-      if (persisted.selectedMmsi) url.searchParams.set("mmsi", persisted.selectedMmsi);
+      if (persisted.selectedMmsi)
+        url.searchParams.set("mmsi", persisted.selectedMmsi);
       await navigator.clipboard.writeText(url.toString());
       setNotice("Scene link copied.");
     } catch {
@@ -178,7 +211,8 @@ export default function GlobeClient() {
     }
   }, [persisted.camera, persisted.selectedMmsi]);
 
-  const hazardCount = (hazards?.earthquakes.length ?? 0) + (hazards?.fires.length ?? 0);
+  const hazardCount =
+    (hazards?.earthquakes.length ?? 0) + (hazards?.fires.length ?? 0);
 
   const noticeText = notice ?? vesselsQuery.data?.notice ?? null;
 
@@ -186,7 +220,12 @@ export default function GlobeClient() {
     <div className="relative -m-4 h-[calc(100vh-6rem)] overflow-hidden bg-[#0A2342] sm:-m-8 sm:h-[calc(100vh-8rem)]">
       {/* Full-bleed canvas layer */}
       <div className="absolute inset-0">
-        <KargoGlobe preset={persisted.camera} onViewer={setViewer} onNotice={setNotice} />
+        <KargoGlobe
+          preset={persisted.camera}
+          onViewer={setViewer}
+          onNotice={setNotice}
+          autoRotate={autoRotate}
+        />
         <VesselLayer
           viewer={viewer}
           vessels={persisted.layers.vessels ? vessels : []}
@@ -212,7 +251,11 @@ export default function GlobeClient() {
         <div
           aria-hidden
           className="pointer-events-none absolute inset-0"
-          style={{ filter: sensorFilter(sensor), background: sensor === "normal" ? "transparent" : "rgba(0,0,0,0.08)" }}
+          style={{
+            filter: sensorFilter(sensor),
+            background:
+              sensor === "normal" ? "transparent" : "rgba(0,0,0,0.08)",
+          }}
         />
       </div>
 
@@ -223,9 +266,13 @@ export default function GlobeClient() {
           <h1 className="font-display text-xl font-black leading-tight text-[#0A2342]">
             {t("globe.title")}
           </h1>
-          <p className="hidden text-[12.5px] text-[#3D4F68] sm:block">{t("globe.subtitle")}</p>
+          <p className="hidden text-[12.5px] text-[#3D4F68] sm:block">
+            {t("globe.subtitle")}
+          </p>
           {noticeText && (
-            <p className="mt-1 text-[12px] font-bold text-[#B45309]">{noticeText}</p>
+            <p className="mt-1 text-[12px] font-bold text-[#B45309]">
+              {noticeText}
+            </p>
           )}
         </div>
         <div className="pointer-events-auto flex shrink-0 items-center gap-2">
@@ -254,10 +301,24 @@ export default function GlobeClient() {
             onClick={() => setDetection((d) => !d)}
             aria-pressed={detection}
             className={`rounded-xl border px-3 py-2 text-[12.5px] font-bold shadow-lg backdrop-blur ${
-              detection ? "bg-[#0A2342] text-white border-[#0A2342]" : "bg-white/95 text-[#0A2342] border-[#E2E6EB]"
+              detection
+                ? "bg-[#0A2342] text-white border-[#0A2342]"
+                : "bg-white/95 text-[#0A2342] border-[#E2E6EB]"
             }`}
           >
             Detect
+          </button>
+          <button
+            type="button"
+            onClick={() => setAutoRotate((r) => !r)}
+            aria-pressed={autoRotate}
+            className={`rounded-xl border px-3 py-2 text-[12.5px] font-bold shadow-lg backdrop-blur ${
+              autoRotate
+                ? "bg-[#0A2342] text-white border-[#0A2342]"
+                : "bg-white/95 text-[#0A2342] border-[#E2E6EB]"
+            }`}
+          >
+            Auto Rotate
           </button>
           <button
             type="button"
@@ -271,7 +332,13 @@ export default function GlobeClient() {
         </div>
       </div>
 
-      <Hud viewer={viewer} vesselCount={vessels.length} hazardCount={hazardCount} selected={selected} mode={mode} />
+      <Hud
+        viewer={viewer}
+        vesselCount={vessels.length}
+        hazardCount={hazardCount}
+        selected={selected}
+        mode={mode}
+      />
       <VesselSheet
         key={selected?.mmsi ?? "none"}
         vessel={selected}
@@ -281,8 +348,12 @@ export default function GlobeClient() {
       />
       {vesselsQuery.isError && !vesselsQuery.isLoading && (
         <div className="absolute left-3 top-40 z-20 max-w-[300px] rounded-xl border border-[#E2E6EB] bg-white px-3 py-2 shadow-lg">
-          <p className="text-[12.5px] font-semibold text-[#B42318]">Vessel feed unavailable.</p>
-          <p className="mt-0.5 font-mono text-[11px] text-[#6B7D99]">API {getApiBase()} unreachable. Start the backend, then retry.</p>
+          <p className="text-[12.5px] font-semibold text-[#B42318]">
+            Vessel feed unavailable.
+          </p>
+          <p className="mt-0.5 font-mono text-[11px] text-[#6B7D99]">
+            API {getApiBase()} unreachable. Start the backend, then retry.
+          </p>
           <button
             type="button"
             onClick={() => vesselsQuery.refetch()}
@@ -293,97 +364,108 @@ export default function GlobeClient() {
         </div>
       )}
 
-        <aside
-          className={`absolute bottom-14 right-3 top-[140px] z-20 w-[310px] max-w-[calc(100vw-24px)] space-y-3 overflow-y-auto rounded-2xl border border-[#E2E6EB] bg-[#FAF7F1]/95 p-3 shadow-xl backdrop-blur transition-transform duration-300 sm:top-[128px] ${
-            panelOpen ? "translate-x-0" : "translate-x-[calc(100%+16px)]"
-          }`}
-        >
-          <div className="flex lg:hidden items-center justify-between pb-1 px-1">
-            <span className="mono-label text-[#0A2342]">Tactical Controls</span>
-            <button
-              type="button"
-              onClick={() => setPanelOpen(false)}
-              className="rounded-lg bg-white border border-[#E2E6EB] px-2.5 py-1 text-[11px] font-bold text-[#6B7D99] hover:text-[#0A2342] shadow-sm"
-            >
-              ✕ Close
-            </button>
+      <aside
+        className={`absolute bottom-14 right-3 top-[140px] z-20 w-[310px] max-w-[calc(100vw-24px)] space-y-3 overflow-y-auto rounded-2xl border border-[#E2E6EB] bg-[#FAF7F1]/95 p-3 shadow-xl backdrop-blur transition-transform duration-300 sm:top-[128px] ${
+          panelOpen ? "translate-x-0" : "translate-x-[calc(100%+16px)]"
+        }`}
+      >
+        <div className="flex lg:hidden items-center justify-between pb-1 px-1">
+          <span className="mono-label text-[#0A2342]">Tactical Controls</span>
+          <button
+            type="button"
+            onClick={() => setPanelOpen(false)}
+            className="rounded-lg bg-white border border-[#E2E6EB] px-2.5 py-1 text-[11px] font-bold text-[#6B7D99] hover:text-[#0A2342] shadow-sm"
+          >
+            ✕ Close
+          </button>
+        </div>
+        <div className="rounded-2xl bg-white border border-[#E2E6EB] p-3 shadow-sm">
+          <p className="mono-label text-[#6B7D99] px-1 pb-2">Camera</p>
+          <div className="grid grid-cols-3 gap-1.5">
+            {PRESETS.map((p) => (
+              <button
+                key={p}
+                type="button"
+                onClick={() => setPreset(p)}
+                className={`rounded-lg px-2 py-2 text-[12px] font-bold border ${
+                  persisted.camera === p
+                    ? "bg-[#D95D0F] text-white border-[#D95D0F]"
+                    : "bg-white text-[#0A2342] border-[#E2E6EB] hover:bg-[#FAF7F1]"
+                }`}
+              >
+                {t(`globe.presets.${p}`)}
+              </button>
+            ))}
           </div>
-          <div className="rounded-2xl bg-white border border-[#E2E6EB] p-3 shadow-sm">
-            <p className="mono-label text-[#6B7D99] px-1 pb-2">Camera</p>
-            <div className="grid grid-cols-3 gap-1.5">
-              {PRESETS.map((p) => (
-                <button
-                  key={p}
-                  type="button"
-                  onClick={() => setPreset(p)}
-                  className={`rounded-lg px-2 py-2 text-[12px] font-bold border ${
-                    persisted.camera === p
-                      ? "bg-[#D95D0F] text-white border-[#D95D0F]"
-                      : "bg-white text-[#0A2342] border-[#E2E6EB] hover:bg-[#FAF7F1]"
-                  }`}
-                >
-                  {t(`globe.presets.${p}`)}
-                </button>
+        </div>
+
+        <LayerToggles layers={persisted.layers} onChange={setLayers} />
+        <PortBrief
+          port={briefPortData}
+          weather={hazards?.weather}
+          news={newsQuery.data}
+          onFlyTo={() => {
+            const id = briefPort.toLowerCase() as CameraPresetId;
+            if ((PRESETS as string[]).includes(id)) setPreset(id);
+          }}
+        />
+        <TourDirector
+          viewer={viewer}
+          onPreset={(preset) => setPreset(preset)}
+          autoStart={autoTour}
+        />
+        <SensorStyles value={sensor} onChange={setSensor} />
+        <CommandBar
+          onPreset={setPreset}
+          onToggleLayer={(layer, show) => {
+            if (layer in persisted.layers) {
+              setLayers({
+                ...persisted.layers,
+                [layer]: show,
+              } as LayerVisibility);
+            }
+          }}
+          onTrackNearest={trackNearest}
+          onReset={() => {
+            setPreset("corridor");
+            setSelected(null);
+          }}
+          onEvaluate={(volume, port) =>
+            commandEvaluate.mutate({ volume, port })
+          }
+          vessels={vessels}
+          corridor={corridor}
+        />
+        <SourcesPanel feeds={feedsQuery.data} mode={mode} />
+
+        <div className="rounded-2xl bg-white border border-[#E2E6EB] p-3 shadow-sm">
+          <button
+            type="button"
+            onClick={() => setShowCredits((s) => !s)}
+            aria-expanded={showCredits}
+            className="w-full text-left font-mono text-[10.5px] uppercase tracking-[0.14em] text-[#6B7D99] hover:text-[#0A2342]"
+          >
+            Data credits {showCredits ? "–" : "+"}
+          </button>
+          {showCredits && (
+            <ul className="mt-2 space-y-1.5 text-[12px] text-[#3D4F68]">
+              {ATTRIBUTION_ITEMS.map((a) => (
+                <li key={a.id}>
+                  <span className="font-bold text-[#0A2342]">{a.label}: </span>
+                  {a.text}
+                </li>
               ))}
-            </div>
-          </div>
-
-          <LayerToggles layers={persisted.layers} onChange={setLayers} />
-          <PortBrief
-            port={briefPortData}
-            weather={hazards?.weather}
-            news={newsQuery.data}
-            onFlyTo={() => {
-              const id = briefPort.toLowerCase() as CameraPresetId;
-              if ((PRESETS as string[]).includes(id)) setPreset(id);
-            }}
-          />
-          <TourDirector viewer={viewer} onPreset={(preset) => setPreset(preset)} autoStart={autoTour} />
-          <SensorStyles value={sensor} onChange={setSensor} />
-          <CommandBar
-            onPreset={setPreset}
-            onToggleLayer={(layer, show) => {
-              if (layer in persisted.layers) {
-                setLayers({ ...persisted.layers, [layer]: show } as LayerVisibility);
-              }
-            }}
-            onTrackNearest={trackNearest}
-            onReset={() => {
-              setPreset("corridor");
-              setSelected(null);
-            }}
-            onEvaluate={(volume, port) => commandEvaluate.mutate({ volume, port })}
-            vessels={vessels}
-            corridor={corridor}
-          />
-          <SourcesPanel feeds={feedsQuery.data} mode={mode} />
-
-          <div className="rounded-2xl bg-white border border-[#E2E6EB] p-3 shadow-sm">
-            <button
-              type="button"
-              onClick={() => setShowCredits((s) => !s)}
-              aria-expanded={showCredits}
-              className="w-full text-left font-mono text-[10.5px] uppercase tracking-[0.14em] text-[#6B7D99] hover:text-[#0A2342]"
-            >
-              Data credits {showCredits ? "–" : "+"}
-            </button>
-            {showCredits && (
-              <ul className="mt-2 space-y-1.5 text-[12px] text-[#3D4F68]">
-                {ATTRIBUTION_ITEMS.map((a) => (
-                  <li key={a.id}>
-                    <span className="font-bold text-[#0A2342]">{a.label}: </span>
-                    {a.text}
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
-        </aside>
+            </ul>
+          )}
+        </div>
+      </aside>
 
       <footer className="absolute bottom-3 left-3 z-20 max-w-[52%] truncate rounded-full border border-[#E2E6EB] bg-white/90 px-3 py-1.5 shadow backdrop-blur">
         <p className="truncate font-mono text-[10px] uppercase tracking-[0.12em] text-[#6B7D99]">
           {ATTRIBUTION_LINE} ·{" "}
-          {hazards ? `USGS:${hazards.sources.usgs} FIRMS:${hazards.sources.firms} Meteo:${hazards.sources.meteo}` : "feeds loading"}
+          {hazards
+            ? `USGS:${hazards.sources.usgs} FIRMS:${hazards.sources.firms} Meteo:${hazards.sources.meteo}`
+            : "feeds loading"}
         </p>
       </footer>
     </div>

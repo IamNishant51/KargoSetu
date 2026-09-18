@@ -7,7 +7,11 @@ interface SafeImageProps extends ImageProps {
   fallbackSrc: string;
 }
 
-export default function SafeImage({ src, fallbackSrc, ...props }: SafeImageProps) {
+export default function SafeImage({
+  src,
+  fallbackSrc,
+  ...props
+}: SafeImageProps) {
   const [imgSrc, setImgSrc] = useState(src);
 
   return (

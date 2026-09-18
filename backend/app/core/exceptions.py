@@ -37,9 +37,7 @@ async def prisma_error_handler(
         )
 
     # Generic database error (do not leak internals)
-    logger.error(
-        "prisma_error", error=error_msg, path=request.url.path
-    )
+    logger.error("prisma_error", error=error_msg, path=request.url.path)
     return JSONResponse(
         status_code=500,
         content={"detail": "Database operation failed"},

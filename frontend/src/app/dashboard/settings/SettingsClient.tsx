@@ -46,7 +46,7 @@ const ToggleSwitch = ({
   </div>
 );
 
-const API_BASE = `${(String(process.env.NODE_ENV) === "production" ? "" : ((String(process.env.NODE_ENV) === "production" ? "" : (process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"))))}/api/v1`;
+const API_BASE = `${String(process.env.NODE_ENV) === "production" ? "" : String(process.env.NODE_ENV) === "production" ? "" : process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/api/v1`;
 
 export default function SettingsPage({
   settingsPromise,
@@ -64,7 +64,7 @@ export default function SettingsPage({
         )
       : {};
 
-// Local state for settings
+  // Local state for settings
   const [settings, setSettings] = useState({
     defaultLandingPage: "Dashboard",
     defaultDateRange: "Last 30 Days",
@@ -107,7 +107,7 @@ export default function SettingsPage({
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["settings"] });
-// Optional: show a success toast here
+      // Optional: show a success toast here
     },
   });
 
@@ -125,7 +125,9 @@ export default function SettingsPage({
       <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
         <div>
           <p className="mono-label text-[#B45309]">{t("pg_settings")}</p>
-          <h1 className="mt-1.5 font-display text-2xl md:text-3xl font-black tracking-[-0.02em] text-[#0A2342]">{t("set_title")}</h1>
+          <h1 className="mt-1.5 font-display text-2xl md:text-3xl font-black tracking-[-0.02em] text-[#0A2342]">
+            {t("set_title")}
+          </h1>
           <p className="text-[#6B7D99] mt-1 text-sm md:text-base">
             {t("set_sub")}
           </p>
@@ -157,15 +159,17 @@ export default function SettingsPage({
         {/* Card 1: System Preferences */}
         <div className="bg-white rounded-xl border border-[#E2E6EB] shadow-sm p-6">
           <div className="mb-6">
-            <h3 className="font-display text-lg font-black tracking-tight text-[#0A2342]">{t("sys_title")}</h3>
-            <p className="text-sm text-[#6B7D99]">
-              {t("sys_sub")}
-            </p>
+            <h3 className="font-display text-lg font-black tracking-tight text-[#0A2342]">
+              {t("sys_title")}
+            </h3>
+            <p className="text-sm text-[#6B7D99]">{t("sys_sub")}</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <div className="space-y-2">
-              <label className="text-xs font-bold text-[#3D4F68]">{t("s_landing")}</label>
+              <label className="text-xs font-bold text-[#3D4F68]">
+                {t("s_landing")}
+              </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <LayoutDashboard className="w-4 h-4 text-[#6B7D99]" />
@@ -188,7 +192,9 @@ export default function SettingsPage({
             </div>
 
             <div className="space-y-2">
-              <label className="text-xs font-bold text-[#3D4F68]">{t("s_range")}</label>
+              <label className="text-xs font-bold text-[#3D4F68]">
+                {t("s_range")}
+              </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <Calendar className="w-4 h-4 text-[#6B7D99]" />
@@ -202,7 +208,9 @@ export default function SettingsPage({
                 >
                   <option value="Last 7 Days">{t("last_7")}</option>
                   <option value="Last 30 Days">{t("last_30")}</option>
-                  <option value="Last 90 Days">{t("days_FMT").replace("{n}", "90")}</option>
+                  <option value="Last 90 Days">
+                    {t("days_FMT").replace("{n}", "90")}
+                  </option>
                 </select>
                 <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none text-[#6B7D99]">
                   <ChevronDown className="w-4 h-4" />
@@ -211,7 +219,9 @@ export default function SettingsPage({
             </div>
 
             <div className="space-y-2">
-              <label className="text-xs font-bold text-[#3D4F68]">{t("s_tz")}</label>
+              <label className="text-xs font-bold text-[#3D4F68]">
+                {t("s_tz")}
+              </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <Globe className="w-4 h-4 text-[#6B7D99]" />
@@ -232,15 +242,20 @@ export default function SettingsPage({
             </div>
 
             <div className="space-y-2">
-              <label className="text-xs font-bold text-[#3D4F68]">{t("s_lang")}</label>
+              <label className="text-xs font-bold text-[#3D4F68]">
+                {t("s_lang")}
+              </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <Globe className="w-4 h-4 text-[#6B7D99]" />
                 </div>
-                                <select
+                <select
                   value={language}
                   onChange={(e) => {
-                    setLanguage(e.target.value as "en" | "hi" | "bn" | "mr" | "ta" | "te" | "gu");
+                    setLanguage(
+                      e.target.value as
+                        "en" | "hi" | "bn" | "mr" | "ta" | "te" | "gu",
+                    );
                     updateSetting("language", e.target.value);
                   }}
                   className="block w-full h-10 pl-9 pr-10 py-2 text-sm border border-[#E2E6EB] rounded-lg focus:ring-[#D95D0F]/30 focus:border-[#D95D0F] bg-white text-[#0A2342] font-medium appearance-none"
@@ -260,7 +275,9 @@ export default function SettingsPage({
             </div>
 
             <div className="space-y-2">
-              <label className="text-xs font-bold text-[#3D4F68]">{t("s_num")}</label>
+              <label className="text-xs font-bold text-[#3D4F68]">
+                {t("s_num")}
+              </label>
               <div className="relative">
                 <select
                   value={settings.numberFormat}
@@ -279,7 +296,9 @@ export default function SettingsPage({
             </div>
 
             <div className="space-y-2">
-              <label className="text-xs font-bold text-[#3D4F68]">{t("s_theme")}</label>
+              <label className="text-xs font-bold text-[#3D4F68]">
+                {t("s_theme")}
+              </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <Sun className="w-4 h-4 text-[#6B7D99]" />
@@ -303,7 +322,9 @@ export default function SettingsPage({
           <div className="mt-6 pt-6 border-t border-[#E2E6EB] flex flex-col md:flex-row md:items-center gap-6">
             <div className="flex-1 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
-                <h4 className="text-sm font-bold text-[#0A2342]">{t("auto_title")}</h4>
+                <h4 className="text-sm font-bold text-[#0A2342]">
+                  {t("auto_title")}
+                </h4>
                 <p className="text-[13px] text-[#6B7D99] mt-0.5">
                   {t("auto_sub")}
                 </p>
@@ -317,7 +338,9 @@ export default function SettingsPage({
             </div>
             <div className="hidden md:block w-px h-12 bg-[#E2E6EB]"></div>
             <div className="flex-1">
-              <label className="text-xs font-bold text-[#3D4F68] mb-2 block">{t("s_interval")}</label>
+              <label className="text-xs font-bold text-[#3D4F68] mb-2 block">
+                {t("s_interval")}
+              </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <Clock className="w-4 h-4 text-[#6B7D99]" />
@@ -329,9 +352,15 @@ export default function SettingsPage({
                   }
                   className="block w-full h-10 pl-9 pr-10 py-2 text-sm border border-[#E2E6EB] rounded-lg focus:ring-[#D95D0F]/30 focus:border-[#D95D0F] bg-white text-[#0A2342] font-medium appearance-none"
                 >
-                  <option value="5 Minutes">{t("min_FMT").replace("{n}", "5")}</option>
-                  <option value="15 Minutes">{t("min_FMT").replace("{n}", "15")}</option>
-                  <option value="30 Minutes">{t("min_FMT").replace("{n}", "30")}</option>
+                  <option value="5 Minutes">
+                    {t("min_FMT").replace("{n}", "5")}
+                  </option>
+                  <option value="15 Minutes">
+                    {t("min_FMT").replace("{n}", "15")}
+                  </option>
+                  <option value="30 Minutes">
+                    {t("min_FMT").replace("{n}", "30")}
+                  </option>
                   <option value="1 Hour">{t("hour_1")}</option>
                 </select>
                 <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none text-[#6B7D99]">
@@ -345,15 +374,17 @@ export default function SettingsPage({
         {/* Card 2: AI & Forecasting Preferences */}
         <div className="bg-white rounded-xl border border-[#E2E6EB] shadow-sm p-6">
           <div className="mb-6">
-            <h3 className="font-display text-lg font-black tracking-tight text-[#0A2342]">{t("ai_title")}</h3>
-            <p className="text-sm text-[#6B7D99]">
-              {t("ai_sub")}
-            </p>
+            <h3 className="font-display text-lg font-black tracking-tight text-[#0A2342]">
+              {t("ai_title")}
+            </h3>
+            <p className="text-sm text-[#6B7D99]">{t("ai_sub")}</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <div className="space-y-2">
-              <label className="text-xs font-bold text-[#3D4F68]">{t("s_model")}</label>
+              <label className="text-xs font-bold text-[#3D4F68]">
+                {t("s_model")}
+              </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <GitMerge className="w-4 h-4 text-[#6B7D99]" />
@@ -375,7 +406,9 @@ export default function SettingsPage({
             </div>
 
             <div className="space-y-2">
-              <label className="text-xs font-bold text-[#3D4F68]">{t("s_conf")}</label>
+              <label className="text-xs font-bold text-[#3D4F68]">
+                {t("s_conf")}
+              </label>
               <div className="relative">
                 <select
                   value={settings.forecastConfidenceDisplay}
@@ -394,7 +427,9 @@ export default function SettingsPage({
             </div>
 
             <div className="space-y-2">
-              <label className="text-xs font-bold text-[#3D4F68]">{t("s_shock")}</label>
+              <label className="text-xs font-bold text-[#3D4F68]">
+                {t("s_shock")}
+              </label>
               <div className="relative">
                 <select
                   value={settings.marketShockScenario}
@@ -404,8 +439,12 @@ export default function SettingsPage({
                   className="block w-full h-10 pl-3 pr-10 py-2 text-sm border border-[#E2E6EB] rounded-lg focus:ring-[#D95D0F]/30 focus:border-[#D95D0F] bg-white text-[#0A2342] font-medium appearance-none"
                 >
                   <option value="1.5x (Mild)">1.5x ({t("shock_mild")})</option>
-                  <option value="2.0x (Moderate)">2.0x ({t("shock_moderate")})</option>
-                  <option value="3.0x (Severe)">3.0x ({t("shock_severe")})</option>
+                  <option value="2.0x (Moderate)">
+                    2.0x ({t("shock_moderate")})
+                  </option>
+                  <option value="3.0x (Severe)">
+                    3.0x ({t("shock_severe")})
+                  </option>
                 </select>
                 <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none text-[#6B7D99]">
                   <ChevronDown className="w-4 h-4" />
@@ -417,7 +456,9 @@ export default function SettingsPage({
           <div className="mt-6 pt-6 border-t border-[#E2E6EB] flex flex-col md:flex-row md:items-center gap-6">
             <div className="flex-1 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
-                <h4 className="text-sm font-bold text-[#0A2342]">{t("hist_title")}</h4>
+                <h4 className="text-sm font-bold text-[#0A2342]">
+                  {t("hist_title")}
+                </h4>
                 <p className="text-[13px] text-[#6B7D99] mt-0.5">
                   {t("hist_sub")}
                 </p>
@@ -434,7 +475,9 @@ export default function SettingsPage({
             </div>
             <div className="hidden md:block w-px h-12 bg-[#E2E6EB]"></div>
             <div className="flex-1">
-              <label className="text-xs font-bold text-[#3D4F68] mb-2 block">{t("s_horizon")}</label>
+              <label className="text-xs font-bold text-[#3D4F68] mb-2 block">
+                {t("s_horizon")}
+              </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <LineChart className="w-4 h-4 text-[#6B7D99]" />
@@ -446,9 +489,15 @@ export default function SettingsPage({
                   }
                   className="block w-full h-10 pl-9 pr-10 py-2 text-sm border border-[#E2E6EB] rounded-lg focus:ring-[#D95D0F]/30 focus:border-[#D95D0F] bg-white text-[#0A2342] font-medium appearance-none"
                 >
-                  <option value="14 Days">{t("days_FMT").replace("{n}", "14")}</option>
-                  <option value="30 Days">{t("days_FMT").replace("{n}", "30")}</option>
-                  <option value="90 Days">{t("days_FMT").replace("{n}", "90")}</option>
+                  <option value="14 Days">
+                    {t("days_FMT").replace("{n}", "14")}
+                  </option>
+                  <option value="30 Days">
+                    {t("days_FMT").replace("{n}", "30")}
+                  </option>
+                  <option value="90 Days">
+                    {t("days_FMT").replace("{n}", "90")}
+                  </option>
                 </select>
                 <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none text-[#6B7D99]">
                   <ChevronDown className="w-4 h-4" />
@@ -461,15 +510,17 @@ export default function SettingsPage({
         {/* Card 3: Data & Calculation Preferences */}
         <div className="bg-white rounded-xl border border-[#E2E6EB] shadow-sm p-6">
           <div className="mb-6">
-            <h3 className="font-display text-lg font-black tracking-tight text-[#0A2342]">{t("data_title")}</h3>
-            <p className="text-sm text-[#6B7D99]">
-              {t("data_sub")}
-            </p>
+            <h3 className="font-display text-lg font-black tracking-tight text-[#0A2342]">
+              {t("data_title")}
+            </h3>
+            <p className="text-sm text-[#6B7D99]">{t("data_sub")}</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <div className="space-y-2">
-              <label className="text-xs font-bold text-[#3D4F68]">{t("s_cargo")}</label>
+              <label className="text-xs font-bold text-[#3D4F68]">
+                {t("s_cargo")}
+              </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <Weight className="w-4 h-4 text-[#6B7D99]" />
@@ -491,7 +542,9 @@ export default function SettingsPage({
             </div>
 
             <div className="space-y-2">
-              <label className="text-xs font-bold text-[#3D4F68]">{t("s_volunit")}</label>
+              <label className="text-xs font-bold text-[#3D4F68]">
+                {t("s_volunit")}
+              </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <Box className="w-4 h-4 text-[#6B7D99]" />
@@ -513,7 +566,9 @@ export default function SettingsPage({
             </div>
 
             <div className="space-y-2">
-              <label className="text-xs font-bold text-[#3D4F68]">{t("s_currency")}</label>
+              <label className="text-xs font-bold text-[#3D4F68]">
+                {t("s_currency")}
+              </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <DollarSign className="w-4 h-4 text-[#6B7D99]" />
@@ -536,7 +591,9 @@ export default function SettingsPage({
 
           <div className="mt-6 pt-6 border-t border-[#E2E6EB] flex flex-col md:flex-row md:items-center gap-6">
             <div className="flex-1">
-              <label className="text-xs font-bold text-[#3D4F68] mb-2 block">{t("s_round")}</label>
+              <label className="text-xs font-bold text-[#3D4F68] mb-2 block">
+                {t("s_round")}
+              </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <SlidersHorizontal className="w-4 h-4 text-[#6B7D99]" />
@@ -548,9 +605,15 @@ export default function SettingsPage({
                   }
                   className="block w-full h-10 pl-9 pr-10 py-2 text-sm border border-[#E2E6EB] rounded-lg focus:ring-[#D95D0F]/30 focus:border-[#D95D0F] bg-white text-[#0A2342] font-medium appearance-none"
                 >
-                  <option value="0 Decimal Places">{t("dec_FMT").replace("{n}", "0")}</option>
-                  <option value="2 Decimal Places">{t("dec_FMT").replace("{n}", "2")}</option>
-                  <option value="4 Decimal Places">{t("dec_FMT").replace("{n}", "4")}</option>
+                  <option value="0 Decimal Places">
+                    {t("dec_FMT").replace("{n}", "0")}
+                  </option>
+                  <option value="2 Decimal Places">
+                    {t("dec_FMT").replace("{n}", "2")}
+                  </option>
+                  <option value="4 Decimal Places">
+                    {t("dec_FMT").replace("{n}", "4")}
+                  </option>
                 </select>
                 <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none text-[#6B7D99]">
                   <ChevronDown className="w-4 h-4" />
@@ -560,7 +623,9 @@ export default function SettingsPage({
             <div className="hidden md:block w-px h-12 bg-[#E2E6EB]"></div>
             <div className="flex-1 flex flex-col sm:flex-row sm:items-center justify-between gap-4 mt-4 md:mt-0">
               <div>
-                <h4 className="text-sm font-bold text-[#0A2342]">{t("cache_title")}</h4>
+                <h4 className="text-sm font-bold text-[#0A2342]">
+                  {t("cache_title")}
+                </h4>
                 <p className="text-[13px] text-[#6B7D99] mt-0.5">
                   {t("cache_sub")}
                 </p>

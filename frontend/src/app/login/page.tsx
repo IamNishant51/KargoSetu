@@ -26,11 +26,14 @@ export default function LoginPage() {
     setError("");
 
     try {
-      const res = await fetch(`${(String(process.env.NODE_ENV) === "production" ? "" : ((String(process.env.NODE_ENV) === "production" ? "" : (process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"))))}/api/v1/auth/login`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
-      });
+      const res = await fetch(
+        `${String(process.env.NODE_ENV) === "production" ? "" : String(process.env.NODE_ENV) === "production" ? "" : process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/api/v1/auth/login`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password }),
+        },
+      );
 
       if (!res.ok) {
         const data = await res.json();
@@ -46,13 +49,18 @@ export default function LoginPage() {
     }
   };
 
-  const handleGoogleSuccess = async (credentialResponse: CredentialResponse) => {
+  const handleGoogleSuccess = async (
+    credentialResponse: CredentialResponse,
+  ) => {
     try {
-      const res = await fetch(`${(String(process.env.NODE_ENV) === "production" ? "" : ((String(process.env.NODE_ENV) === "production" ? "" : (process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"))))}/api/v1/auth/google`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ token: credentialResponse.credential }),
-      });
+      const res = await fetch(
+        `${String(process.env.NODE_ENV) === "production" ? "" : String(process.env.NODE_ENV) === "production" ? "" : process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/api/v1/auth/google`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ token: credentialResponse.credential }),
+        },
+      );
       if (!res.ok) throw new Error(t("err_google_login"));
 
       const data = await res.json();
@@ -65,7 +73,12 @@ export default function LoginPage() {
   return (
     <AuthShell
       eyebrow={t("login_eyebrow")}
-      title={<>{t("login_title")}<span className="text-[#D95D0F]">{t("login_title_accent")}</span></>}
+      title={
+        <>
+          {t("login_title")}
+          <span className="text-[#D95D0F]">{t("login_title_accent")}</span>
+        </>
+      }
       sub={t("login_sub")}
     >
       <p className="mono-label text-[#B45309]">{t("login_form_kicker")}</p>
@@ -85,9 +98,14 @@ export default function LoginPage() {
 
         <div className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="email" className="mono-label text-[#3D4F68]">{t("email")}</Label>
+            <Label htmlFor="email" className="mono-label text-[#3D4F68]">
+              {t("email")}
+            </Label>
             <div className="relative">
-              <Mail size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-[#6B7D99] pointer-events-none" />
+              <Mail
+                size={18}
+                className="absolute left-4 top-1/2 -translate-y-1/2 text-[#6B7D99] pointer-events-none"
+              />
               <Input
                 id="email"
                 type="email"
@@ -101,13 +119,21 @@ export default function LoginPage() {
           </div>
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <Label htmlFor="password" className="mono-label text-[#3D4F68]">{t("password")}</Label>
-              <Link href="#" className="text-[12.5px] font-bold text-[#B45309] hover:text-[#0A2342] transition-colors">
+              <Label htmlFor="password" className="mono-label text-[#3D4F68]">
+                {t("password")}
+              </Label>
+              <Link
+                href="#"
+                className="text-[12.5px] font-bold text-[#B45309] hover:text-[#0A2342] transition-colors"
+              >
                 {t("forgot")}
               </Link>
             </div>
             <div className="relative flex items-center">
-              <Lock size={18} className="absolute left-4 text-[#6B7D99] pointer-events-none" />
+              <Lock
+                size={18}
+                className="absolute left-4 text-[#6B7D99] pointer-events-none"
+              />
               <Input
                 id="password"
                 type={showPassword ? "text" : "password"}
@@ -142,7 +168,9 @@ export default function LoginPage() {
       <div className="relative my-6">
         <div className="harbour-rule absolute inset-x-0 top-1/2" />
         <div className="relative flex justify-center">
-          <span className="bg-white px-4 mono-label text-[#6B7D99]">{t("or_continue")}</span>
+          <span className="bg-white px-4 mono-label text-[#6B7D99]">
+            {t("or_continue")}
+          </span>
         </div>
       </div>
 
@@ -158,7 +186,12 @@ export default function LoginPage() {
 
       <p className="mt-7 text-center text-[14px] font-medium text-[#3D4F68]">
         {t("no_account")}{" "}
-        <Link href="/register" className="font-bold text-[#B45309] hover:text-[#0A2342] transition-colors">{t("signup_link")}</Link>
+        <Link
+          href="/register"
+          className="font-bold text-[#B45309] hover:text-[#0A2342] transition-colors"
+        >
+          {t("signup_link")}
+        </Link>
       </p>
     </AuthShell>
   );

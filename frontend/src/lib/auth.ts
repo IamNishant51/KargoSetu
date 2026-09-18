@@ -11,7 +11,10 @@ import Cookies from "js-cookie";
  *  2. all stale RSC payloads + React Query caches are discarded —
  *     the dashboard boots with a fresh session, no refresh needed.
  */
-export function persistSessionAndRedirect(accessToken: string, to = "/dashboard") {
+export function persistSessionAndRedirect(
+  accessToken: string,
+  to = "/dashboard",
+) {
   Cookies.set("auth_token", accessToken, {
     expires: 7,
     path: "/",

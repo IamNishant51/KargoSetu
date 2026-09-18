@@ -30,7 +30,9 @@ export default function Error({
           aria-label="Try again"
           onClick={() => reset()}
           className="mt-6 px-6 py-3 rounded-xl bg-[#D95D0F] text-white text-sm font-bold hover:bg-[#B45309] transition-colors shadow-[0_2px_0_#0A2342]"
-        >{t("try_again")}</button>
+        >
+          {t("try_again")}
+        </button>
       </div>
     </div>
   );

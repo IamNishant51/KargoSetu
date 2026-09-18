@@ -17,12 +17,46 @@ async def get_ports():
     ports = await prisma.port.find_many()
     return ports
 
+
 CORRIDOR_STATIC_DATA = {
-    "Haldia": {"n": "01", "sub": "Hooghly river · tide-bound", "draft": "7.5 m", "tide": "+2.8 – 4.2 m", "ship": "Supramax direct", "note": "Heavy siltation. The reason splits exist.", "flag": "Watch"},  # noqa: RUF001
-    "Paradip": {"n": "02", "sub": "Bay of Bengal · all-weather", "draft": "14.5 m", "tide": "+1.2 – 2.4 m", "ship": "Panamax / baby Cape", "note": "Mechanised coal berths. Laycan discipline matters.", "flag": "Open"},  # noqa: RUF001
-    "Dhamra": {"n": "03", "sub": "Deep-sea fairway", "draft": "16.0 m", "tide": "+1.5 – 2.8 m", "ship": "Full Capesize 180k", "note": "Coking-coal front door when Haldia chokes.", "flag": "Open"},  # noqa: RUF001
-    "Sandheads": {"n": "04", "sub": "Offshore roads · lighterage", "draft": "22 m+", "tide": "Open ocean", "ship": "All classes", "note": "Where big ships break bulk into shuttles.", "flag": "Hub"}
+    "Haldia": {
+        "n": "01",
+        "sub": "Hooghly river · tide-bound",
+        "draft": "7.5 m",
+        "tide": "+2.8 - 4.2 m",
+        "ship": "Supramax direct",
+        "note": "Heavy siltation. The reason splits exist.",
+        "flag": "Watch",
+    },
+    "Paradip": {
+        "n": "02",
+        "sub": "Bay of Bengal · all-weather",
+        "draft": "14.5 m",
+        "tide": "+1.2 - 2.4 m",
+        "ship": "Panamax / baby Cape",
+        "note": "Mechanised coal berths. Laycan discipline matters.",
+        "flag": "Open",
+    },
+    "Dhamra": {
+        "n": "03",
+        "sub": "Deep-sea fairway",
+        "draft": "16.0 m",
+        "tide": "+1.5 - 2.8 m",
+        "ship": "Full Capesize 180k",
+        "note": "Coking-coal front door when Haldia chokes.",
+        "flag": "Open",
+    },
+    "Sandheads": {
+        "n": "04",
+        "sub": "Offshore roads · lighterage",
+        "draft": "22 m+",
+        "tide": "Open ocean",
+        "ship": "All classes",
+        "note": "Where big ships break bulk into shuttles.",
+        "flag": "Hub",
+    },
 }
+
 
 @router.get("/corridor")
 @limiter.limit("30/minute")
@@ -38,14 +72,27 @@ async def get_port_corridor(request: Request):
 
     results = []
     for name, static_info in CORRIDOR_STATIC_DATA.items():
-        draft = f"{db_map[name].permissibleDraft} m" if name in db_map else static_info["draft"]
+        draft = (
+            f"{db_map[name].permissibleDraft} m"
+            if name in db_map
+            else static_info["draft"]
+        )
 
         merged = {
             "name": name,
             **static_info,
             "draft": draft,
         }
-        stats = live_counts.get(name, {"liveVesselCount": None, "nearestVesselNm": None, "loiteringCount": None, "meanSogKn": None, "congestion": None})
+        stats = live_counts.get(
+            name,
+            {
+                "liveVesselCount": None,
+                "nearestVesselNm": None,
+                "loiteringCount": None,
+                "meanSogKn": None,
+                "congestion": None,
+            },
+        )
         merged["liveVesselCount"] = stats["liveVesselCount"]
         merged["nearestVesselNm"] = stats["nearestVesselNm"]
         merged["loiteringCount"] = stats.get("loiteringCount")
@@ -106,11 +153,23 @@ def _corridor_live_stats() -> dict:
         all_lats = all_lats[valid_all]
         all_lons = all_lons[valid_all]
         all_sogs = np.array(
-            [float(v.get("sog")) if v.get("sog") is not None else float("nan") for v in vessels],
+            [
+                float(v.get("sog")) if v.get("sog") is not None else float("nan")
+                for v in vessels
+            ],
             dtype=float,
         )[valid_all]
         if all_lats.size == 0:
-            return {name: {"liveVesselCount": None, "nearestVesselNm": None, "loiteringCount": None, "meanSogKn": None, "congestion": None} for name in PORT_COORDS}
+            return {
+                name: {
+                    "liveVesselCount": None,
+                    "nearestVesselNm": None,
+                    "loiteringCount": None,
+                    "meanSogKn": None,
+                    "congestion": None,
+                }
+                for name in PORT_COORDS
+            }
 
         out: dict = {}
         for port_name, (plat, plon) in PORT_COORDS.items():
@@ -122,7 +181,10 @@ def _corridor_live_stats() -> dict:
             rlon2 = np.radians(lons)
             dlat = rlat2 - rlat1
             dlon = rlon2 - rlon1
-            a = np.sin(dlat / 2.0) ** 2 + np.cos(rlat1) * np.cos(rlat2) * np.sin(dlon / 2.0) ** 2
+            a = (
+                np.sin(dlat / 2.0) ** 2
+                + np.cos(rlat1) * np.cos(rlat2) * np.sin(dlon / 2.0) ** 2
+            )
             c = 2 * np.arcsin(np.sqrt(np.clip(a, 0.0, 1.0)))
             dist_nm = c * _EARTH_R_NM
             # 50 km radius for live count.
@@ -132,7 +194,11 @@ def _corridor_live_stats() -> dict:
             nearest = round(float(dist_nm.min()), 1)
             sog_known = within & ~np.isnan(all_sogs)
             loitering = int((sog_known & (all_sogs < 1.0)).sum())
-            mean_sog = round(float(all_sogs[sog_known].mean()), 1) if bool(sog_known.any()) else None
+            mean_sog = (
+                round(float(all_sogs[sog_known].mean()), 1)
+                if bool(sog_known.any())
+                else None
+            )
             out[port_name] = {
                 "liveVesselCount": count,
                 "nearestVesselNm": nearest,
@@ -186,6 +252,9 @@ def _haversine_nm(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
     lat1, lon1, lat2, lon2 = map(math.radians, [lat1, lon1, lat2, lon2])
     dlon = lon2 - lon1
     dlat = lat2 - lat1
-    a = math.sin(dlat / 2) ** 2 + math.cos(lat1) * math.cos(lat2) * math.sin(dlon / 2) ** 2
+    a = (
+        math.sin(dlat / 2) ** 2
+        + math.cos(lat1) * math.cos(lat2) * math.sin(dlon / 2) ** 2
+    )
     c = 2 * math.asin(math.sqrt(a))
     return c * _EARTH_R_NM

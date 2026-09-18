@@ -23,14 +23,19 @@ function loadReadIds(): Set<string> {
     const raw = window.localStorage.getItem(READ_KEY);
     if (!raw) return new Set();
     const arr = JSON.parse(raw);
-    return new Set(Array.isArray(arr) ? arr.filter((x) => typeof x === "string") : []);
+    return new Set(
+      Array.isArray(arr) ? arr.filter((x) => typeof x === "string") : [],
+    );
   } catch {
     return new Set();
   }
 }
 
 /** "5m ago" in the active language. t() has no interpolation so {n} is filled here. */
-export function relativeTime(dateStr: string, t: (key: string) => string): string {
+export function relativeTime(
+  dateStr: string,
+  t: (key: string) => string,
+): string {
   const d = new Date(dateStr);
   if (Number.isNaN(d.getTime())) return "";
   const mins = Math.max(0, Math.floor((Date.now() - d.getTime()) / 60000));
@@ -46,7 +51,10 @@ export function useNotifications() {
 
   useEffect(() => {
     try {
-      window.localStorage.setItem(READ_KEY, JSON.stringify([...readIds].slice(-MAX_STORED)));
+      window.localStorage.setItem(
+        READ_KEY,
+        JSON.stringify([...readIds].slice(-MAX_STORED)),
+      );
     } catch {
       // storage full or blocked — feed still works, receipts just won't persist
     }
@@ -55,7 +63,12 @@ export function useNotifications() {
   const query = useQuery<DeskNotification[]>({
     queryKey: ["notifications"],
     queryFn: async () => {
-      const baseUrl = (String(process.env.NODE_ENV) === "production" ? "" : ((String(process.env.NODE_ENV) === "production" ? "" : (process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"))));
+      const baseUrl =
+        String(process.env.NODE_ENV) === "production"
+          ? ""
+          : String(process.env.NODE_ENV) === "production"
+            ? ""
+            : process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
       const token = Cookies.get("auth_token");
       const res = await fetch(`${baseUrl}/api/v1/notifications?limit=20`, {
         headers: token ? { Authorization: `Bearer ${token}` } : {},

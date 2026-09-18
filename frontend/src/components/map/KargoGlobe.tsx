@@ -21,10 +21,14 @@ export async function flyCameraTo(
   const p = CAMERA_PRESETS[preset];
   if (!p) return;
   try {
+    const reducedMotion =
+      typeof window !== "undefined" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const actualDuration = reducedMotion ? 0 : duration;
     const Cesium = await getCesium();
     viewer.camera.flyTo({
       destination: Cesium.Cartesian3.fromDegrees(p.lon, p.lat, p.height),
-      duration,
+      duration: actualDuration,
     });
   } catch {
     // flyTo best-effort
@@ -36,15 +40,23 @@ interface KargoGlobeProps {
   onViewer: (viewer: CesiumViewer | null) => void;
   onNotice?: (msg: string | null) => void;
   interactive?: boolean;
+  autoRotate?: boolean;
 }
 
-export default function KargoGlobe({ preset, onViewer, onNotice, interactive = true }: KargoGlobeProps) {
+export default function KargoGlobe({
+  preset,
+  onViewer,
+  onNotice,
+  interactive = true,
+  autoRotate = false,
+}: KargoGlobeProps) {
   const containerRef = React.useRef<HTMLDivElement | null>(null);
   const viewerRef = React.useRef<CesiumViewer | null>(null);
   const presetRef = React.useRef(preset);
   const onViewerRef = React.useRef(onViewer);
   const onNoticeRef = React.useRef(onNotice);
   const interactiveRef = React.useRef(interactive);
+  const autoRotateRef = React.useRef(autoRotate);
   const [ready, setReady] = React.useState(false);
 
   React.useEffect(() => {
@@ -59,6 +71,9 @@ export default function KargoGlobe({ preset, onViewer, onNotice, interactive = t
   React.useEffect(() => {
     interactiveRef.current = interactive;
   }, [interactive]);
+  React.useEffect(() => {
+    autoRotateRef.current = autoRotate;
+  }, [autoRotate]);
 
   React.useEffect(() => {
     let cancelled = false;
@@ -67,14 +82,16 @@ export default function KargoGlobe({ preset, onViewer, onNotice, interactive = t
     async function init() {
       if (!containerRef.current) return;
       try {
-        (window as unknown as { CESIUM_BASE_URL?: string }).CESIUM_BASE_URL = "/cesium/";
+        (window as unknown as { CESIUM_BASE_URL?: string }).CESIUM_BASE_URL =
+          "/cesium/";
         const Cesium = await getCesium();
 
         if (cancelled || !containerRef.current) return;
 
         const esri = new Cesium.UrlTemplateImageryProvider({
           url: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
-          credit: "Powered by Esri — Source: Esri, Maxar, Earthstar Geographics, and the GIS User Community",
+          credit:
+            "Powered by Esri — Source: Esri, Maxar, Earthstar Geographics, and the GIS User Community",
         });
 
         // Terrain: flat ellipsoid by default. Verified 2026-09: the public
@@ -86,8 +103,8 @@ export default function KargoGlobe({ preset, onViewer, onNotice, interactive = t
 
         viewer = new Cesium.Viewer(containerRef.current, {
           baseLayerPicker: false,
-          timeline: false,
-          animation: false,
+          timeline: true,
+          animation: true,
           geocoder: false,
           homeButton: interactiveRef.current,
           sceneModePicker: interactiveRef.current,
@@ -100,7 +117,8 @@ export default function KargoGlobe({ preset, onViewer, onNotice, interactive = t
         });
 
         // Performance-first rendering
-        const dpr = typeof window !== "undefined" ? window.devicePixelRatio || 1.0 : 1.0;
+        const dpr =
+          typeof window !== "undefined" ? window.devicePixelRatio || 1.0 : 1.0;
         viewer.resolutionScale = Math.min(dpr, 1.0);
         viewer.scene.msaaSamples = 2;
         viewer.scene.globe.depthTestAgainstTerrain = false;
@@ -139,7 +157,9 @@ export default function KargoGlobe({ preset, onViewer, onNotice, interactive = t
         // Static credits stay visible in normal and clean-view modes.
         try {
           for (const item of ATTRIBUTION_ITEMS) {
-            viewer.creditDisplay.addStaticCredit(new Cesium.Credit(item.text, false));
+            viewer.creditDisplay.addStaticCredit(
+              new Cesium.Credit(item.text, false),
+            );
           }
         } catch {
           // credits are best-effort; canvas still renders
@@ -152,9 +172,18 @@ export default function KargoGlobe({ preset, onViewer, onNotice, interactive = t
             home.beforeExecute.addEventListener((e: { cancel?: boolean }) => {
               e.cancel = true;
               const p = CAMERA_PRESETS.corridor;
+              const reducedMotion =
+                typeof window !== "undefined" && window.matchMedia
+                  ? window.matchMedia("(prefers-reduced-motion: reduce)")
+                      .matches
+                  : false;
               viewer.camera.flyTo({
-                destination: Cesium.Cartesian3.fromDegrees(p.lon, p.lat, p.height),
-                duration: 2.2,
+                destination: Cesium.Cartesian3.fromDegrees(
+                  p.lon,
+                  p.lat,
+                  p.height,
+                ),
+                duration: reducedMotion ? 0 : 2.2,
               });
             });
           }
@@ -170,6 +199,19 @@ export default function KargoGlobe({ preset, onViewer, onNotice, interactive = t
         viewer.camera.setView({
           destination: Cesium.Cartesian3.fromDegrees(p0.lon, p0.lat, p0.height),
         });
+
+        viewer.clock.onTick.addEventListener(() => {
+          if (autoRotateRef.current && !cancelled && viewerRef.current) {
+            const reducedMotion =
+              typeof window !== "undefined" && window.matchMedia
+                ? window.matchMedia("(prefers-reduced-motion: reduce)").matches
+                : false;
+            if (!reducedMotion) {
+              viewerRef.current.camera.rotateRight(0.0005);
+            }
+          }
+        });
+
         // Let the canvas settle to its real box, then fade the globe in.
         requestAnimationFrame(() => {
           if (cancelled) return;
@@ -181,7 +223,9 @@ export default function KargoGlobe({ preset, onViewer, onNotice, interactive = t
           setReady(true);
         });
       } catch {
-        onNoticeRef.current?.("3D globe failed to load. Check connection and retry.");
+        onNoticeRef.current?.(
+          "3D globe failed to load. Check connection and retry.",
+        );
       }
     }
 
@@ -200,7 +244,8 @@ export default function KargoGlobe({ preset, onViewer, onNotice, interactive = t
       typeof ResizeObserver !== "undefined" && containerRef.current
         ? new ResizeObserver(onResize)
         : null;
-    if (observer && containerRef.current) observer.observe(containerRef.current);
+    if (observer && containerRef.current)
+      observer.observe(containerRef.current);
 
     return () => {
       cancelled = true;
@@ -230,9 +275,13 @@ export default function KargoGlobe({ preset, onViewer, onNotice, interactive = t
         const Cesium = await getCesium();
         if (cancelled) return;
         const p = CAMERA_PRESETS[preset];
+        const reducedMotion =
+          typeof window !== "undefined" && window.matchMedia
+            ? window.matchMedia("(prefers-reduced-motion: reduce)").matches
+            : false;
         viewer.camera.flyTo({
           destination: Cesium.Cartesian3.fromDegrees(p.lon, p.lat, p.height),
-          duration: 2.2,
+          duration: reducedMotion ? 0 : 2.2,
         });
       } catch {
         // flyTo is best-effort
@@ -253,7 +302,11 @@ export default function KargoGlobe({ preset, onViewer, onNotice, interactive = t
       className="relative h-full w-full overflow-hidden bg-[#0A2342] transition-opacity duration-700"
       style={{ opacity: ready ? 1 : 0 }}
     >
-      <div ref={containerRef} className="absolute inset-0" aria-label="3D vessel globe" />
+      <div
+        ref={containerRef}
+        className="absolute inset-0"
+        aria-label="3D vessel globe"
+      />
     </div>
   );
 }

@@ -24,10 +24,26 @@ import { useSidebar } from "./SidebarContext";
 import { clearSessionAndRedirect } from "@/lib/auth";
 
 const CRUMBS = [
-  { match: (p: string) => p === "/dashboard", icon: LayoutDashboard, key: "dashboard" },
-  { match: (p: string) => p.includes("/requisitions"), icon: FileText, key: "requisitions" },
-  { match: (p: string) => p.includes("/forecasts"), icon: TrendingUp, key: "forecasts" },
-  { match: (p: string) => p.includes("/settings"), icon: Settings, key: "settings" },
+  {
+    match: (p: string) => p === "/dashboard",
+    icon: LayoutDashboard,
+    key: "dashboard",
+  },
+  {
+    match: (p: string) => p.includes("/requisitions"),
+    icon: FileText,
+    key: "requisitions",
+  },
+  {
+    match: (p: string) => p.includes("/forecasts"),
+    icon: TrendingUp,
+    key: "forecasts",
+  },
+  {
+    match: (p: string) => p.includes("/settings"),
+    icon: Settings,
+    key: "settings",
+  },
 ];
 
 export function TopHeader() {
@@ -70,7 +86,10 @@ export function TopHeader() {
   }, []);
 
   const crumb = CRUMBS.find((c) => c.match(pathname));
-  const visibleNotifs = notifTab === "unread" ? notifications.filter((n) => n.unread) : notifications;
+  const visibleNotifs =
+    notifTab === "unread"
+      ? notifications.filter((n) => n.unread)
+      : notifications;
 
   return (
     <header className="h-16 bg-white border-b border-[#E2E6EB] flex items-center justify-between px-4 sm:px-8 z-30 sticky top-0 shrink-0">
@@ -85,7 +104,10 @@ export function TopHeader() {
         </button>
         {crumb && (
           <>
-            <crumb.icon size={17} className="hidden sm:block mr-2 text-[#B45309]" />
+            <crumb.icon
+              size={17}
+              className="hidden sm:block mr-2 text-[#B45309]"
+            />
             <span className="mono-label text-[#3D4F68]">{t(crumb.key)}</span>
           </>
         )}
@@ -113,7 +135,9 @@ export function TopHeader() {
             <div className="absolute right-0 mt-2 w-[calc(100vw-2rem)] sm:w-80 max-w-[320px] rounded-xl border border-[#E2E6EB] bg-white shadow-[4px_4px_0_rgba(10,35,66,0.08)] overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200 z-50">
               <div className="px-4 pt-4 pb-3 border-b border-[#E2E6EB] bg-[#FAF7F1]">
                 <div className="flex items-center justify-between">
-                  <h3 className="font-bold text-[#0A2342] text-[15px]">{t("notifications")}</h3>
+                  <h3 className="font-bold text-[#0A2342] text-[15px]">
+                    {t("notifications")}
+                  </h3>
                   <span
                     onClick={markAllAsRead}
                     className="text-xs font-bold text-[#B45309] cursor-pointer hover:text-[#0A2342]"
@@ -128,11 +152,15 @@ export function TopHeader() {
                       type="button"
                       onClick={() => setNotifTab(tab)}
                       className={`px-3 py-1.5 text-[12px] font-bold rounded-md transition-colors ${
-                        notifTab === tab ? "bg-[#0A2342] text-white" : "text-[#6B7D99] hover:text-[#0A2342]"
+                        notifTab === tab
+                          ? "bg-[#0A2342] text-white"
+                          : "text-[#6B7D99] hover:text-[#0A2342]"
                       }`}
                     >
                       {t(tab === "all" ? "notif_all" : "notif_unread")}
-                      {tab === "unread" && unreadCount > 0 && ` · ${unreadCount}`}
+                      {tab === "unread" &&
+                        unreadCount > 0 &&
+                        ` · ${unreadCount}`}
                     </button>
                   ))}
                 </div>
@@ -144,7 +172,9 @@ export function TopHeader() {
                   </div>
                 ) : notifError ? (
                   <div className="p-5 text-center">
-                    <p className="text-sm font-medium text-[#3D4F68]">{t("notif_error")}</p>
+                    <p className="text-sm font-medium text-[#3D4F68]">
+                      {t("notif_error")}
+                    </p>
                     <button
                       type="button"
                       onClick={() => refetchNotifs()}
@@ -156,7 +186,9 @@ export function TopHeader() {
                   </div>
                 ) : visibleNotifs.length === 0 ? (
                   <div className="p-4 text-center text-sm text-[#6B7D99]">
-                    {notifTab === "unread" ? t("notif_empty") : t("notif_empty_all")}
+                    {notifTab === "unread"
+                      ? t("notif_empty")
+                      : t("notif_empty_all")}
                   </div>
                 ) : (
                   visibleNotifs.map((notif) => (
@@ -215,7 +247,10 @@ export function TopHeader() {
                     <button
                       className={`w-full text-left px-4 py-2 text-sm transition-colors hover:bg-[#FAF7F1] ${language === l.code ? "text-[#B45309] font-bold bg-[#FDF1E7]" : "text-[#3D4F68]"}`}
                       onClick={() => {
-                        setLanguage(l.code as "en" | "hi" | "bn" | "mr" | "ta" | "te" | "gu");
+                        setLanguage(
+                          l.code as
+                            "en" | "hi" | "bn" | "mr" | "ta" | "te" | "gu",
+                        );
                         setLangOpen(false);
                       }}
                     >
@@ -240,10 +275,13 @@ export function TopHeader() {
               <p className="text-[13.5px] font-bold text-[#0A2342] group-hover:text-[#B45309] transition-colors">
                 {user?.name || "KargoSetu User"}
               </p>
-              <p className="text-xs text-[#6B7D99]">{user?.email || t("admin")}</p>
+              <p className="text-xs text-[#6B7D99]">
+                {user?.email || t("admin")}
+              </p>
             </div>
 
             {user?.avatarUrl ? (
+              /* eslint-disable-next-line @next/next/no-img-element */
               <img
                 src={user.avatarUrl}
                 alt={user.name || "Avatar"}
@@ -290,9 +328,9 @@ export function TopHeader() {
                 <button
                   type="button"
                   onClick={() => {
-                    Cookies.remove("auth_token", { path: '/' });
+                    Cookies.remove("auth_token", { path: "/" });
                     clearSessionAndRedirect();
-                    router.push('/login');
+                    router.push("/login");
                   }}
                   aria-label={t("sign_out")}
                   className="w-full flex items-center px-3 py-2 text-sm font-bold text-[#B42318] rounded-lg hover:bg-[#FDECEC] transition-colors"

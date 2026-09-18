@@ -10,7 +10,12 @@ export interface FeedSnapshot {
   version: string;
   feeds?: {
     vessels?: { mode?: string; collectsToday?: number };
-    hazards?: { usgs?: string; firms?: string; meteo?: string; firmsUsedToday?: number };
+    hazards?: {
+      usgs?: string;
+      firms?: string;
+      meteo?: string;
+      firmsUsedToday?: number;
+    };
   };
 }
 

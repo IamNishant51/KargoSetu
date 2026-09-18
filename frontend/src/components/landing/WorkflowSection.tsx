@@ -1,14 +1,34 @@
 "use client";
 import React from "react";
-import Image from "next/image";
 import SafeImage from "@/components/ui/SafeImage";
 
 const STEPS = [
-  { n: "01", t: "Drop the indent", d: "Tonnage, coal grade, laycan, destination. Thirty seconds, no manual." },
-  { n: "02", t: "Track the corridor live", d: "Watch the Bay in 3D — vessels, roads traffic and hazards on the live globe.", href: "/dashboard/globe" },
-  { n: "03", t: "River does the maths", d: "Live tide + channel soundings vs squat and UKC. Pass or split — stated plainly." },
-  { n: "04", t: "Market picks the week", d: "P10–P90 bands mark the cheap window. Sign the CoA there." },
-  { n: "05", t: "Sail with a receipt", d: "Berth or split slip with drafts, barges and rupees saved. File it." },
+  {
+    n: "01",
+    t: "Drop the indent",
+    d: "Tonnage, coal grade, laycan, destination. Thirty seconds, no manual.",
+  },
+  {
+    n: "02",
+    t: "Track the corridor live",
+    d: "Watch the Bay in 3D — vessels, roads traffic and hazards on the live globe.",
+    href: "/dashboard/globe",
+  },
+  {
+    n: "03",
+    t: "River does the maths",
+    d: "Live tide + channel soundings vs squat and UKC. Pass or split — stated plainly.",
+  },
+  {
+    n: "04",
+    t: "Market picks the week",
+    d: "P10–P90 bands mark the cheap window. Sign the CoA there.",
+  },
+  {
+    n: "05",
+    t: "Sail with a receipt",
+    d: "Berth or split slip with drafts, barges and rupees saved. File it.",
+  },
 ];
 
 export default function WorkflowSection() {
@@ -17,21 +37,34 @@ export default function WorkflowSection() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid lg:grid-cols-12 gap-10 items-start">
         <div className="lg:col-span-5">
           <p className="mono-label text-[#B45309]">Passage plan — 5 fixes</p>
-          <h2 className="mt-2 text-4xl sm:text-5xl font-bold text-[#0A2342]">Indent to berth, no fog.</h2>
+          <h2 className="mt-2 text-4xl sm:text-5xl font-bold text-[#0A2342]">
+            Indent to berth, no fog.
+          </h2>
           <ol className="mt-8 space-y-0 border-t border-[#E2E6EB]">
             {STEPS.map((s) => (
-              <li key={s.n} className="flex gap-4 py-5 border-b border-[#E2E6EB]">
-                <span className="text-[13px] font-semibold text-[#D95D0F] pt-1 shrink-0 w-7">{s.n}</span>
+              <li
+                key={s.n}
+                className="flex gap-4 py-5 border-b border-[#E2E6EB]"
+              >
+                <span className="text-[13px] font-semibold text-[#D95D0F] pt-1 shrink-0 w-7">
+                  {s.n}
+                </span>
                 <div>
                   <h3 className="text-[19px] font-bold text-[#0A2342]">
                     {s.t}{" "}
-                    {"href" in s && typeof (s as { href?: string }).href === "string" && (
-                      <a href={(s as { href: string }).href} className="text-[13px] font-bold text-[#B45309] hover:underline">
-                        Open →
-                      </a>
-                    )}
+                    {"href" in s &&
+                      typeof (s as { href?: string }).href === "string" && (
+                        <a
+                          href={(s as { href: string }).href}
+                          className="text-[13px] font-bold text-[#B45309] hover:underline"
+                        >
+                          Open →
+                        </a>
+                      )}
                   </h3>
-                  <p className="mt-1 text-[14px] leading-relaxed text-[#3D4F68]">{s.d}</p>
+                  <p className="mt-1 text-[14px] leading-relaxed text-[#3D4F68]">
+                    {s.d}
+                  </p>
                 </div>
               </li>
             ))}
@@ -58,8 +91,12 @@ export default function WorkflowSection() {
               />
             </div>
             <figcaption className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 bg-white border-t border-[#E2E6EB] px-5 py-3.5">
-              <span className="text-[10.5px] font-semibold uppercase tracking-[0.12em] text-[#6B7D99]">Lighterage plan</span>
-              <span className="text-[12px] font-semibold text-[#0E7A3D]">3× Supramax · UKC safe · ₹2.1 Cr saved</span>
+              <span className="text-[10.5px] font-semibold uppercase tracking-[0.12em] text-[#6B7D99]">
+                Lighterage plan
+              </span>
+              <span className="text-[12px] font-semibold text-[#0E7A3D]">
+                3× Supramax · UKC safe · ₹2.1 Cr saved
+              </span>
             </figcaption>
           </figure>
         </div>

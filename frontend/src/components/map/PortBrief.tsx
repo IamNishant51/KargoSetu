@@ -10,7 +10,12 @@ interface PortBriefProps {
   onFlyTo: () => void;
 }
 
-export default function PortBrief({ port, weather, news, onFlyTo }: PortBriefProps) {
+export default function PortBrief({
+  port,
+  weather,
+  news,
+  onFlyTo,
+}: PortBriefProps) {
   const { t } = useLanguage();
   if (!port) return null;
 
@@ -28,25 +33,43 @@ export default function PortBrief({ port, weather, news, onFlyTo }: PortBriefPro
           {port.name}
         </button>
       </div>
-      <p className="px-1 text-[12px] text-[#3D4F68]">{port.sub} · {t("globe.brief.tide").replace("{t}", port.tide)}</p>
+      <p className="px-1 text-[12px] text-[#3D4F68]">
+        {port.sub} · {t("globe.brief.tide").replace("{t}", port.tide)}
+      </p>
       <div className="mt-2 grid grid-cols-3 gap-1.5 font-mono text-[12px]">
         <div className="rounded-lg bg-[#FAF7F1] border border-[#E2E6EB] px-2 py-1.5 text-center">
-          <p className="text-[9.5px] uppercase tracking-[0.1em] text-[#6B7D99]">Ships</p>
-          <p className="font-bold text-[#0A2342]">{port.liveVesselCount ?? "—"}</p>
+          <p className="text-[9.5px] uppercase tracking-[0.1em] text-[#6B7D99]">
+            Ships
+          </p>
+          <p className="font-bold text-[#0A2342]">
+            {port.liveVesselCount ?? "—"}
+          </p>
         </div>
         <div className="rounded-lg bg-[#FAF7F1] border border-[#E2E6EB] px-2 py-1.5 text-center">
-          <p className="text-[9.5px] uppercase tracking-[0.1em] text-[#6B7D99]">Loiter</p>
-          <p className="font-bold text-[#0A2342]">{port.loiteringCount ?? "—"}</p>
+          <p className="text-[9.5px] uppercase tracking-[0.1em] text-[#6B7D99]">
+            Loiter
+          </p>
+          <p className="font-bold text-[#0A2342]">
+            {port.loiteringCount ?? "—"}
+          </p>
         </div>
         <div className="rounded-lg bg-[#FAF7F1] border border-[#E2E6EB] px-2 py-1.5 text-center">
-          <p className="text-[9.5px] uppercase tracking-[0.1em] text-[#6B7D99]">SOG</p>
+          <p className="text-[9.5px] uppercase tracking-[0.1em] text-[#6B7D99]">
+            SOG
+          </p>
           <p className="font-bold text-[#0A2342]">{port.meanSogKn ?? "—"}</p>
         </div>
       </div>
       <p className="mt-2 px-1 text-[12px] text-[#3D4F68]">
         {t("globe.brief.weather")
-          .replace("{w}", weather?.waveHeightM != null ? String(weather.waveHeightM) : "?")
-          .replace("{k}", weather?.windSpeedKmh != null ? String(weather.windSpeedKmh) : "?")}
+          .replace(
+            "{w}",
+            weather?.waveHeightM != null ? String(weather.waveHeightM) : "?",
+          )
+          .replace(
+            "{k}",
+            weather?.windSpeedKmh != null ? String(weather.windSpeedKmh) : "?",
+          )}
         {" · "}
         {t("globe.brief.draft").replace("{d}", port.draft)}
       </p>
@@ -54,19 +77,31 @@ export default function PortBrief({ port, weather, news, onFlyTo }: PortBriefPro
         {t("globe.brief.news")}
       </p>
       {items.length === 0 ? (
-        <p className="px-1 text-[12px] text-[#6B7D99]">{t("globe.brief.nonews")}</p>
+        <p className="px-1 text-[12px] text-[#6B7D99]">
+          {t("globe.brief.nonews")}
+        </p>
       ) : (
         <ul className="mt-1 space-y-1">
           {items.map((n, i) => (
-            <li key={`${n.title}-${i}`} className="px-1 text-[12px] leading-snug">
+            <li
+              key={`${n.title}-${i}`}
+              className="px-1 text-[12px] leading-snug"
+            >
               {n.url ? (
-                <a href={n.url} target="_blank" rel="noreferrer" className="font-semibold text-[#0A2342] underline decoration-[#D95D0F]/60 underline-offset-2 hover:text-[#D95D0F]">
+                <a
+                  href={n.url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="font-semibold text-[#0A2342] underline decoration-[#D95D0F]/60 underline-offset-2 hover:text-[#D95D0F]"
+                >
                   {n.title}
                 </a>
               ) : (
                 <span className="font-semibold text-[#0A2342]">{n.title}</span>
               )}
-              {n.source && <span className="text-[#6B7D99]"> · {n.source}</span>}
+              {n.source && (
+                <span className="text-[#6B7D99]"> · {n.source}</span>
+              )}
             </li>
           ))}
         </ul>

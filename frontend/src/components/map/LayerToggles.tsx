@@ -23,11 +23,16 @@ export default function LayerToggles({ layers, onChange }: LayerTogglesProps) {
       <p className="mono-label text-[#6B7D99] px-1 pb-2">Layers</p>
       <div className="space-y-1.5">
         {items.map((it) => (
-          <label key={it.key} className="flex items-center gap-2.5 rounded-lg px-2 py-1.5 hover:bg-[#FAF7F1] cursor-pointer text-[13.5px] font-semibold text-[#0A2342]">
+          <label
+            key={it.key}
+            className="flex items-center gap-2.5 rounded-lg px-2 py-1.5 hover:bg-[#FAF7F1] cursor-pointer text-[13.5px] font-semibold text-[#0A2342]"
+          >
             <input
               type="checkbox"
               checked={layers[it.key]}
-              onChange={(e) => onChange({ ...layers, [it.key]: e.target.checked })}
+              onChange={(e) =>
+                onChange({ ...layers, [it.key]: e.target.checked })
+              }
               className="h-4 w-4 accent-[#D95D0F]"
             />
             {it.label}

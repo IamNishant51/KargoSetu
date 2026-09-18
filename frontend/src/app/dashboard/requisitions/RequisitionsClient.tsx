@@ -56,8 +56,14 @@ export default function RequisitionsPage() {
   const queryClient = useQueryClient();
 
   // Custom Toast State
-  const [toast, setToast] = useState<{ message: string; type: "success" | "error" | "info" } | null>(null);
-  const showToast = (message: string, type: "success" | "error" | "info" = "success") => {
+  const [toast, setToast] = useState<{
+    message: string;
+    type: "success" | "error" | "info";
+  } | null>(null);
+  const showToast = (
+    message: string,
+    type: "success" | "error" | "info" = "success",
+  ) => {
     setToast({ message, type });
     setTimeout(() => setToast(null), 3000);
   };
@@ -69,7 +75,9 @@ export default function RequisitionsPage() {
   const [search, setSearch] = useState(savedView.search);
   const [debouncedSearch, setDebouncedSearch] = useState(savedView.search);
   const [page, setPage] = useState(
-    Number.isInteger(savedView.page) && savedView.page >= 1 ? savedView.page : 1,
+    Number.isInteger(savedView.page) && savedView.page >= 1
+      ? savedView.page
+      : 1,
   );
   const [isNewRequisitionOpen, setIsNewRequisitionOpen] = useState(false);
   const [newReqForm, setNewReqForm] = useState(savedDraft);
@@ -77,7 +85,11 @@ export default function RequisitionsPage() {
   const createMutation = useMutation({
     mutationFn: async (newReq: Record<string, unknown>) => {
       const baseUrl =
-        (String(process.env.NODE_ENV) === "production" ? "" : ((String(process.env.NODE_ENV) === "production" ? "" : (process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"))));
+        String(process.env.NODE_ENV) === "production"
+          ? ""
+          : String(process.env.NODE_ENV) === "production"
+            ? ""
+            : process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
       const res = await fetch(`${baseUrl}/api/v1/requisitions`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -99,21 +111,35 @@ export default function RequisitionsPage() {
     },
     onError: () => {
       showToast("Failed to create requisition", "error");
-    }
+    },
   });
 
   const { data: portsData } = useQuery({
     queryKey: ["port-names"],
     queryFn: async () => {
-      const baseUrl = (String(process.env.NODE_ENV) === "production" ? "" : ((String(process.env.NODE_ENV) === "production" ? "" : (process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"))));
+      const baseUrl =
+        String(process.env.NODE_ENV) === "production"
+          ? ""
+          : String(process.env.NODE_ENV) === "production"
+            ? ""
+            : process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
       const res = await fetch(`${baseUrl}/api/v1/ports`);
       if (!res.ok) return [];
       const data = await res.json();
       const list = data.ports || data;
-      return (Array.isArray(list) ? list : []).map((p: Record<string, unknown>) => String(p?.name ?? ""));
+      return (Array.isArray(list) ? list : []).map(
+        (p: Record<string, unknown>) => String(p?.name ?? ""),
+      );
     },
   });
-  const ports = portsData || ["Haldia", "Paradip", "Dhamra", "Mumbai", "Kandla", "Mundra"];
+  const ports = portsData || [
+    "Haldia",
+    "Paradip",
+    "Dhamra",
+    "Mumbai",
+    "Kandla",
+    "Mundra",
+  ];
 
   const [dateRange, setDateRange] = useState(savedView.dateRange);
   const [dateRangeOpen, setDateRangeOpen] = useState(false);
@@ -131,7 +157,7 @@ export default function RequisitionsPage() {
     });
   };
 
-// Debounce search
+  // Debounce search
   useEffect(() => {
     const handler = setTimeout(() => {
       setDebouncedSearch(search);
@@ -143,7 +169,9 @@ export default function RequisitionsPage() {
   const [statusOpen, setStatusOpen] = useState(false);
   const statusRef = useRef<HTMLDivElement>(null);
 
-  const [commodityFilter, setCommodityFilter] = useState(savedView.commodityFilter);
+  const [commodityFilter, setCommodityFilter] = useState(
+    savedView.commodityFilter,
+  );
   const [commodityOpen, setCommodityOpen] = useState(false);
   const commodityRef = useRef<HTMLDivElement>(null);
 
@@ -162,9 +190,14 @@ export default function RequisitionsPage() {
   ];
   const COMMODITY_OPTS = [
     { value: "All Commodities", label: t("all_commodities") },
-    ...["Iron Ore", "Coal", "Bauxite", "Thermal Coal", "Coking Coal", "Metallurgical Coal"].map(
-      (c) => ({ value: c, label: c }),
-    ),
+    ...[
+      "Iron Ore",
+      "Coal",
+      "Bauxite",
+      "Thermal Coal",
+      "Coking Coal",
+      "Metallurgical Coal",
+    ].map((c) => ({ value: c, label: c })),
   ];
   const ORIGIN_OPTS = [
     { value: "All Origins", label: t("all_origins") },
@@ -233,7 +266,11 @@ export default function RequisitionsPage() {
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
       const baseUrl =
-        (String(process.env.NODE_ENV) === "production" ? "" : ((String(process.env.NODE_ENV) === "production" ? "" : (process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"))));
+        String(process.env.NODE_ENV) === "production"
+          ? ""
+          : String(process.env.NODE_ENV) === "production"
+            ? ""
+            : process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
       const res = await fetch(`${baseUrl}/api/v1/requisitions/${id}`, {
         method: "DELETE",
       });
@@ -247,7 +284,7 @@ export default function RequisitionsPage() {
     onError: () => {
       showToast("Failed to delete requisition", "error");
       setDeleteConfirmId(null);
-    }
+    },
   });
 
   const handleDelete = (id: string) => {
@@ -267,7 +304,12 @@ export default function RequisitionsPage() {
     if (dateRange !== "All Time") params.append("dateRange", dateRange);
     if (debouncedSearch) params.append("search", debouncedSearch);
 
-    const baseUrl = (String(process.env.NODE_ENV) === "production" ? "" : ((String(process.env.NODE_ENV) === "production" ? "" : (process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"))));
+    const baseUrl =
+      String(process.env.NODE_ENV) === "production"
+        ? ""
+        : String(process.env.NODE_ENV) === "production"
+          ? ""
+          : process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
     const res = await fetch(
       `${baseUrl}/api/v1/requisitions?${params.toString()}`,
     );
@@ -336,10 +378,10 @@ export default function RequisitionsPage() {
       <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
         <div>
           <p className="mono-label text-[#B45309]">{t("pg_requisitions")}</p>
-          <h1 className="mt-1.5 font-display text-2xl md:text-3xl font-black tracking-[-0.02em] text-[#0A2342]">{t("req_title")}</h1>
-          <p className="text-[#6B7D99] mt-1">
-            {t("req_sub")}
-          </p>
+          <h1 className="mt-1.5 font-display text-2xl md:text-3xl font-black tracking-[-0.02em] text-[#0A2342]">
+            {t("req_title")}
+          </h1>
+          <p className="text-[#6B7D99] mt-1">{t("req_sub")}</p>
         </div>
         <div className="flex items-center space-x-3 shrink-0">
           <button
@@ -348,7 +390,9 @@ export default function RequisitionsPage() {
             onClick={handleExport}
             className="inline-flex items-center justify-center rounded-lg text-sm font-medium transition-colors border border-[#E2E6EB] bg-white hover:bg-[#FAF7F1] text-[#3D4F68] h-10 px-4 py-2 shadow-sm"
           >
-            <Download className="w-4 h-4 mr-2" />{t("export")}</button>
+            <Download className="w-4 h-4 mr-2" />
+            {t("export")}
+          </button>
           <button
             type="button"
             aria-label="Create New Requisition"
@@ -369,9 +413,15 @@ export default function RequisitionsPage() {
             <ClipboardList className="w-6 h-6 text-[#B45309]" />
           </div>
           <div>
-              <p className="text-sm font-medium text-[#3D4F68]">{t("stat_total")}</p>
+            <p className="text-sm font-medium text-[#3D4F68]">
+              {t("stat_total")}
+            </p>
             <h3 className="text-2xl font-bold text-[#0A2342] mt-0.5">
-              {isLoading ? <Skeleton className="h-7 w-12" /> : data?.meta?.total || 0}
+              {isLoading ? (
+                <Skeleton className="h-7 w-12" />
+              ) : (
+                data?.meta?.total || 0
+              )}
             </h3>
             <p className="text-xs font-medium text-[#0E7A3D] mt-1">
               ↑ 12%{" "}
@@ -390,7 +440,11 @@ export default function RequisitionsPage() {
           <div>
             <p className="text-sm font-medium text-[#6B7D99]">{t("pending")}</p>
             <h3 className="text-2xl font-bold text-[#0A2342] mt-0.5">
-              {isLoading ? <Skeleton className="h-7 w-12" /> : data?.meta?.stats?.["Pending Evaluation"] || 0}
+              {isLoading ? (
+                <Skeleton className="h-7 w-12" />
+              ) : (
+                data?.meta?.stats?.["Pending Evaluation"] || 0
+              )}
             </h3>
             <p className="text-xs font-medium text-[#D95D0F] mt-1">
               ↑ 8%{" "}
@@ -407,9 +461,15 @@ export default function RequisitionsPage() {
             <CheckCircle2 className="w-6 h-6 text-[#0E7A3D]" />
           </div>
           <div>
-            <p className="text-sm font-medium text-[#6B7D99]">{t("feasible")}</p>
+            <p className="text-sm font-medium text-[#6B7D99]">
+              {t("feasible")}
+            </p>
             <h3 className="text-2xl font-bold text-[#0A2342] mt-0.5">
-              {isLoading ? <Skeleton className="h-7 w-12" /> : data?.meta?.stats?.["Feasible"] || 0}
+              {isLoading ? (
+                <Skeleton className="h-7 w-12" />
+              ) : (
+                data?.meta?.stats?.["Feasible"] || 0
+              )}
             </h3>
             <p className="text-xs font-medium text-[#0E7A3D] mt-1">
               ↑ 15%{" "}
@@ -426,9 +486,15 @@ export default function RequisitionsPage() {
             <XCircle className="w-6 h-6 text-[#B42318]" />
           </div>
           <div>
-            <p className="text-sm font-medium text-[#6B7D99]">{t("infeasible")}</p>
+            <p className="text-sm font-medium text-[#6B7D99]">
+              {t("infeasible")}
+            </p>
             <h3 className="text-2xl font-bold text-[#0A2342] mt-0.5">
-              {isLoading ? <Skeleton className="h-7 w-12" /> : data?.meta?.stats?.["Infeasible"] || 0}
+              {isLoading ? (
+                <Skeleton className="h-7 w-12" />
+              ) : (
+                data?.meta?.stats?.["Infeasible"] || 0
+              )}
             </h3>
             <p className="text-xs font-medium text-[#B42318] mt-1">
               ↓ 3%{" "}
@@ -449,7 +515,11 @@ export default function RequisitionsPage() {
               {t("stat_converted")}
             </p>
             <h3 className="text-2xl font-bold text-[#0A2342] mt-0.5">
-              {isLoading ? <Skeleton className="h-7 w-12" /> : data?.meta?.stats?.["Converted"] || 0}
+              {isLoading ? (
+                <Skeleton className="h-7 w-12" />
+              ) : (
+                data?.meta?.stats?.["Converted"] || 0
+              )}
             </h3>
             <p className="text-xs font-medium text-[#0E7A3D] mt-1">
               ↑ 10%{" "}
@@ -665,7 +735,9 @@ export default function RequisitionsPage() {
               }}
               className="flex h-10 w-full sm:w-auto items-center justify-center rounded-lg border border-[#E2E6EB] bg-white px-4 py-2 text-sm font-medium text-[#3D4F68] shadow-sm transition-colors hover:bg-[#FAF7F1]"
             >
-              <XCircle className="w-4 h-4 mr-2 text-[#6B7D99]" />{t("clear_filters")}</button>
+              <XCircle className="w-4 h-4 mr-2 text-[#6B7D99]" />
+              {t("clear_filters")}
+            </button>
           </div>
         </div>
       </div>
@@ -694,23 +766,41 @@ export default function RequisitionsPage() {
                   scope="col"
                   className="px-6 py-3 font-semibold cursor-pointer hover:text-[#0A2342]"
                 >
-                  <div className="flex items-center">{t("col_id")}<ArrowUpDown className="w-3.5 h-3.5 ml-1.5" />
+                  <div className="flex items-center">
+                    {t("col_id")}
+                    <ArrowUpDown className="w-3.5 h-3.5 ml-1.5" />
                   </div>
                 </th>
-                <th scope="col" className="px-6 py-3 font-semibold">{t("col_commodity")}</th>
-                <th scope="col" className="px-6 py-3 font-semibold">{t("col_origin")}</th>
-                <th scope="col" className="px-6 py-3 font-semibold">{t("col_dest")}</th>
-                <th scope="col" className="px-6 py-3 font-semibold text-right">{t("col_vol")}</th>
+                <th scope="col" className="px-6 py-3 font-semibold">
+                  {t("col_commodity")}
+                </th>
+                <th scope="col" className="px-6 py-3 font-semibold">
+                  {t("col_origin")}
+                </th>
+                <th scope="col" className="px-6 py-3 font-semibold">
+                  {t("col_dest")}
+                </th>
+                <th scope="col" className="px-6 py-3 font-semibold text-right">
+                  {t("col_vol")}
+                </th>
                 <th
                   scope="col"
                   className="px-6 py-3 font-semibold cursor-pointer hover:text-[#0A2342]"
                 >
-                  <div className="flex items-center">{t("col_date")}<ArrowUpDown className="w-3.5 h-3.5 ml-1.5" />
+                  <div className="flex items-center">
+                    {t("col_date")}
+                    <ArrowUpDown className="w-3.5 h-3.5 ml-1.5" />
                   </div>
                 </th>
-                <th scope="col" className="px-6 py-3 font-semibold">{t("col_status")}</th>
-                <th scope="col" className="px-6 py-3 font-semibold">{t("col_eval_on")}</th>
-                <th scope="col" className="px-6 py-3 font-semibold text-center">{t("col_actions")}</th>
+                <th scope="col" className="px-6 py-3 font-semibold">
+                  {t("col_status")}
+                </th>
+                <th scope="col" className="px-6 py-3 font-semibold">
+                  {t("col_eval_on")}
+                </th>
+                <th scope="col" className="px-6 py-3 font-semibold text-center">
+                  {t("col_actions")}
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[#E2E6EB]">
@@ -817,7 +907,8 @@ export default function RequisitionsPage() {
                       {(row.status === "Pending Evaluation" ||
                         row.status === "Pending") && (
                         <span className="inline-flex items-center rounded-lg border border-[#D95D0F]/30 bg-[#FDF1E7] px-2.5 py-1 text-xs font-semibold text-[#B45309]">
-                          <Hourglass className="w-3.5 h-3.5 mr-1" /> {t("badge_pending_short")}
+                          <Hourglass className="w-3.5 h-3.5 mr-1" />{" "}
+                          {t("badge_pending_short")}
                         </span>
                       )}
                       {row.status === "Infeasible" && (
@@ -856,11 +947,15 @@ export default function RequisitionsPage() {
                                 setSelectedRequisition(row);
                                 setActionOpenRowId(null);
                               }}
-                            >{t("row_view")}</li>
+                            >
+                              {t("row_view")}
+                            </li>
                             <li
                               className="px-4 py-2 text-sm text-[#B42318] hover:bg-[#FDECEC] cursor-pointer"
                               onClick={() => handleDelete(row.id)}
-                            >{t("row_delete")}</li>
+                            >
+                              {t("row_delete")}
+                            </li>
                           </ul>
                         </div>
                       )}
@@ -967,7 +1062,9 @@ export default function RequisitionsPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#0A2342]/50 backdrop-blur-sm">
           <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-6 animate-in fade-in zoom-in-95 duration-200">
             <div className="flex justify-between items-start mb-4">
-              <h3 className="text-lg font-bold text-[#0A2342]">{t("det_title")}</h3>
+              <h3 className="text-lg font-bold text-[#0A2342]">
+                {t("det_title")}
+              </h3>
               <button
                 type="button"
                 aria-label="Close details"
@@ -979,14 +1076,18 @@ export default function RequisitionsPage() {
             </div>
             <div className="space-y-4">
               <div>
-                <p className="text-xs text-[#6B7D99] uppercase">{t("det_id")}</p>
+                <p className="text-xs text-[#6B7D99] uppercase">
+                  {t("det_id")}
+                </p>
                 <p className="font-medium text-[#0A2342] break-all">
                   {selectedRequisition.id}
                 </p>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <p className="text-xs text-[#6B7D99] uppercase">{t("det_commodity")}</p>
+                  <p className="text-xs text-[#6B7D99] uppercase">
+                    {t("det_commodity")}
+                  </p>
                   <p className="font-medium text-[#0A2342]">
                     {selectedRequisition.commodity}
                   </p>
@@ -1000,7 +1101,9 @@ export default function RequisitionsPage() {
                   </p>
                 </div>
                 <div>
-                  <p className="text-xs text-[#6B7D99] uppercase">{t("det_origin")}</p>
+                  <p className="text-xs text-[#6B7D99] uppercase">
+                    {t("det_origin")}
+                  </p>
                   <p className="font-medium text-[#0A2342]">
                     {selectedRequisition.origin}
                   </p>
@@ -1014,13 +1117,17 @@ export default function RequisitionsPage() {
                   </p>
                 </div>
                 <div>
-                  <p className="text-xs text-[#6B7D99] uppercase">{t("det_status")}</p>
+                  <p className="text-xs text-[#6B7D99] uppercase">
+                    {t("det_status")}
+                  </p>
                   <p className="font-medium text-[#0A2342]">
                     {selectedRequisition.status}
                   </p>
                 </div>
                 <div>
-                  <p className="text-xs text-[#6B7D99] uppercase">{t("det_date")}</p>
+                  <p className="text-xs text-[#6B7D99] uppercase">
+                    {t("det_date")}
+                  </p>
                   <p className="font-medium text-[#0A2342]">
                     {new Date(
                       selectedRequisition.createdAt,
@@ -1035,7 +1142,9 @@ export default function RequisitionsPage() {
                 aria-label="Close details button"
                 onClick={() => setSelectedRequisition(null)}
                 className="w-full h-10 rounded-lg bg-[#FAF7F1] text-[#3D4F68] font-medium hover:bg-[#FAF7F1] transition-colors"
-              >{t("close")}</button>
+              >
+                {t("close")}
+              </button>
             </div>
           </div>
         </div>
@@ -1046,10 +1155,10 @@ export default function RequisitionsPage() {
           <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg p-6 animate-in fade-in zoom-in-95 duration-200 border border-[#E2E6EB]">
             <div className="flex justify-between items-center mb-6">
               <div>
-                <h2 className="text-xl font-bold text-[#0A2342]">{t("new_title")}</h2>
-                <p className="text-sm text-[#6B7D99] mt-1">
-                  {t("new_sub")}
-                </p>
+                <h2 className="text-xl font-bold text-[#0A2342]">
+                  {t("new_title")}
+                </h2>
+                <p className="text-sm text-[#6B7D99] mt-1">{t("new_sub")}</p>
               </div>
               <button
                 type="button"
@@ -1063,7 +1172,8 @@ export default function RequisitionsPage() {
 
             <form onSubmit={handleCreateSubmit} className="space-y-5">
               <div>
-                <label className="block text-sm font-semibold text-[#3D4F68] mb-1.5">{t("det_volume")} <span className="text-[#B42318]">*</span>
+                <label className="block text-sm font-semibold text-[#3D4F68] mb-1.5">
+                  {t("det_volume")} <span className="text-[#B42318]">*</span>
                 </label>
                 <input
                   type="number"
@@ -1080,7 +1190,8 @@ export default function RequisitionsPage() {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                 <div>
-                  <label className="block text-sm font-semibold text-[#3D4F68] mb-1.5">{t("f_commodity")} <span className="text-[#B42318]">*</span>
+                  <label className="block text-sm font-semibold text-[#3D4F68] mb-1.5">
+                    {t("f_commodity")} <span className="text-[#B42318]">*</span>
                   </label>
                   <select
                     value={newReqForm.commodity}
@@ -1109,7 +1220,8 @@ export default function RequisitionsPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-semibold text-[#3D4F68] mb-1.5">{t("col_dest")} <span className="text-[#B42318]">*</span>
+                  <label className="block text-sm font-semibold text-[#3D4F68] mb-1.5">
+                    {t("col_dest")} <span className="text-[#B42318]">*</span>
                   </label>
                   <select
                     value={newReqForm.dest_port}
@@ -1131,7 +1243,8 @@ export default function RequisitionsPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-[#3D4F68] mb-1.5">{t("f_origin")} <span className="text-[#B42318]">*</span>
+                <label className="block text-sm font-semibold text-[#3D4F68] mb-1.5">
+                  {t("f_origin")} <span className="text-[#B42318]">*</span>
                 </label>
                 <select
                   value={newReqForm.origin}
@@ -1163,7 +1276,9 @@ export default function RequisitionsPage() {
                   aria-label="Cancel creation"
                   onClick={() => setIsNewRequisitionOpen(false)}
                   className="px-5 py-2.5 rounded-lg text-sm font-medium text-[#3D4F68] hover:bg-[#FAF7F1] transition-colors"
-                >{t("cancel")}</button>
+                >
+                  {t("cancel")}
+                </button>
                 <button
                   type="submit"
                   disabled={createMutation.isPending}
@@ -1192,7 +1307,8 @@ export default function RequisitionsPage() {
               <h3 className="text-lg font-bold">Delete Requisition</h3>
             </div>
             <p className="text-sm text-[#3D4F68] mb-6">
-              Are you sure you want to delete this requisition? This action cannot be undone.
+              Are you sure you want to delete this requisition? This action
+              cannot be undone.
             </p>
             <div className="flex justify-end space-x-3">
               <button
@@ -1222,13 +1338,17 @@ export default function RequisitionsPage() {
 
       {/* Custom Toast Notification */}
       {toast && (
-        <div className={`fixed bottom-6 right-6 z-[200] px-4 py-3 rounded-lg shadow-xl flex items-center animate-in slide-in-from-bottom-5 duration-300 ${toast.type === 'success' ? 'bg-[#E9F5EE] border border-[#0E7A3D]/25 text-[#0E7A3D]' : 'bg-[#FDECEC] border border-[#F3C2C2] text-[#B42318]'}`}>
-          {toast.type === 'success' ? (
+        <div
+          className={`fixed bottom-6 right-6 z-[200] px-4 py-3 rounded-lg shadow-xl flex items-center animate-in slide-in-from-bottom-5 duration-300 ${toast.type === "success" ? "bg-[#E9F5EE] border border-[#0E7A3D]/25 text-[#0E7A3D]" : "bg-[#FDECEC] border border-[#F3C2C2] text-[#B42318]"}`}
+        >
+          {toast.type === "success" ? (
             <CheckCircle2 className="w-5 h-5 mr-3" />
           ) : (
             <XCircle className="w-5 h-5 mr-3" />
           )}
-          <span className="text-sm font-bold tracking-wide">{toast.message}</span>
+          <span className="text-sm font-bold tracking-wide">
+            {toast.message}
+          </span>
         </div>
       )}
     </div>

@@ -3,12 +3,7 @@ import { loadJSON, saveJSON } from "@/lib/storage";
 export const GLOBE_STORAGE_KEY = "kargosetu_globe_v1";
 
 export type CameraPresetId =
-  | "corridor"
-  | "haldia"
-  | "paradip"
-  | "dhamra"
-  | "sandheads"
-  | "newcastle";
+  "corridor" | "haldia" | "paradip" | "dhamra" | "sandheads" | "newcastle";
 
 export interface CameraPreset {
   id: CameraPresetId;

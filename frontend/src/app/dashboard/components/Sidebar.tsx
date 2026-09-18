@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useEffect } from "react";
-import Image from "next/image";
 import SafeImage from "@/components/ui/SafeImage";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -15,6 +14,7 @@ import {
   LogOut,
   ChevronLeft,
   ChevronRight,
+  ShieldAlert,
 } from "lucide-react";
 import { useSidebar } from "./SidebarContext";
 import { useLanguage } from "@/i18n/LanguageContext";
@@ -23,21 +23,59 @@ import { useUser } from "@/hooks/useUser";
 import { clearSessionAndRedirect } from "@/lib/auth";
 
 const NAV = [
-  { href: "/dashboard", match: (p: string) => p === "/dashboard", icon: LayoutDashboard, key: "dashboard" as const, label: "Dashboard" },
-  { href: "/dashboard/globe", match: (p: string) => p.includes("/globe"), icon: Globe, key: "globe_nav" as const, label: "Globe" },
-  { href: "/dashboard/requisitions", match: (p: string) => p.includes("/requisitions"), icon: FileText, key: "requisitions" as const, label: "Requisitions" },
-  { href: "/dashboard/forecasts", match: (p: string) => p.includes("/forecasts"), icon: TrendingUp, key: "forecasts" as const, label: "Forecasts" },
-  { href: "/dashboard/settings", match: (p: string) => p.includes("/settings"), icon: Settings, key: "settings" as const, label: "Settings" },
+  {
+    href: "/dashboard",
+    match: (p: string) => p === "/dashboard",
+    icon: LayoutDashboard,
+    key: "dashboard" as const,
+    label: "Dashboard",
+  },
+  {
+    href: "/dashboard/globe",
+    match: (p: string) => p.includes("/globe"),
+    icon: Globe,
+    key: "globe_nav" as const,
+    label: "Globe",
+  },
+  {
+    href: "/dashboard/requisitions",
+    match: (p: string) => p.includes("/requisitions"),
+    icon: FileText,
+    key: "requisitions" as const,
+    label: "Requisitions",
+  },
+  {
+    href: "/dashboard/forecasts",
+    match: (p: string) => p.includes("/forecasts"),
+    icon: TrendingUp,
+    key: "forecasts" as const,
+    label: "Forecasts",
+  },
+  {
+    href: "/dashboard/risk",
+    match: (p: string) => p.includes("/risk"),
+    icon: ShieldAlert,
+    key: "risk" as const,
+    label: "Risk Engine",
+  },
+  {
+    href: "/dashboard/settings",
+    match: (p: string) => p.includes("/settings"),
+    icon: Settings,
+    key: "settings" as const,
+    label: "Settings",
+  },
 ];
 
 export function Sidebar() {
-  const { sidebarOpen, setSidebarOpen, isCollapsed, setIsCollapsed } = useSidebar();
+  const { sidebarOpen, setSidebarOpen, isCollapsed, setIsCollapsed } =
+    useSidebar();
   const { t } = useLanguage();
   const pathname = usePathname();
   const router = useRouter();
   const { data: user } = useUser();
 
-// Close sidebar on route change on mobile
+  // Close sidebar on route change on mobile
   useEffect(() => {
     setSidebarOpen(false);
   }, [pathname, setSidebarOpen]);
@@ -62,7 +100,9 @@ export function Sidebar() {
             href="/"
             className={`flex items-center hover:opacity-80 transition-opacity cursor-pointer ${isCollapsed ? "mx-auto px-0" : ""}`}
           >
-            <span className={`relative block h-12 w-12 shrink-0 ${isCollapsed ? "" : "mr-2.5"}`}>
+            <span
+              className={`relative block h-12 w-12 shrink-0 ${isCollapsed ? "" : "mr-2.5"}`}
+            >
               <SafeImage
                 src="https://ik.imagekit.io/iqlpfpvny/KargoSetu/KargoSetu-LOGO.png"
                 fallbackSrc="/logo-ks.png"
@@ -91,13 +131,21 @@ export function Sidebar() {
             onClick={() => setIsCollapsed(!isCollapsed)}
             className="hidden md:flex absolute -right-3 top-5 bg-white border border-[#E2E6EB] rounded-full w-6 h-6 items-center justify-center text-[#6B7D99] hover:text-[#0A2342] shadow-sm z-50"
           >
-            {isCollapsed ? <ChevronRight size={14} /> : <ChevronLeft size={14} />}
+            {isCollapsed ? (
+              <ChevronRight size={14} />
+            ) : (
+              <ChevronLeft size={14} />
+            )}
           </button>
         </div>
 
         {/* Navigation */}
         <nav className="flex-1 px-3 py-5 space-y-1 overflow-y-auto">
-          {!isCollapsed && <p className="mono-label text-[#6B7D99] px-3 pb-2">{t("nav_desk")}</p>}
+          {!isCollapsed && (
+            <p className="mono-label text-[#6B7D99] px-3 pb-2">
+              {t("nav_desk")}
+            </p>
+          )}
           {NAV.map((item) => {
             const active = item.match(pathname);
             const Icon = item.icon;
@@ -106,7 +154,13 @@ export function Sidebar() {
                 key={item.href}
                 href={item.href}
                 aria-current={active ? "page" : undefined}
-                title={isCollapsed ? (t(item.key) === item.key ? item.label : t(item.key)) : undefined}
+                title={
+                  isCollapsed
+                    ? t(item.key) === item.key
+                      ? item.label
+                      : t(item.key)
+                    : undefined
+                }
                 className={`flex items-center ${isCollapsed ? "justify-center px-0 py-3" : "gap-3 px-3 py-2.5"} rounded-lg text-[14px] transition-colors ${
                   active
                     ? "bg-[#FDF1E7] text-[#B45309] font-bold border-l-4 border-[#D95D0F]"
@@ -114,7 +168,11 @@ export function Sidebar() {
                 }`}
               >
                 <Icon size={18} className="shrink-0" />
-                {!isCollapsed && <span>{t(item.key) === item.key ? item.label : t(item.key)}</span>}
+                {!isCollapsed && (
+                  <span>
+                    {t(item.key) === item.key ? item.label : t(item.key)}
+                  </span>
+                )}
               </Link>
             );
           })}
@@ -132,9 +190,14 @@ export function Sidebar() {
 
         {/* Profile Area - Sidebar */}
         <div className="p-3 border-t border-[#E2E6EB]">
-          <div className={`flex items-center bg-[#FAF7F1] border border-[#E2E6EB] p-3 rounded-xl ${isCollapsed ? "justify-center flex-col gap-3" : "justify-between"}`}>
-            <div className={`flex items-center overflow-hidden ${isCollapsed ? "justify-center" : ""}`}>
+          <div
+            className={`flex items-center bg-[#FAF7F1] border border-[#E2E6EB] p-3 rounded-xl ${isCollapsed ? "justify-center flex-col gap-3" : "justify-between"}`}
+          >
+            <div
+              className={`flex items-center overflow-hidden ${isCollapsed ? "justify-center" : ""}`}
+            >
               {user?.avatarUrl ? (
+                /* eslint-disable-next-line @next/next/no-img-element */
                 <img
                   src={user.avatarUrl}
                   alt={user.name || "User avatar"}
@@ -152,15 +215,17 @@ export function Sidebar() {
                   <p className="text-[13.5px] font-bold text-[#0A2342] truncate">
                     {user?.name || "KargoSetu User"}
                   </p>
-                  <p className="text-[12px] text-[#6B7D99] truncate">{user?.email || t("admin")}</p>
+                  <p className="text-[12px] text-[#6B7D99] truncate">
+                    {user?.email || t("admin")}
+                  </p>
                 </div>
               )}
             </div>
             <button
               onClick={() => {
-                Cookies.remove("auth_token", { path: '/' });
+                Cookies.remove("auth_token", { path: "/" });
                 clearSessionAndRedirect();
-                router.push('/login');
+                router.push("/login");
               }}
               className={`text-[#6B7D99] hover:text-[#B42318] hover:bg-[#FDECEC] rounded-lg transition-colors ${isCollapsed ? "p-1.5" : "p-2"}`}
               title={t("logout")}

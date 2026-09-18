@@ -2,7 +2,10 @@ import os
 from huggingface_hub import HfApi, create_repo
 
 def deploy():
-    token = "YOUR_HF_TOKEN_HERE"
+    token = os.getenv("HF_TOKEN")
+    if not token:
+        print("Please set the HF_TOKEN environment variable to deploy to Hugging Face Spaces.")
+        return
 
     api = HfApi(token=token)
     
@@ -17,7 +20,7 @@ def deploy():
         api.create_repo(
             repo_id=repo_id, 
             repo_type="space", 
-            space_sdk="gradio",
+            space_sdk="docker",
             private=False,
             exist_ok=True
         )
@@ -29,13 +32,15 @@ def deploy():
     print("Configuring Environment Secrets...")
     # Add secrets
     secrets = {
-        "DATABASE_URL": "postgresql://user:password@host:port/db",
-        "FRONTEND_URL": "https://kargosetu-web.vercel.app", # Placeholder/Actual if they gave it
-        "JWT_SECRET_KEY": "kargosetu_secure_production_key_2026",
-        "GOOGLE_CLIENT_ID": "YOUR_GOOGLE_CLIENT_ID_HERE"
+        "DATABASE_URL": os.getenv("DATABASE_URL", ""),
+        "FRONTEND_URL": os.getenv("FRONTEND_URL", "https://kargosetu-web.vercel.app"),
+        "JWT_SECRET_KEY": os.getenv("JWT_SECRET_KEY", "kargosetu_secure_production_key_2026"),
+        "GOOGLE_CLIENT_ID": os.getenv("GOOGLE_CLIENT_ID", "")
     }
     
     for key, value in secrets.items():
+        if not value:
+            continue
         try:
             api.add_space_secret(repo_id=repo_id, key=key, value=value)
         except Exception as e:

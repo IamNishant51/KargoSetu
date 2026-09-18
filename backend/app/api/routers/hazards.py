@@ -119,8 +119,6 @@ class HazardsSummaryResponse(BaseModel):
     updatedAt: str
 
 
-
-
 def _client() -> httpx.AsyncClient | None:
     try:
         return maritime_math.http_client
@@ -128,7 +126,9 @@ def _client() -> httpx.AsyncClient | None:
         return None
 
 
-async def _fetch_usgs(minLon: float, minLat: float, maxLon: float, maxLat: float) -> tuple[list[dict], str]:
+async def _fetch_usgs(
+    minLon: float, minLat: float, maxLon: float, maxLat: float
+) -> tuple[list[dict], str]:
     global _usgs_cache, _usgs_time, _usgs_status
     now = time_module.time()
     if _usgs_cache and (now - _usgs_time) < USGS_TTL:
@@ -136,7 +136,9 @@ async def _fetch_usgs(minLon: float, minLat: float, maxLon: float, maxLat: float
     client = _client()
     try:
         if client is None:
-            async with httpx.AsyncClient(timeout=httpx.Timeout(10.0, connect=5.0)) as tmp:
+            async with httpx.AsyncClient(
+                timeout=httpx.Timeout(10.0, connect=5.0)
+            ) as tmp:
                 res = await tmp.get(USGS_URL, timeout=5.0)
                 data = res.json()
         else:
@@ -157,8 +159,21 @@ async def _fetch_usgs(minLon: float, minLat: float, maxLon: float, maxLat: float
                 t_ms = props.get("time")
                 t_iso = None
                 if isinstance(t_ms, (int, float)):
-                    t_iso = dt.datetime.fromtimestamp(t_ms / 1000.0, tz=dt.UTC).isoformat().replace("+00:00", "Z")
-                out.append({"id": str(feat.get("id", "")), "lat": lat_f, "lon": lon_f, "mag": float(mag) if mag is not None else None, "place": props.get("place"), "time": t_iso})
+                    t_iso = (
+                        dt.datetime.fromtimestamp(t_ms / 1000.0, tz=dt.UTC)
+                        .isoformat()
+                        .replace("+00:00", "Z")
+                    )
+                out.append(
+                    {
+                        "id": str(feat.get("id", "")),
+                        "lat": lat_f,
+                        "lon": lon_f,
+                        "mag": float(mag) if mag is not None else None,
+                        "place": props.get("place"),
+                        "time": t_iso,
+                    }
+                )
             except (TypeError, ValueError):
                 continue
         async with _lock:
@@ -176,7 +191,9 @@ async def _fetch_usgs(minLon: float, minLat: float, maxLon: float, maxLat: float
             return [], "unavailable"
 
 
-async def _fetch_firms(minLon: float, minLat: float, maxLon: float, maxLat: float) -> tuple[list[dict], str]:
+async def _fetch_firms(
+    minLon: float, minLat: float, maxLon: float, maxLat: float
+) -> tuple[list[dict], str]:
     global _firms_cache, _firms_time, _firms_status
     now = time_module.time()
     key = (settings.firms_map_key or "").strip()
@@ -198,7 +215,9 @@ async def _fetch_firms(minLon: float, minLat: float, maxLon: float, maxLat: floa
     try:
         client = _client()
         if client is None:
-            async with httpx.AsyncClient(timeout=httpx.Timeout(10.0, connect=5.0)) as tmp:
+            async with httpx.AsyncClient(
+                timeout=httpx.Timeout(10.0, connect=5.0)
+            ) as tmp:
                 res = await tmp.get(url, timeout=8.0)
                 text = res.text
         else:
@@ -214,7 +233,14 @@ async def _fetch_firms(minLon: float, minLat: float, maxLon: float, maxLat: floa
                 continue
             if not (minLon <= lon_f <= maxLon and minLat <= lat_f <= maxLat):
                 continue
-            out.append({"lat": lat_f, "lon": lon_f, "confidence": (row.get("confidence") or None), "acqDate": (row.get("ac_date") or None)})
+            out.append(
+                {
+                    "lat": lat_f,
+                    "lon": lon_f,
+                    "confidence": (row.get("confidence") or None),
+                    "acqDate": (row.get("ac_date") or None),
+                }
+            )
             if len(out) >= 500:
                 break
         async with _lock:
@@ -232,7 +258,9 @@ async def _fetch_firms(minLon: float, minLat: float, maxLon: float, maxLat: floa
             return [], "unavailable"
 
 
-async def _fetch_meteo(minLon: float, minLat: float, maxLon: float, maxLat: float) -> tuple[dict | None, str]:
+async def _fetch_meteo(
+    minLon: float, minLat: float, maxLon: float, maxLat: float
+) -> tuple[dict | None, str]:
     global _meteo_cache, _meteo_time, _meteo_status
     now = time_module.time()
     if _meteo_cache is not None and (now - _meteo_time) < METEO_TTL:
@@ -244,12 +272,18 @@ async def _fetch_meteo(minLon: float, minLat: float, maxLon: float, maxLat: floa
     try:
         client = _client()
         if client is None:
-            async with httpx.AsyncClient(timeout=httpx.Timeout(10.0, connect=5.0)) as tmp:
-                marine_res, wind_res = await asyncio.gather(tmp.get(marine_url, timeout=5.0), tmp.get(wind_url, timeout=5.0))
+            async with httpx.AsyncClient(
+                timeout=httpx.Timeout(10.0, connect=5.0)
+            ) as tmp:
+                marine_res, wind_res = await asyncio.gather(
+                    tmp.get(marine_url, timeout=5.0), tmp.get(wind_url, timeout=5.0)
+                )
                 marine = marine_res.json()
                 wind = wind_res.json()
         else:
-            marine_res, wind_res = await asyncio.gather(client.get(marine_url, timeout=5.0), client.get(wind_url, timeout=5.0))
+            marine_res, wind_res = await asyncio.gather(
+                client.get(marine_url, timeout=5.0), client.get(wind_url, timeout=5.0)
+            )
             marine = marine_res.json()
             wind = wind_res.json()
         wave = None
@@ -265,7 +299,9 @@ async def _fetch_meteo(minLon: float, minLat: float, maxLon: float, maxLat: floa
             hourly_w = wind.get("hourly") or {}
             ws = hourly_w.get("wind_speed_10m") or []
             idx_w = _current_hour_index(hourly_w.get("time") or [])
-            wind_v = float(ws[idx_w]) if idx_w < len(ws) and ws[idx_w] is not None else None
+            wind_v = (
+                float(ws[idx_w]) if idx_w < len(ws) and ws[idx_w] is not None else None
+            )
         except (TypeError, ValueError, IndexError):
             wind_v = None
         payload = {"waveHeightM": wave, "windSpeedKmh": wind_v, "source": "open-meteo"}
@@ -294,9 +330,13 @@ async def get_hazards_summary(
     maxLat: float = Query(default=DEFAULT_BBOX["maxLat"], ge=-90.0, le=90.0),
 ):
     if not (minLon < maxLon and minLat < maxLat):
-        raise HTTPException(status_code=422, detail="min must be less than max for lon/lat bounds")
+        raise HTTPException(
+            status_code=422, detail="min must be less than max for lon/lat bounds"
+        )
     if (maxLon - minLon) > 360.0 or (maxLat - minLat) > 360.0:
-        raise HTTPException(status_code=422, detail="bbox span exceeds 360 degrees per side")
+        raise HTTPException(
+            status_code=422, detail="bbox span exceeds 360 degrees per side"
+        )
     quakes, firms, meteo = await asyncio.gather(
         _fetch_usgs(minLon, minLat, maxLon, maxLat),
         _fetch_firms(minLon, minLat, maxLon, maxLat),

@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import SafeImage from "@/components/ui/SafeImage";
 import { Menu, X, ArrowUpRight } from "lucide-react";
 import { useUser } from "@/hooks/useUser";
@@ -29,7 +28,9 @@ export default function Navbar() {
 
   return (
     <header className="sticky top-0 z-40 bg-white">
-      <div className={`border-b border-[#E2E6EB] transition-shadow ${scrolled ? "shadow-[0_2px_16px_rgba(10,35,66,0.08)]" : ""}`}>
+      <div
+        className={`border-b border-[#E2E6EB] transition-shadow ${scrolled ? "shadow-[0_2px_16px_rgba(10,35,66,0.08)]" : ""}`}
+      >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16 sm:h-[72px] gap-3">
             <Link
@@ -44,7 +45,15 @@ export default function Navbar() {
             >
               {/* Oversized mark that bleeds past the row without stretching it (-my-2 offsets layout) */}
               <span className="relative h-14 w-14 sm:h-[68px] sm:w-[68px] -my-2 shrink-0">
-                <SafeImage src="https://ik.imagekit.io/iqlpfpvny/KargoSetu/KargoSetu-LOGO.png" fallbackSrc="/logo-ks.png" alt="KargoSetu harbour mark" fill sizes="68px" className="object-contain" priority />
+                <SafeImage
+                  src="https://ik.imagekit.io/iqlpfpvny/KargoSetu/KargoSetu-LOGO.png"
+                  fallbackSrc="/logo-ks.png"
+                  alt="KargoSetu harbour mark"
+                  fill
+                  sizes="68px"
+                  className="object-contain"
+                  priority
+                />
               </span>
               <span className="leading-none">
                 <span className="block font-display font-black text-[22px] sm:text-2xl tracking-tight text-[#0A2342]">
@@ -56,7 +65,10 @@ export default function Navbar() {
               </span>
             </Link>
 
-            <nav className="hidden lg:flex items-center gap-7" aria-label="Primary">
+            <nav
+              className="hidden lg:flex items-center gap-7"
+              aria-label="Primary"
+            >
               {LINKS.map((l) => (
                 <a
                   key={l.label}
@@ -76,12 +88,18 @@ export default function Navbar() {
 
             <div className="hidden lg:flex items-center gap-3">
               {user ? (
-                <Link href="/dashboard" className="stamp rounded-lg bg-white px-4 py-2.5 text-sm font-bold text-[#0A2342] hover:bg-[#FAF7F1] transition-colors">
+                <Link
+                  href="/dashboard"
+                  className="stamp rounded-lg bg-white px-4 py-2.5 text-sm font-bold text-[#0A2342] hover:bg-[#FAF7F1] transition-colors"
+                >
                   Open dossier — {user.name?.split(" ")[0] || "Board"}
                 </Link>
               ) : (
                 <>
-                  <a href="#sandbox" className="text-sm font-semibold text-[#3D4F68] hover:text-[#0A2342] px-2 py-2">
+                  <a
+                    href="#sandbox"
+                    className="text-sm font-semibold text-[#3D4F68] hover:text-[#0A2342] px-2 py-2"
+                  >
                     Try simulator
                   </a>
                   <Link
@@ -107,7 +125,10 @@ export default function Navbar() {
         </div>
 
         {open && (
-          <nav className="lg:hidden border-t border-[#E2E6EB] bg-white px-4 pt-2 pb-5 space-y-1 max-h-[calc(100vh-4rem)] overflow-y-auto" aria-label="Mobile">
+          <nav
+            className="lg:hidden border-t border-[#E2E6EB] bg-white px-4 pt-2 pb-5 space-y-1 max-h-[calc(100vh-4rem)] overflow-y-auto"
+            aria-label="Mobile"
+          >
             {LINKS.map((l, i) => (
               <a
                 key={l.label}
@@ -116,9 +137,16 @@ export default function Navbar() {
                 className="flex items-center justify-between rounded-lg px-3 py-3 text-[15px] font-semibold text-[#0A2342] hover:bg-[#FAF7F1]"
               >
                 <span className="flex items-center gap-3">
-                  <span className="font-mono text-[11px] text-[#6B7D99]">0{i + 1}</span> {l.label}
+                  <span className="font-mono text-[11px] text-[#6B7D99]">
+                    0{i + 1}
+                  </span>{" "}
+                  {l.label}
                 </span>
-                {l.live && <span className="font-mono text-[9px] uppercase tracking-widest bg-[#FDF1E7] text-[#B45309] border border-[#F0D3B8] px-1.5 py-0.5 rounded">Live</span>}
+                {l.live && (
+                  <span className="font-mono text-[9px] uppercase tracking-widest bg-[#FDF1E7] text-[#B45309] border border-[#F0D3B8] px-1.5 py-0.5 rounded">
+                    Live
+                  </span>
+                )}
               </a>
             ))}
             <Link

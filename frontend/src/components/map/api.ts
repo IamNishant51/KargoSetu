@@ -11,10 +11,10 @@ export interface BBox {
 }
 
 export const DEFAULT_BBOX: BBox = {
-  minLon: 88.0,
-  minLat: -13.0,
-  maxLon: 118.0,
-  maxLat: 17.0,
+  minLon: 80.0,
+  minLat: 0.0,
+  maxLon: 110.0,
+  maxLat: 25.0,
 };
 
 export interface Vessel {
@@ -33,7 +33,8 @@ export interface Vessel {
   demo: boolean;
 }
 
-export type VesselMode = "live" | "demo" | "stale" | "unavailable" | "connecting";
+export type VesselMode =
+  "live" | "demo" | "stale" | "unavailable" | "connecting";
 
 export interface VesselsResponse {
   mode: VesselMode;
@@ -171,7 +172,8 @@ export function getCesium(): Promise<typeof import("cesium")> {
       el.src = "/cesium/Cesium.js";
       el.async = true;
       el.onload = () => {
-        const loaded = (window as Window & { Cesium?: typeof import("cesium") }).Cesium;
+        const loaded = (window as Window & { Cesium?: typeof import("cesium") })
+          .Cesium;
         if (loaded) resolve(loaded);
         else {
           cesiumPromise = null;

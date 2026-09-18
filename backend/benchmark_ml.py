@@ -1,12 +1,13 @@
 import asyncio
-import time
 import os
 import sys
+import time
 
 # Add backend directory to Python path
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from app.services.ml_predictor import predictor_instance, get_freight_forecast
+from app.services.ml_predictor import get_freight_forecast, predictor_instance
+
 
 async def run_benchmark():
     print("Initializing model (warming up)...")
@@ -16,7 +17,7 @@ async def run_benchmark():
     print(f"Warmup took {end - start:.4f} seconds")
 
     print("Running inference benchmark...")
-    
+
     # Run a single prediction
     start = time.perf_counter()
     res = await get_freight_forecast(1.0, "Origin", "Destination")
@@ -30,6 +31,7 @@ async def run_benchmark():
     await asyncio.gather(*tasks)
     end = time.perf_counter()
     print(f"100 inferences took {end - start:.4f} seconds")
+
 
 if __name__ == "__main__":
     asyncio.run(run_benchmark())

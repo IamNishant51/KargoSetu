@@ -9,7 +9,6 @@ router = APIRouter(prefix="/api/v1/notifications", tags=["notifications"])
 logger = structlog.get_logger(__name__)
 
 
-
 def _norm_time(value) -> str:
     """Return an ISO string with an explicit offset so sorting is stable."""
     if value is None:
@@ -24,7 +23,9 @@ def _norm_time(value) -> str:
 
 
 @router.get("")
-async def get_notifications(response: Response, limit: int = Query(default=20, ge=1, le=50)):
+async def get_notifications(
+    response: Response, limit: int = Query(default=20, ge=1, le=50)
+):
     """Live desk feed: latest requisitions, draft alerts, newest ML model.
 
     Each source is isolated — one empty/broken table can never 500 the feed.
@@ -49,7 +50,9 @@ async def get_notifications(response: Response, limit: int = Query(default=20, g
                 }
             )
     except Exception as e:
-        logger.warning("notification_source_failed", source="requisitions", error=str(e))
+        logger.warning(
+            "notification_source_failed", source="requisitions", error=str(e)
+        )
 
     try:
         port = await prisma.port.find_first(where={"permissibleDraft": {"lt": 10.0}})

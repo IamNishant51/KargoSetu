@@ -24,8 +24,12 @@ class Vessel(BaseModel):
     cog: float | None = None
     draught: float | None = None
     shipType: str | None = None
-    destination: str | None = Field(None, description="AIS type-5 declared destination (free text)")
-    eta: str | None = Field(None, description="AIS type-5 ETA as ISO-8601 UTC, next occurrence")
+    destination: str | None = Field(
+        None, description="AIS type-5 declared destination (free text)"
+    )
+    eta: str | None = Field(
+        None, description="AIS type-5 ETA as ISO-8601 UTC, next occurrence"
+    )
     navStatus: int | None = Field(None, description="AIS navigational status code 0-15")
     timestamp: str
     demo: bool = False
@@ -47,7 +51,9 @@ async def get_live_vessels(
     maxLon: float = Query(default=DEFAULT_BBOX["maxLon"], ge=-180.0, le=180.0),
     maxLat: float = Query(default=DEFAULT_BBOX["maxLat"], ge=-90.0, le=90.0),
 ):
-    result = await get_vessels(minLon, minLat, maxLon, maxLat, api_key=settings.aisstream_api_key)
+    result = await get_vessels(
+        minLon, minLat, maxLon, maxLat, api_key=settings.aisstream_api_key
+    )
     return result
 
 
@@ -75,7 +81,10 @@ def _haversine_nm(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
     lat1, lon1, lat2, lon2 = map(math.radians, [lat1, lon1, lat2, lon2])
     dlon = lon2 - lon1
     dlat = lat2 - lat1
-    a = math.sin(dlat / 2) ** 2 + math.cos(lat1) * math.cos(lat2) * math.sin(dlon / 2) ** 2
+    a = (
+        math.sin(dlat / 2) ** 2
+        + math.cos(lat1) * math.cos(lat2) * math.sin(dlon / 2) ** 2
+    )
     return 2 * math.asin(math.sqrt(max(0.0, min(1.0, a)))) * _EARTH_R_NM
 
 

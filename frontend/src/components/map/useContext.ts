@@ -8,9 +8,12 @@ export function usePortNews(port: string) {
   return useQuery<PortNews>({
     queryKey: ["port-news", port],
     queryFn: async ({ signal }) => {
-      const res = await fetch(`${getApiBase()}/api/v1/context/news/port?q=${encodeURIComponent(port)}`, {
-        signal,
-      });
+      const res = await fetch(
+        `${getApiBase()}/api/v1/context/news/port?q=${encodeURIComponent(port)}`,
+        {
+          signal,
+        },
+      );
       if (!res.ok) throw new Error("port news fetch failed");
       return res.json() as Promise<PortNews>;
     },
@@ -23,13 +26,20 @@ export function usePortNews(port: string) {
 }
 
 export function useLocality(lat: number | null, lon: number | null) {
-  const enabled = typeof lat === "number" && typeof lon === "number" && Number.isFinite(lat) && Number.isFinite(lon);
+  const enabled =
+    typeof lat === "number" &&
+    typeof lon === "number" &&
+    Number.isFinite(lat) &&
+    Number.isFinite(lon);
   return useQuery<GeoReverse>({
     queryKey: ["locality", lat, lon],
     queryFn: async ({ signal }) => {
-      const res = await fetch(`${getApiBase()}/api/v1/context/geo/reverse?lat=${lat}&lon=${lon}`, {
-        signal,
-      });
+      const res = await fetch(
+        `${getApiBase()}/api/v1/context/geo/reverse?lat=${lat}&lon=${lon}`,
+        {
+          signal,
+        },
+      );
       if (!res.ok) throw new Error("reverse geocode fetch failed");
       return res.json() as Promise<GeoReverse>;
     },
@@ -44,7 +54,9 @@ export function useRouteWx() {
   return useQuery<RouteWx>({
     queryKey: ["route-wx"],
     queryFn: async ({ signal }) => {
-      const res = await fetch(`${getApiBase()}/api/v1/context/route/weather`, { signal });
+      const res = await fetch(`${getApiBase()}/api/v1/context/route/weather`, {
+        signal,
+      });
       if (!res.ok) throw new Error("route weather fetch failed");
       return res.json() as Promise<RouteWx>;
     },

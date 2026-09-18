@@ -12,7 +12,13 @@ interface HudProps {
   mode: VesselMode;
 }
 
-export default function Hud({ viewer, vesselCount, hazardCount, selected, mode }: HudProps) {
+export default function Hud({
+  viewer,
+  vesselCount,
+  hazardCount,
+  selected,
+  mode,
+}: HudProps) {
   const [cam, setCam] = React.useState({ lon: 0, lat: 0, alt: 0 });
   const lastRef = React.useRef({ lon: 0, lat: 0, alt: 0 });
 
@@ -55,18 +61,23 @@ export default function Hud({ viewer, vesselCount, hazardCount, selected, mode }
       <div className="pointer-events-auto rounded-xl bg-white/95 border border-[#E2E6EB] px-3 py-2 shadow-sm">
         <span className="uppercase tracking-[0.14em] text-[#6B7D99]">Cam </span>
         <span className="font-bold text-[#0A2342]">
-          {cam.lat.toFixed(2)}°, {cam.lon.toFixed(2)}° · {(cam.alt / 1000).toFixed(0)}k m
+          {cam.lat.toFixed(2)}°, {cam.lon.toFixed(2)}° ·{" "}
+          {(cam.alt / 1000).toFixed(0)}k m
         </span>
       </div>
       <div className="pointer-events-auto rounded-xl bg-white/95 border border-[#E2E6EB] px-3 py-2 shadow-sm">
-        <span className="uppercase tracking-[0.14em] text-[#6B7D99]">Contacts </span>
+        <span className="uppercase tracking-[0.14em] text-[#6B7D99]">
+          Contacts{" "}
+        </span>
         <span className="font-bold text-[#0A2342]">
           {vesselCount} vessels · {hazardCount} hazards · {mode}
         </span>
       </div>
       {selected && (
         <div className="pointer-events-auto rounded-xl bg-white/95 border border-[#E2E6EB] px-3 py-2 shadow-sm">
-          <span className="uppercase tracking-[0.14em] text-[#6B7D99]">Tracked </span>
+          <span className="uppercase tracking-[0.14em] text-[#6B7D99]">
+            Tracked{" "}
+          </span>
           <span className="font-bold text-[#0A2342]">
             {selected.name || selected.mmsi} · {selected.sog ?? "—"} kn
           </span>

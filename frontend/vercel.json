@@ -1,4 +1,10 @@
 {
+  "rewrites": [
+    {
+      "source": "/api/:path*",
+      "destination": "https://kargosetu-api.hf.space/api/:path*"
+    }
+  ],
   "headers": [
     {
       "source": "/(.*)\\.(ico|webp|png|jpg|jpeg|svg|css|js|woff2?)",

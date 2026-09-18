@@ -36,7 +36,9 @@ export default function Providers({ children }: { children: React.ReactNode }) {
   const queryClient = getQueryClient();
 
   return (
-    <GoogleOAuthProvider clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || "placeholder"}>
+    <GoogleOAuthProvider
+      clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || "placeholder"}
+    >
       <QueryClientProvider client={queryClient}>
         <ReactQueryStreamedHydration>
           <LanguageProvider>{children}</LanguageProvider>

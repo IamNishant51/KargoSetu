@@ -9,12 +9,22 @@ import dynamic from "next/dynamic";
 
 // Dynamically loaded (below the fold)
 const MarketTicker = dynamic(() => import("@/components/landing/MarketTicker"));
-const SolutionsSection = dynamic(() => import("@/components/landing/SolutionsSection"));
-const InteractiveSandbox = dynamic(() => import("@/components/landing/InteractiveSandbox"));
-const BentoFeatures = dynamic(() => import("@/components/landing/BentoFeatures"));
+const SolutionsSection = dynamic(
+  () => import("@/components/landing/SolutionsSection"),
+);
+const InteractiveSandbox = dynamic(
+  () => import("@/components/landing/InteractiveSandbox"),
+);
+const BentoFeatures = dynamic(
+  () => import("@/components/landing/BentoFeatures"),
+);
 const PortCorridor = dynamic(() => import("@/components/landing/PortCorridor"));
-const WorkflowSection = dynamic(() => import("@/components/landing/WorkflowSection"));
-const TestimonialsSection = dynamic(() => import("@/components/landing/TestimonialsSection"));
+const WorkflowSection = dynamic(
+  () => import("@/components/landing/WorkflowSection"),
+);
+const TestimonialsSection = dynamic(
+  () => import("@/components/landing/TestimonialsSection"),
+);
 const FaqSection = dynamic(() => import("@/components/landing/FaqSection"));
 const CtaSection = dynamic(() => import("@/components/landing/CtaSection"));
 const Footer = dynamic(() => import("@/components/landing/Footer"));
@@ -43,19 +53,39 @@ export default function Home() {
       <Navbar />
       <main aria-label="KargoSetu main content" className="flex-1">
         <HeroSection />
-        <Suspense fallback={null}><MarketTicker /></Suspense>
+        <Suspense fallback={null}>
+          <MarketTicker />
+        </Suspense>
         <SocialProofLogos />
-        <Suspense fallback={null}><SolutionsSection /></Suspense>
-        <Suspense fallback={null}><InteractiveSandbox /></Suspense>
-        <Suspense fallback={null}><BentoFeatures /></Suspense>
-        <Suspense fallback={null}><PortCorridor /></Suspense>
-        <Suspense fallback={null}><WorkflowSection /></Suspense>
-        <Suspense fallback={null}><TestimonialsSection /></Suspense>
-        <Suspense fallback={null}><FaqSection /></Suspense>
-        <Suspense fallback={null}><CtaSection /></Suspense>
+        <Suspense fallback={null}>
+          <SolutionsSection />
+        </Suspense>
+        <Suspense fallback={null}>
+          <InteractiveSandbox />
+        </Suspense>
+        <Suspense fallback={null}>
+          <BentoFeatures />
+        </Suspense>
+        <Suspense fallback={null}>
+          <PortCorridor />
+        </Suspense>
+        <Suspense fallback={null}>
+          <WorkflowSection />
+        </Suspense>
+        <Suspense fallback={null}>
+          <TestimonialsSection />
+        </Suspense>
+        <Suspense fallback={null}>
+          <FaqSection />
+        </Suspense>
+        <Suspense fallback={null}>
+          <CtaSection />
+        </Suspense>
       </main>
       <Footer />
-      <Suspense fallback={null}><DemoModal /></Suspense>
+      <Suspense fallback={null}>
+        <DemoModal />
+      </Suspense>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(APP_JSONLD) }}

@@ -17,12 +17,12 @@ export default function InteractiveSandbox() {
     "constraint",
   );
 
-// Tab 1 State: Constraint Solver
+  // Tab 1 State: Constraint Solver
   const [volume, setVolume] = useState<number>(150000);
   const [port, setPort] = useState<string>("Haldia");
   const [commodity, setCommodity] = useState<string>("Coking Coal");
 
-// React Query Mutation for Constraint Solver
+  // React Query Mutation for Constraint Solver
   const evaluateMutation = useMutation({
     mutationFn: async (data: {
       volume_mt: number;
@@ -30,7 +30,11 @@ export default function InteractiveSandbox() {
       commodity: string;
     }) => {
       const baseUrl =
-        (String(process.env.NODE_ENV) === "production" ? "" : ((String(process.env.NODE_ENV) === "production" ? "" : (process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"))));
+        String(process.env.NODE_ENV) === "production"
+          ? ""
+          : String(process.env.NODE_ENV) === "production"
+            ? ""
+            : process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
       const res = await fetch(`${baseUrl}/api/v1/requisitions/evaluate`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -47,18 +51,22 @@ export default function InteractiveSandbox() {
       dest_port_name: port,
       commodity,
     });
-// eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [volume, port, commodity]);
 
-// Tab 2 State: ML Forecast
+  // Tab 2 State: ML Forecast
   const [shockMultiplier, setShockMultiplier] = useState<number>(1.2);
 
-// React Query for ML Forecast
+  // React Query for ML Forecast
   const { data: forecastData, isLoading: forecastLoading } = useQuery({
     queryKey: ["forecastRates", shockMultiplier],
     queryFn: async () => {
       const baseUrl =
-        (String(process.env.NODE_ENV) === "production" ? "" : ((String(process.env.NODE_ENV) === "production" ? "" : (process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"))));
+        String(process.env.NODE_ENV) === "production"
+          ? ""
+          : String(process.env.NODE_ENV) === "production"
+            ? ""
+            : process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
       const res = await fetch(
         `${baseUrl}/api/v1/forecast/rates?shockMultiplier=${shockMultiplier}`,
       );
@@ -67,7 +75,7 @@ export default function InteractiveSandbox() {
     },
   });
 
-// Tab 3 State: ROI Calculator
+  // Tab 3 State: ROI Calculator
   const [annualTonnage, setAnnualTonnage] = useState<number>(3.5); // Million MT
   const [spotRate, setSpotRate] = useState<number>(22); // USD per MT
 
@@ -75,7 +83,12 @@ export default function InteractiveSandbox() {
   const { data: corridorData } = useQuery({
     queryKey: ["portCorridor"],
     queryFn: async () => {
-      const base = (String(process.env.NODE_ENV) === "production" ? "" : ((String(process.env.NODE_ENV) === "production" ? "" : (process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"))));
+      const base =
+        String(process.env.NODE_ENV) === "production"
+          ? ""
+          : String(process.env.NODE_ENV) === "production"
+            ? ""
+            : process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
       const res = await fetch(`${base}/api/v1/ports/corridor`);
       if (!res.ok) throw new Error("corridor fetch failed");
       return res.json();
@@ -83,33 +96,43 @@ export default function InteractiveSandbox() {
   });
 
   // Fallback for UI mapping if API is still loading
-  const PORT_DATA_UI: Record<string, { type: string, maxVessel: string }> = {
-    Haldia: { type: "Riverine Port (Hooghly)", maxVessel: "Supramax (50k DWT)" },
+  const PORT_DATA_UI: Record<string, { type: string; maxVessel: string }> = {
+    Haldia: {
+      type: "Riverine Port (Hooghly)",
+      maxVessel: "Supramax (50k DWT)",
+    },
     Paradip: { type: "Deepwater Coastal", maxVessel: "Panamax / Baby Cape" },
-    Dhamra: { type: "Deep Sea Bulk Terminal", maxVessel: "Capesize (180k DWT)" },
+    Dhamra: {
+      type: "Deep Sea Bulk Terminal",
+      maxVessel: "Capesize (180k DWT)",
+    },
     Sandheads: { type: "Natural Harbour", maxVessel: "Panamax" },
   };
 
-  const currentCorridorInfo = Array.isArray(corridorData) 
-    ? corridorData.find(p => p.name === port) 
+  const currentCorridorInfo = Array.isArray(corridorData)
+    ? corridorData.find((p) => p.name === port)
     : null;
 
   const currentPortInfo = {
-    draft: currentCorridorInfo?.draft ? parseFloat(currentCorridorInfo.draft) : 7.5,
+    draft: currentCorridorInfo?.draft
+      ? parseFloat(currentCorridorInfo.draft)
+      : 7.5,
     type: PORT_DATA_UI[port]?.type || "Port",
-    tide: currentCorridorInfo?.tide ? parseFloat(currentCorridorInfo.tide.replace(/[^0-9.]/g, '')) : 3.2,
-    maxVessel: PORT_DATA_UI[port]?.maxVessel || "Any"
+    tide: currentCorridorInfo?.tide
+      ? parseFloat(currentCorridorInfo.tide.replace(/[^0-9.]/g, ""))
+      : 3.2,
+    maxVessel: PORT_DATA_UI[port]?.maxVessel || "Any",
   };
 
-// Deterministic thousands separator to prevent SSR/CSR locale hydration mismatches
+  // Deterministic thousands separator to prevent SSR/CSR locale hydration mismatches
   const formatNum = (val: number) =>
     Math.round(val)
       .toString()
       .replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 
-// Constraint result comes from the single solver endpoint the dashboard
-// uses (POST /requisitions/evaluate). No duplicated client-side math:
-// while the mutation is pending or failed, show evaluating/unavailable.
+  // Constraint result comes from the single solver endpoint the dashboard
+  // uses (POST /requisitions/evaluate). No duplicated client-side math:
+  // while the mutation is pending or failed, show evaluating/unavailable.
   const evalData = evaluateMutation.data as
     | {
         feasible?: boolean;
@@ -130,7 +153,7 @@ export default function InteractiveSandbox() {
       ? evalData.clearance_margin.toFixed(2)
       : null;
 
-// ML Forecast calculation from API
+  // ML Forecast calculation from API
   let baseRate = 18650;
   let p10 = Math.round(baseRate * (0.84 * shockMultiplier));
   let p50 = Math.round(baseRate * (1.02 * shockMultiplier));
@@ -145,7 +168,7 @@ export default function InteractiveSandbox() {
       p90: number;
     }
 
-// Calculate average over the forecast period
+    // Calculate average over the forecast period
     p10 = Math.round(
       forecastData.reduce((acc: number, val: ForecastDay) => acc + val.p10, 0) /
         forecastData.length,
@@ -162,7 +185,7 @@ export default function InteractiveSandbox() {
 
   const dipSavings = Math.round(((p90 - p10) / p90) * 100);
 
-// ROI calculation
+  // ROI calculation
   const annualSpendUSD = annualTonnage * 1000000 * spotRate;
   const estimatedSavingsUSD = annualSpendUSD * 0.115; // 11.5% average savings
   const annualSavingsINR_Cr = ((estimatedSavingsUSD * 86.5) / 10000000).toFixed(
@@ -184,13 +207,15 @@ export default function InteractiveSandbox() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Section Header — desk slip, not SaaS */}
         <div className="max-w-3xl mb-8 sm:mb-10">
-          <p className="mono-label text-[#B45309]">Slip 04 — try it with your numbers</p>
+          <p className="mono-label text-[#B45309]">
+            Slip 04 — try it with your numbers
+          </p>
           <h2 className="mt-2 font-display font-black text-4xl sm:text-5xl text-[#0A2342] tracking-tight">
             Move the sliders. Watch the verdict flip.
           </h2>
           <p className="mt-3 text-[#3D4F68] text-[15px] sm:text-base leading-relaxed">
-            Same solver the dashboard uses. Push Haldia past 55,000 MT and it splits —
-            that&apos;s the whole thesis, live.
+            Same solver the dashboard uses. Push Haldia past 55,000 MT and it
+            splits — that&apos;s the whole thesis, live.
           </p>
         </div>
 
@@ -276,7 +301,10 @@ export default function InteractiveSandbox() {
                 {/* Cargo Volume Slider */}
                 <div>
                   <div className="flex justify-between items-center mb-2">
-                    <label htmlFor="volume-slider" className="text-xs font-bold text-slate-700 uppercase tracking-wider">
+                    <label
+                      htmlFor="volume-slider"
+                      className="text-xs font-bold text-slate-700 uppercase tracking-wider"
+                    >
                       Cargo Volume
                     </label>
                     <span
@@ -310,9 +338,19 @@ export default function InteractiveSandbox() {
                   </label>
                   <div className="grid grid-cols-2 gap-2">
                     {Object.keys(PORT_DATA_UI).map((p) => {
-                      const pData = Array.isArray(corridorData) ? corridorData.find(cp => cp.name === p) : null;
-                      const pDraft = pData?.draft || (p === "Haldia" ? "7.5 m" : p === "Paradip" ? "14.5 m" : p === "Dhamra" ? "16.0 m" : "22 m+");
-                      
+                      const pData = Array.isArray(corridorData)
+                        ? corridorData.find((cp) => cp.name === p)
+                        : null;
+                      const pDraft =
+                        pData?.draft ||
+                        (p === "Haldia"
+                          ? "7.5 m"
+                          : p === "Paradip"
+                            ? "14.5 m"
+                            : p === "Dhamra"
+                              ? "16.0 m"
+                              : "22 m+");
+
                       return (
                         <button
                           key={p}
@@ -338,7 +376,10 @@ export default function InteractiveSandbox() {
 
                 {/* Commodity Select */}
                 <div>
-                  <label htmlFor="commodity-select" className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5">
+                  <label
+                    htmlFor="commodity-select"
+                    className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1.5"
+                  >
                     Commodity
                   </label>
                   <select
@@ -366,7 +407,8 @@ export default function InteractiveSandbox() {
                       Hydrodynamic Feasibility Status
                     </span>
                     <div className="flex items-center gap-2">
-                      {evaluateMutation.isPending || isDirectFeasible === null ? (
+                      {evaluateMutation.isPending ||
+                      isDirectFeasible === null ? (
                         <div className="flex items-center gap-2 text-slate-500 font-bold text-lg animate-pulse">
                           <span>
                             {evaluateMutation.isError
@@ -482,14 +524,15 @@ export default function InteractiveSandbox() {
                     >
                       A single {volume > 100000 ? "Capesize" : "Panamax"} vessel
                       carrying {formatNum(volume)} MT requires an arrival draft
-                      of {arrivalDraft ?? "—"}m, dangerously exceeding {port}&apos;s
-                      permissible draft ({currentPortInfo.draft}m). KargoSetu
-                      automatically splits this fixture into{" "}
+                      of {arrivalDraft ?? "—"}m, dangerously exceeding {port}
+                      &apos;s permissible draft ({currentPortInfo.draft}m).
+                      KargoSetu automatically splits this fixture into{" "}
                       <strong className="text-slate-900">
                         {numVessels ?? "?"}x {vesselClass ?? "Supramax"}
                       </strong>{" "}
-                      vessels (approx. {numVessels ? formatNum(volume / numVessels) : "?"} MT each)
-                      routed via the Sandheads offshore lighterage zone,
+                      vessels (approx.{" "}
+                      {numVessels ? formatNum(volume / numVessels) : "?"} MT
+                      each) routed via the Sandheads offshore lighterage zone,
                       preserving Under Keel Clearance and preventing{" "}
                       <strong className="text-emerald-700 font-bold">
                         $35,000/day in grounding demurrage
@@ -502,8 +545,9 @@ export default function InteractiveSandbox() {
                       {arrivalDraft ?? "—"}m safely complies with {port}&apos;s
                       permissible channel depth of {currentPortInfo.draft}m (+
                       {currentPortInfo.tide}m tidal window). Under Keel
-                      Clearance (UKC) margin of {clearanceMargin ?? "—"}m satisfies
-                      Director General of Shipping (DGS) safety mandates.
+                      Clearance (UKC) margin of {clearanceMargin ?? "—"}m
+                      satisfies Director General of Shipping (DGS) safety
+                      mandates.
                     </p>
                   )}
                 </div>

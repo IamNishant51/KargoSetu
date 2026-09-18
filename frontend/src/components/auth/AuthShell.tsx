@@ -3,7 +3,6 @@
 import React from "react";
 import Link from "next/link";
 import SafeImage from "@/components/ui/SafeImage";
-import Image from "next/image";
 import { useLanguage } from "@/i18n/LanguageContext";
 
 export default function AuthShell({
@@ -29,7 +28,8 @@ export default function AuthShell({
             "linear-gradient(to right, #EDF0F4 1px, transparent 1px), linear-gradient(to bottom, #EDF0F4 1px, transparent 1px)",
           backgroundSize: "54px 54px",
           maskImage: "linear-gradient(to bottom, black 55%, transparent 100%)",
-          WebkitMaskImage: "linear-gradient(to bottom, black 55%, transparent 100%)",
+          WebkitMaskImage:
+            "linear-gradient(to bottom, black 55%, transparent 100%)",
         }}
       />
 
@@ -38,15 +38,28 @@ export default function AuthShell({
         <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-3">
           <Link href="/" className="flex items-center gap-2.5 min-w-0">
             <span className="relative block w-9 h-9 shrink-0 -my-1">
-              <SafeImage src="https://ik.imagekit.io/iqlpfpvny/KargoSetu/KargoSetu-LOGO.png" fallbackSrc="/logo-ks.png" alt="KargoSetu" fill sizes="36px" className="object-contain" priority />
+              <SafeImage
+                src="https://ik.imagekit.io/iqlpfpvny/KargoSetu/KargoSetu-LOGO.png"
+                fallbackSrc="/logo-ks.png"
+                alt="KargoSetu"
+                fill
+                sizes="36px"
+                className="object-contain"
+                priority
+              />
             </span>
             <span className="font-display font-black text-[19px] tracking-tight text-[#0A2342]">
               KargoSetu<span className="text-[#D95D0F]">.</span>
             </span>
           </Link>
           <div className="flex items-center gap-3 sm:gap-4">
-            <span className="hidden sm:inline mono-label text-[#6B7D99]">SIH 2026 · SIH26006</span>
-            <Link href="/" className="text-[13px] font-bold text-[#B45309] hover:text-[#0A2342] transition-colors">
+            <span className="hidden sm:inline mono-label text-[#6B7D99]">
+              SIH 2026 · SIH26006
+            </span>
+            <Link
+              href="/"
+              className="text-[13px] font-bold text-[#B45309] hover:text-[#0A2342] transition-colors"
+            >
               {t("back_dossier")}
             </Link>
           </div>
@@ -65,8 +78,10 @@ export default function AuthShell({
                 backgroundImage:
                   "linear-gradient(to right, rgba(255,255,255,0.5) 1px, transparent 1px), linear-gradient(to bottom, rgba(255,255,255,0.5) 1px, transparent 1px)",
                 backgroundSize: "44px 44px",
-                maskImage: "linear-gradient(to bottom, black 70%, transparent 100%)",
-                WebkitMaskImage: "linear-gradient(to bottom, black 70%, transparent 100%)",
+                maskImage:
+                  "linear-gradient(to bottom, black 70%, transparent 100%)",
+                WebkitMaskImage:
+                  "linear-gradient(to bottom, black 70%, transparent 100%)",
               }}
             />
             <div className="relative my-auto">
@@ -74,7 +89,9 @@ export default function AuthShell({
               <h1 className="mt-3 font-display font-black tracking-[-0.025em] leading-[1.02] text-balance text-[34px] sm:text-[42px]">
                 {title}
               </h1>
-              <p className="mt-4 text-[14.5px] sm:text-[15.5px] leading-relaxed text-white/70 max-w-sm">{sub}</p>
+              <p className="mt-4 text-[14.5px] sm:text-[15.5px] leading-relaxed text-white/70 max-w-sm">
+                {sub}
+              </p>
             </div>
             <p className="relative mt-10 font-mono text-[10.5px] uppercase tracking-[0.14em] text-white/40">
               SIH 2026 · SIH26006
@@ -82,7 +99,9 @@ export default function AuthShell({
           </div>
 
           {/* Right — the form desk */}
-          <div className="bg-white px-6 py-8 sm:p-10 flex flex-col justify-center">{children}</div>
+          <div className="bg-white px-6 py-8 sm:p-10 flex flex-col justify-center">
+            {children}
+          </div>
         </div>
       </main>
 

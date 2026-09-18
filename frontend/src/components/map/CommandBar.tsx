@@ -43,16 +43,26 @@ function parseNavigationTarget(input: string): CameraPresetId | null {
 
   // Match commands like "take me to haldia", "go to paradip", "fly to sandheads", or just "haldia"
   const stripped = norm
-    .replace(/^(take me to|go to|goto|fly to|navigate to|zoom to|visit|show|head to)\s+/, "")
+    .replace(
+      /^(take me to|go to|goto|fly to|navigate to|zoom to|visit|show|head to)\s+/,
+      "",
+    )
     .replace(/\s+(port|roads|fairway|anchorage|overview)$/, "")
     .trim();
 
   if (["haldia", "haldiya"].includes(stripped)) return "haldia";
   if (["paradip", "paradeep"].includes(stripped)) return "paradip";
   if (["dhamra", "dhamara"].includes(stripped)) return "dhamra";
-  if (["sandheads", "sand heads", "sandhead", "sand head"].includes(stripped)) return "sandheads";
-  if (["newcastle", "new castle", "australia"].includes(stripped)) return "newcastle";
-  if (["corridor", "overview", "bay of bengal", "reset", "home"].includes(stripped)) return "corridor";
+  if (["sandheads", "sand heads", "sandhead", "sand head"].includes(stripped))
+    return "sandheads";
+  if (["newcastle", "new castle", "australia"].includes(stripped))
+    return "newcastle";
+  if (
+    ["corridor", "overview", "bay of bengal", "reset", "home"].includes(
+      stripped,
+    )
+  )
+    return "corridor";
 
   return null;
 }
@@ -83,10 +93,14 @@ export default function CommandBar({
       return;
     }
 
-    const showMatch = cmd.replace(/[.,!]/g, "").match(/^(show|hide) (vessels|hazards|weather|corridor|boundaries)$/);
+    const showMatch = cmd
+      .replace(/[.,!]/g, "")
+      .match(/^(show|hide) (vessels|hazards|weather|corridor|boundaries)$/);
     if (showMatch) {
       onToggleLayer(showMatch[2], showMatch[1] === "show");
-      setHint(`${showMatch[1] === "show" ? "Showing" : "Hiding"} ${showMatch[2]}.`);
+      setHint(
+        `${showMatch[1] === "show" ? "Showing" : "Hiding"} ${showMatch[2]}.`,
+      );
       setValue("");
       return;
     }

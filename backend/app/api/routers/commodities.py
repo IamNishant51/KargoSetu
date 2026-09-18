@@ -5,7 +5,15 @@ from fastapi import APIRouter
 router = APIRouter(prefix="/api/v1/commodities", tags=["commodities"])
 
 COMMODITIES = [
-    "Iron Ore", "Coal", "Bauxite", "Thermal Coal", "Coking Coal", "Metallurgical Coal", "Grain", "Fertilizer", "Limestone"
+    "Iron Ore",
+    "Coal",
+    "Bauxite",
+    "Thermal Coal",
+    "Coking Coal",
+    "Metallurgical Coal",
+    "Grain",
+    "Fertilizer",
+    "Limestone",
 ]
 
 

@@ -36,8 +36,12 @@ export default function VesselLayer({
   // Per-entity position objects, mutated in place by the interpolation loop.
   // Allocated once per vessel (on create), never per frame.
   const posRef = React.useRef<Map<string, unknown>>(new Map());
-  const prevRef = React.useRef<Map<string, { lat: number; lon: number }>>(new Map());
-  const currRef = React.useRef<Map<string, { lat: number; lon: number }>>(new Map());
+  const prevRef = React.useRef<Map<string, { lat: number; lon: number }>>(
+    new Map(),
+  );
+  const currRef = React.useRef<Map<string, { lat: number; lon: number }>>(
+    new Map(),
+  );
   const lastUpdateRef = React.useRef<number>(0);
   const onSelectRef = React.useRef(onSelect);
 
@@ -76,12 +80,14 @@ export default function VesselLayer({
           typeof draftLimit === "number" &&
           typeof v.draught === "number" &&
           v.draught > draftLimit;
-        let ent = entities.get(v.mmsi) as {
-          position?: unknown;
-          model?: { color?: unknown };
-          ellipse?: { show?: boolean };
-          label?: { show?: boolean; text?: string };
-        } | undefined;
+        let ent = entities.get(v.mmsi) as
+          | {
+              position?: unknown;
+              model?: { color?: unknown };
+              ellipse?: { show?: boolean };
+              label?: { show?: boolean; text?: string };
+            }
+          | undefined;
         if (!ent) {
           const pos = Cesium.Cartesian3.fromDegrees(v.lon, v.lat);
           const added = viewer.entities.add({
@@ -115,7 +121,9 @@ export default function VesselLayer({
               outlineWidth: 2,
               style: Cesium.LabelStyle.FILL_AND_OUTLINE,
               showBackground: true,
-              backgroundColor: Cesium.Color.fromCssColorString("rgba(10, 35, 66, 0.92)"),
+              backgroundColor: Cesium.Color.fromCssColorString(
+                "rgba(10, 35, 66, 0.92)",
+              ),
               backgroundPadding: new Cesium.Cartesian2(7, 4),
               pixelOffset: new Cesium.Cartesian2(0, -20),
               disableDepthTestDistance: Number.POSITIVE_INFINITY,
@@ -155,7 +163,11 @@ export default function VesselLayer({
             if (pos) {
               e.orientation = Cesium.Transforms.headingPitchRollQuaternion(
                 pos as never,
-                new Cesium.HeadingPitchRoll(Cesium.Math.toRadians(v.cog) + Math.PI, 0, 0),
+                new Cesium.HeadingPitchRoll(
+                  Cesium.Math.toRadians(v.cog) + Math.PI,
+                  0,
+                  0,
+                ),
               );
             }
           }
@@ -200,16 +212,19 @@ export default function VesselLayer({
     const INTERVAL = 30000;
     const scratch = { lon: 0, lat: 0 };
     let intervalId: number | null = null;
-    
+
     (async () => {
       const Cesium = await getCesium();
       if (!alive) return;
       const C = Cesium;
-      
+
       function tick() {
         if (!alive) return;
         const now = Date.now();
-        const frac = Math.min(1, Math.max(0, (now - lastUpdateRef.current) / INTERVAL));
+        const frac = Math.min(
+          1,
+          Math.max(0, (now - lastUpdateRef.current) / INTERVAL),
+        );
         for (const [mmsi, cur] of currRef.current.entries()) {
           const prev = prevRef.current.get(mmsi) ?? cur;
           scratch.lon = prev.lon + (cur.lon - prev.lon) * frac;
@@ -217,7 +232,13 @@ export default function VesselLayer({
           const pos = posRef.current.get(mmsi);
           if (pos) {
             try {
-              C.Cartesian3.fromDegrees(scratch.lon, scratch.lat, 0, undefined, pos as never);
+              C.Cartesian3.fromDegrees(
+                scratch.lon,
+                scratch.lat,
+                0,
+                undefined,
+                pos as never,
+              );
             } catch {
               // position update best-effort
             }
@@ -229,7 +250,7 @@ export default function VesselLayer({
           // render best-effort
         }
       }
-      
+
       // Update at 1 FPS
       intervalId = window.setInterval(tick, 1000);
       tick(); // immediate first tick
@@ -247,29 +268,35 @@ export default function VesselLayer({
     let handler: { destroy: () => void } | null = null;
     (async () => {
       const Cesium = await getCesium();
-      handler = new Cesium.ScreenSpaceEventHandler(viewer.scene.canvas) as unknown as {
+      handler = new Cesium.ScreenSpaceEventHandler(
+        viewer.scene.canvas,
+      ) as unknown as {
         destroy: () => void;
       };
-      (handler as unknown as {
-        setInputAction: (fn: (e: { position: unknown }) => void, type: unknown) => void;
-      }).setInputAction(
-        (click: { position: unknown }) => {
-          try {
-            const picked = viewer.scene.pick(click.position as never) as {
-              id?: { id?: string };
-            } | undefined;
-            const id = picked?.id?.id;
-            if (typeof id === "string" && id.startsWith("vessel-")) {
-              onSelectRef.current(id.replace("vessel-", ""));
-            } else {
-              onSelectRef.current(null);
-            }
-          } catch {
+      (
+        handler as unknown as {
+          setInputAction: (
+            fn: (e: { position: unknown }) => void,
+            type: unknown,
+          ) => void;
+        }
+      ).setInputAction((click: { position: unknown }) => {
+        try {
+          const picked = viewer.scene.pick(click.position as never) as
+            | {
+                id?: { id?: string };
+              }
+            | undefined;
+          const id = picked?.id?.id;
+          if (typeof id === "string" && id.startsWith("vessel-")) {
+            onSelectRef.current(id.replace("vessel-", ""));
+          } else {
             onSelectRef.current(null);
           }
-        },
-        Cesium.ScreenSpaceEventType.LEFT_CLICK,
-      );
+        } catch {
+          onSelectRef.current(null);
+        }
+      }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
     })();
     return () => {
       try {

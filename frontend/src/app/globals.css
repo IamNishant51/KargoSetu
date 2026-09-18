@@ -38,7 +38,11 @@ html {
 body {
   background: #ffffff;
   color: var(--color-hull);
-  font-family: var(--font-sans), system-ui, -apple-system, sans-serif;
+  font-family:
+    var(--font-sans),
+    system-ui,
+    -apple-system,
+    sans-serif;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
   font-feature-settings: "cv11", "ss01";
@@ -64,8 +68,14 @@ body {
   box-shadow: 4px 4px 0 rgba(10, 35, 66, 0.08);
 }
 
-h1, h2, h3 {
-  font-family: var(--font-sans), system-ui, -apple-system, sans-serif;
+h1,
+h2,
+h3 {
+  font-family:
+    var(--font-sans),
+    system-ui,
+    -apple-system,
+    sans-serif;
   letter-spacing: -0.025em;
   line-height: 1.05;
   text-wrap: balance;
@@ -84,8 +94,12 @@ h1, h2, h3 {
 }
 
 @keyframes marquee {
-  0% { transform: translate3d(0, 0, 0); }
-  100% { transform: translate3d(-50%, 0, 0); }
+  0% {
+    transform: translate3d(0, 0, 0);
+  }
+  100% {
+    transform: translate3d(-50%, 0, 0);
+  }
 }
 
 .animate-marquee {
@@ -97,11 +111,14 @@ h1, h2, h3 {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  html { scroll-behavior: auto; }
+  html {
+    scroll-behavior: auto;
+  }
 }
 
 /* Focus that judges can see */
-a:focus-visible, button:focus-visible {
+a:focus-visible,
+button:focus-visible {
   outline: 2px solid var(--color-cargo);
   outline-offset: 2px;
 }

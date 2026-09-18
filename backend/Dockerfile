@@ -53,13 +53,6 @@ EXPOSE 7860
 HEALTHCHECK --interval=30s --timeout=10s --start-period=120s --retries=3 \
     CMD curl -f http://localhost:7860/api/health/ || exit 1
 
-# Use 2 workers (not 4) to prevent OOM with heavy ML models.
-# Each worker loads its own copy of the TF/ONNX model into memory.
-CMD ["gunicorn", "app.main:app", \
-     "-w", "2", \
-     "-k", "uvicorn.workers.UvicornWorker", \
-     "--bind", "0.0.0.0:7860", \
-     "--timeout", "120", \
-     "--graceful-timeout", "30", \
-     "--max-requests", "1000", \
-     "--max-requests-jitter", "50"]
+# Use 8 workers (optimized for 24GB ARM Ampere A1, 4 OCPUs)
+# 24GB RAM easily supports 8 workers even with ML models loaded.
+CMD ["sh", "-c", "prisma db push --accept-data-loss && gunicorn app.main:app -w 8 -k uvicorn.workers.UvicornWorker --bind 0.0.0.0:7860 --timeout 120 --graceful-timeout 30 --max-requests 1000 --max-requests-jitter 50"]

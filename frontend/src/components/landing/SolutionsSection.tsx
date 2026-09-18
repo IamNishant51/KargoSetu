@@ -1,6 +1,5 @@
 "use client";
 import React from "react";
-import Image from "next/image";
 import SafeImage from "@/components/ui/SafeImage";
 import { ArrowUpRight } from "lucide-react";
 
@@ -37,19 +36,27 @@ const ITEMS = [
 
 export default function SolutionsSection() {
   return (
-    <section id="solutions" className="bg-white py-14 sm:py-20 scroll-mt-20 sm:scroll-mt-24">
+    <section
+      id="solutions"
+      className="bg-white py-14 sm:py-20 scroll-mt-20 sm:scroll-mt-24"
+    >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid lg:grid-cols-12 gap-8 lg:items-center">
           <div className="lg:col-span-4">
-            <p className="mono-label text-[#B45309]">The ledger — what it settles</p>
+            <p className="mono-label text-[#B45309]">
+              The ledger — what it settles
+            </p>
             <h2 className="mt-3 font-display font-black text-4xl sm:text-5xl text-[#0A2342] leading-[1.02]">
               Three questions the desk asks daily.
             </h2>
             <p className="mt-4 text-[15px] sm:text-base leading-relaxed text-[#3D4F68] max-w-sm">
-              Not “platform capabilities”. Real calls a chartering manager makes before lunch —
-              each with a number attached.
+              Not “platform capabilities”. Real calls a chartering manager makes
+              before lunch — each with a number attached.
             </p>
-            <a href="#sandbox" className="mt-6 inline-flex items-center gap-2 rounded-lg bg-[#0A2342] px-5 py-3 text-sm font-bold text-white hover:bg-[#14315C] transition-colors">
+            <a
+              href="#sandbox"
+              className="mt-6 inline-flex items-center gap-2 rounded-lg bg-[#0A2342] px-5 py-3 text-sm font-bold text-white hover:bg-[#14315C] transition-colors"
+            >
               Run one yourself <ArrowUpRight size={15} />
             </a>
           </div>
@@ -57,15 +64,29 @@ export default function SolutionsSection() {
             <ol className="divide-y divide-[#E2E6EB] border-y border-[#E2E6EB]">
               {ITEMS.map((it) => (
                 <li key={it.n}>
-                  <a href={it.href} className="group grid sm:grid-cols-12 gap-2 sm:gap-4 py-6 sm:py-7 items-start hover:bg-[#FAF7F1] transition-colors px-1 sm:px-3 -mx-1 sm:-mx-3 rounded-lg">
-                    <span className="sm:col-span-1 font-mono font-semibold text-[13px] text-[#6B7D99] pt-1">{it.n}</span>
+                  <a
+                    href={it.href}
+                    className="group grid sm:grid-cols-12 gap-2 sm:gap-4 py-6 sm:py-7 items-start hover:bg-[#FAF7F1] transition-colors px-1 sm:px-3 -mx-1 sm:-mx-3 rounded-lg"
+                  >
+                    <span className="sm:col-span-1 font-mono font-semibold text-[13px] text-[#6B7D99] pt-1">
+                      {it.n}
+                    </span>
                     <span className="sm:col-span-7">
-                      <span className="block font-display font-bold text-[22px] sm:text-2xl text-[#0A2342] group-hover:text-[#B45309] transition-colors leading-tight">{it.title}</span>
-                      <span className="mt-2 block text-[14px] sm:text-[15px] leading-relaxed text-[#3D4F68] max-w-xl">{it.body}</span>
+                      <span className="block font-display font-bold text-[22px] sm:text-2xl text-[#0A2342] group-hover:text-[#B45309] transition-colors leading-tight">
+                        {it.title}
+                      </span>
+                      <span className="mt-2 block text-[14px] sm:text-[15px] leading-relaxed text-[#3D4F68] max-w-xl">
+                        {it.body}
+                      </span>
                     </span>
                     <span className="sm:col-span-4 flex sm:justify-end items-center gap-3 pt-1">
-                      <span className="font-mono text-[10.5px] uppercase tracking-[0.14em] text-[#6B7D99] border border-[#E2E6EB] rounded px-2 py-1 bg-white">{it.meta}</span>
-                      <ArrowUpRight size={18} className="text-[#D95D0F] transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                      <span className="font-mono text-[10.5px] uppercase tracking-[0.14em] text-[#6B7D99] border border-[#E2E6EB] rounded px-2 py-1 bg-white">
+                        {it.meta}
+                      </span>
+                      <ArrowUpRight
+                        size={18}
+                        className="text-[#D95D0F] transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
+                      />
                     </span>
                   </a>
                 </li>
@@ -96,19 +117,43 @@ export default function SolutionsSection() {
               />
             </div>
             <div className="lg:col-span-5 bg-white px-5 py-5 sm:px-6 sm:py-6 flex flex-col justify-center">
-              <p className="text-[10.5px] font-semibold uppercase tracking-[0.12em] text-[#6B7D99]">How to read it — top to bottom</p>
+              <p className="text-[10.5px] font-semibold uppercase tracking-[0.12em] text-[#6B7D99]">
+                How to read it — top to bottom
+              </p>
               <ul className="mt-4 space-y-0 border-t border-[#E2E6EB]">
                 {[
-                  ["#0A2342", "Draft 12.5 m", "Static keel depth below the waterline"],
-                  ["#D95D0F", "Squat +0.8 m", "Extra sinkage the river steals at speed"],
+                  [
+                    "#0A2342",
+                    "Draft 12.5 m",
+                    "Static keel depth below the waterline",
+                  ],
+                  [
+                    "#D95D0F",
+                    "Squat +0.8 m",
+                    "Extra sinkage the river steals at speed",
+                  ],
                   ["#1B7FBF", "Tide +3.2 m", "Live Hooghly lift at high water"],
-                  ["#0E7A3D", "UKC 1.8 m · Safe", "Clears the DG-Shipping 1.0 m rule"],
+                  [
+                    "#0E7A3D",
+                    "UKC 1.8 m · Safe",
+                    "Clears the DG-Shipping 1.0 m rule",
+                  ],
                 ].map(([dot, t, d]) => (
-                  <li key={t} className="flex items-start gap-3 border-b border-[#E2E6EB] py-3">
-                    <span className="mt-1.5 h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: dot }} />
+                  <li
+                    key={t}
+                    className="flex items-start gap-3 border-b border-[#E2E6EB] py-3"
+                  >
+                    <span
+                      className="mt-1.5 h-2.5 w-2.5 shrink-0 rounded-full"
+                      style={{ backgroundColor: dot }}
+                    />
                     <span>
-                      <span className="block text-[13.5px] font-bold text-[#0A2342]">{t}</span>
-                      <span className="mt-0.5 block text-[12.5px] leading-relaxed text-[#3D4F68]">{d}</span>
+                      <span className="block text-[13.5px] font-bold text-[#0A2342]">
+                        {t}
+                      </span>
+                      <span className="mt-0.5 block text-[12.5px] leading-relaxed text-[#3D4F68]">
+                        {d}
+                      </span>
                     </span>
                   </li>
                 ))}
@@ -119,8 +164,12 @@ export default function SolutionsSection() {
             </div>
           </div>
           <figcaption className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-t border-[#E2E6EB] bg-white px-5 py-3.5">
-            <span className="text-[10.5px] font-semibold uppercase tracking-[0.12em] text-[#6B7D99]">The physics behind question 01 — in one glance</span>
-            <span className="text-[12px] font-semibold text-[#0E7A3D]">Answered in under 150 ms, every indent</span>
+            <span className="text-[10.5px] font-semibold uppercase tracking-[0.12em] text-[#6B7D99]">
+              The physics behind question 01 — in one glance
+            </span>
+            <span className="text-[12px] font-semibold text-[#0E7A3D]">
+              Answered in under 150 ms, every indent
+            </span>
           </figcaption>
         </figure>
       </div>

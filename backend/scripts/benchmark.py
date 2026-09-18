@@ -1,10 +1,12 @@
 import asyncio
-import aiohttp
-import time
 import statistics
+import time
+
+import aiohttp
 
 URL = "http://localhost:8000/api/v1/forecast/rates"
 NUM_REQUESTS = 1000
+
 
 async def fetch(session, url):
     start_time = time.perf_counter()
@@ -16,6 +18,7 @@ async def fetch(session, url):
         status = 500
     latency = time.perf_counter() - start_time
     return status, latency
+
 
 async def main():
     print(f"Starting benchmark: {NUM_REQUESTS} concurrent requests to {URL}...")
@@ -47,6 +50,7 @@ async def main():
     print(f"Success Rate:   {success_rate:.2f}%")
     print(f"Average Latency: {avg_latency * 1000:.2f} ms")
     print(f"p99 Latency:    {p99_latency * 1000:.2f} ms")
+
 
 if __name__ == "__main__":
     asyncio.run(main())

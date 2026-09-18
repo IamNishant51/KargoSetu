@@ -27,11 +27,14 @@ export default function RegisterPage() {
     setError("");
 
     try {
-      const res = await fetch(`${(String(process.env.NODE_ENV) === "production" ? "" : ((String(process.env.NODE_ENV) === "production" ? "" : (process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"))))}/api/v1/auth/register`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password, name }),
-      });
+      const res = await fetch(
+        `${String(process.env.NODE_ENV) === "production" ? "" : String(process.env.NODE_ENV) === "production" ? "" : process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/api/v1/auth/register`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password, name }),
+        },
+      );
 
       if (!res.ok) {
         const data = await res.json();
@@ -51,13 +54,18 @@ export default function RegisterPage() {
     }
   };
 
-  const handleGoogleSuccess = async (credentialResponse: CredentialResponse) => {
+  const handleGoogleSuccess = async (
+    credentialResponse: CredentialResponse,
+  ) => {
     try {
-      const res = await fetch(`${(String(process.env.NODE_ENV) === "production" ? "" : ((String(process.env.NODE_ENV) === "production" ? "" : (process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"))))}/api/v1/auth/google`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ token: credentialResponse.credential }),
-      });
+      const res = await fetch(
+        `${String(process.env.NODE_ENV) === "production" ? "" : String(process.env.NODE_ENV) === "production" ? "" : process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/api/v1/auth/google`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ token: credentialResponse.credential }),
+        },
+      );
       if (!res.ok) throw new Error(t("err_google_reg"));
 
       const data = await res.json();
@@ -74,11 +82,18 @@ export default function RegisterPage() {
   return (
     <AuthShell
       eyebrow={t("reg_eyebrow")}
-      title={<>{t("reg_title_a")}<span className="text-[#D95D0F]">{t("reg_title_b")}</span></>}
+      title={
+        <>
+          {t("reg_title_a")}
+          <span className="text-[#D95D0F]">{t("reg_title_b")}</span>
+        </>
+      }
       sub={t("reg_sub")}
     >
       <p className="mono-label text-[#B45309]">{t("reg_kicker")}</p>
-      <h2 className="mt-2 font-display font-black text-[30px] sm:text-[34px] tracking-[-0.025em] text-[#0A2342]">{t("reg_form_title")}</h2>
+      <h2 className="mt-2 font-display font-black text-[30px] sm:text-[34px] tracking-[-0.025em] text-[#0A2342]">
+        {t("reg_form_title")}
+      </h2>
       <p className="mt-2 text-[14px] leading-relaxed text-[#3D4F68]">
         {t("reg_form_sub")}
       </p>
@@ -92,9 +107,14 @@ export default function RegisterPage() {
 
         <div className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="name" className="mono-label text-[#3D4F68]">{t("full_name")}</Label>
+            <Label htmlFor="name" className="mono-label text-[#3D4F68]">
+              {t("full_name")}
+            </Label>
             <div className="relative">
-              <User size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-[#6B7D99] pointer-events-none" />
+              <User
+                size={18}
+                className="absolute left-4 top-1/2 -translate-y-1/2 text-[#6B7D99] pointer-events-none"
+              />
               <Input
                 id="name"
                 type="text"
@@ -107,9 +127,14 @@ export default function RegisterPage() {
             </div>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="email" className="mono-label text-[#3D4F68]">{t("email")}</Label>
+            <Label htmlFor="email" className="mono-label text-[#3D4F68]">
+              {t("email")}
+            </Label>
             <div className="relative">
-              <Mail size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-[#6B7D99] pointer-events-none" />
+              <Mail
+                size={18}
+                className="absolute left-4 top-1/2 -translate-y-1/2 text-[#6B7D99] pointer-events-none"
+              />
               <Input
                 id="email"
                 type="email"
@@ -122,9 +147,14 @@ export default function RegisterPage() {
             </div>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="password" className="mono-label text-[#3D4F68]">{t("password")}</Label>
+            <Label htmlFor="password" className="mono-label text-[#3D4F68]">
+              {t("password")}
+            </Label>
             <div className="relative flex items-center">
-              <Lock size={18} className="absolute left-4 text-[#6B7D99] pointer-events-none" />
+              <Lock
+                size={18}
+                className="absolute left-4 text-[#6B7D99] pointer-events-none"
+              />
               <Input
                 id="password"
                 type={showPassword ? "text" : "password"}
@@ -160,7 +190,9 @@ export default function RegisterPage() {
       <div className="relative my-6">
         <div className="harbour-rule absolute inset-x-0 top-1/2" />
         <div className="relative flex justify-center">
-          <span className="bg-white px-4 mono-label text-[#6B7D99]">{t("or_register")}</span>
+          <span className="bg-white px-4 mono-label text-[#6B7D99]">
+            {t("or_register")}
+          </span>
         </div>
       </div>
 
@@ -176,7 +208,12 @@ export default function RegisterPage() {
 
       <p className="mt-7 text-center text-[14px] font-medium text-[#3D4F68]">
         {t("have_account")}{" "}
-        <Link href="/login" className="font-bold text-[#B45309] hover:text-[#0A2342] transition-colors">{t("signin_link")}</Link>
+        <Link
+          href="/login"
+          className="font-bold text-[#B45309] hover:text-[#0A2342] transition-colors"
+        >
+          {t("signin_link")}
+        </Link>
       </p>
     </AuthShell>
   );

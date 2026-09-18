@@ -84,7 +84,9 @@ def _map_mt_row(row: object) -> dict | None:
 
         from app.services.ais_proxy import _map_ship_type
 
-        ship_type = _map_ship_type(row.get("SHIPTYPE", row.get("TYPE", row.get("shipType"))))
+        ship_type = _map_ship_type(
+            row.get("SHIPTYPE", row.get("TYPE", row.get("shipType")))
+        )
 
         draught = _num(row.get("DRAUGHT", row.get("DRAFT", row.get("draught"))))
         if draught is not None and not (0.5 <= draught <= 30.0):
@@ -100,14 +102,17 @@ def _map_mt_row(row: object) -> dict | None:
 
         return {
             "mmsi": str(mmsi),
-            "name": _str(row.get("SHIPNAME", row.get("SHIP_NAME", row.get("name")))) or "UNKNOWN",
+            "name": _str(row.get("SHIPNAME", row.get("SHIP_NAME", row.get("name"))))
+            or "UNKNOWN",
             "lat": lat,
             "lon": lon,
             "sog": _num(row.get("SPEED", row.get("SOG", row.get("sog")))),
             "cog": _num(row.get("COURSE", row.get("COG", row.get("cog")))),
             "draught": round(draught, 1) if draught is not None else None,
             "shipType": ship_type,
-            "destination": _str(row.get("DESTINATION", row.get("DEST", row.get("destination")))),
+            "destination": _str(
+                row.get("DESTINATION", row.get("DEST", row.get("destination")))
+            ),
             "eta": _str(row.get("ETA", row.get("eta")), limit=32),
             "navStatus": nav_status,
             "timestamp": ts,
@@ -147,7 +152,9 @@ async def fetch_mt_vessels(
         if client is None:
             import httpx
 
-            async with httpx.AsyncClient(timeout=httpx.Timeout(10.0, connect=5.0)) as tmp:
+            async with httpx.AsyncClient(
+                timeout=httpx.Timeout(10.0, connect=5.0)
+            ) as tmp:
                 res = await tmp.get(url, timeout=8.0)
                 payload = res.json()
         else:
@@ -164,7 +171,9 @@ async def fetch_mt_vessels(
             mapped = _map_mt_row(row)
             if mapped is None:
                 continue
-            if not (minLat <= mapped["lat"] <= maxLat and minLon <= mapped["lon"] <= maxLon):
+            if not (
+                minLat <= mapped["lat"] <= maxLat and minLon <= mapped["lon"] <= maxLon
+            ):
                 continue
             out.append(mapped)
             if len(out) >= 500:

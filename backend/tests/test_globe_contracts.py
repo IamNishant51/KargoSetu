@@ -22,18 +22,37 @@ from app.api.routers.vessels import VesselLiveResponse, get_live_vessels
 from app.core.config import settings
 from app.core.exceptions import value_error_handler
 
-VESSEL_KEYS = {"mmsi", "name", "lat", "lon", "sog", "cog", "draught", "shipType", "timestamp", "demo"}
+VESSEL_KEYS = {
+    "mmsi",
+    "name",
+    "lat",
+    "lon",
+    "sog",
+    "cog",
+    "draught",
+    "shipType",
+    "timestamp",
+    "demo",
+}
 
 
 def _req() -> Request:
     return Request(
-        {"type": "http", "method": "GET", "path": "/", "headers": [], "client": ("127.0.0.1", 5000)}
+        {
+            "type": "http",
+            "method": "GET",
+            "path": "/",
+            "headers": [],
+            "client": ("127.0.0.1", 5000),
+        }
     )
 
 
 @pytest.mark.asyncio
 async def test_vessels_demo_mode_shape():
-    result = await ais_proxy.get_vessels(api_key="", minLon=0.0, minLat=0.0, maxLon=10.0, maxLat=10.0)
+    result = await ais_proxy.get_vessels(
+        api_key="", minLon=0.0, minLat=0.0, maxLon=10.0, maxLat=10.0
+    )
     parsed = VesselLiveResponse(**result)
     assert parsed.mode == "demo"
     assert 8 <= len(parsed.vessels) <= 500
@@ -45,7 +64,9 @@ async def test_vessels_demo_mode_shape():
 @pytest.mark.asyncio
 async def test_vessels_bbox_span_raises_value_error():
     with pytest.raises(ValueError):
-        await get_live_vessels(_req(), minLon=0.0, minLat=0.0, maxLon=100.0, maxLat=10.0)
+        await get_live_vessels(
+            _req(), minLon=0.0, minLat=0.0, maxLon=100.0, maxLat=10.0
+        )
 
 
 @pytest.mark.asyncio
@@ -152,21 +173,32 @@ def test_voyage_fields_flow_to_position():
 @pytest.mark.asyncio
 async def test_hazards_bbox_span_raises_value_error():
     with pytest.raises(HTTPException) as exc_info:
-        await get_hazards_summary(_req(), minLon=0.0, minLat=0.0, maxLon=400.0, maxLat=10.0)
+        await get_hazards_summary(
+            _req(), minLon=0.0, minLat=0.0, maxLon=400.0, maxLat=10.0
+        )
     assert exc_info.value.status_code == 422
 
 
 @pytest.mark.asyncio
 async def test_hazards_bbox_order_raises_422():
     with pytest.raises(HTTPException) as exc_info:
-        await get_hazards_summary(_req(), minLon=95.0, minLat=15.0, maxLon=80.0, maxLat=23.5)
+        await get_hazards_summary(
+            _req(), minLon=95.0, minLat=15.0, maxLon=80.0, maxLat=23.5
+        )
     assert exc_info.value.status_code == 422
 
 
 @pytest.mark.asyncio
 async def test_hazards_summary_shape_seeded(monkeypatch):
     now = time_module.time()
-    quake = {"id": "us1", "lat": 19.2, "lon": 92.8, "mag": 4.8, "place": "Bay of Bengal", "time": "2026-09-12T08:00:00Z"}
+    quake = {
+        "id": "us1",
+        "lat": 19.2,
+        "lon": 92.8,
+        "mag": 4.8,
+        "place": "Bay of Bengal",
+        "time": "2026-09-12T08:00:00Z",
+    }
     fire = {"lat": 22.1, "lon": 88.4, "confidence": "h", "acqDate": "2026-09-12"}
     wx = {"waveHeightM": 2.1, "windSpeedKmh": 28.0, "source": "open-meteo"}
     monkeypatch.setattr(hazards, "_usgs_cache", [quake])
@@ -176,9 +208,21 @@ async def test_hazards_summary_shape_seeded(monkeypatch):
     monkeypatch.setattr(hazards, "_meteo_cache", wx)
     monkeypatch.setattr(hazards, "_meteo_time", now)
     monkeypatch.setattr(settings, "firms_map_key", "TESTKEY", raising=False)
-    data = await get_hazards_summary(_req(), minLon=80.0, minLat=15.0, maxLon=95.0, maxLat=23.5)
-    assert set(data.keys()) == {"earthquakes", "fires", "weather", "sources", "updatedAt"}
-    assert data["earthquakes"] == [quake] and data["fires"] == [fire] and data["weather"] == wx
+    data = await get_hazards_summary(
+        _req(), minLon=80.0, minLat=15.0, maxLon=95.0, maxLat=23.5
+    )
+    assert set(data.keys()) == {
+        "earthquakes",
+        "fires",
+        "weather",
+        "sources",
+        "updatedAt",
+    }
+    assert (
+        data["earthquakes"] == [quake]
+        and data["fires"] == [fire]
+        and data["weather"] == wx
+    )
     assert data["sources"] == {"usgs": "ok", "firms": "ok", "meteo": "ok"}
 
 
@@ -260,7 +304,12 @@ def test_context_sanitizer_and_geo_cell():
     )
 
     good = sanitize_news_item(
-        {"title": "  Haldia port congestion  ", "url": "https://x.com/a", "domain": "x.com", "seendate": "20260912"}
+        {
+            "title": "  Haldia port congestion  ",
+            "url": "https://x.com/a",
+            "domain": "x.com",
+            "seendate": "20260912",
+        }
     )
     assert good is not None
     assert good["title"] == "Haldia port congestion" and good["source"] == "x.com"
@@ -293,22 +342,61 @@ async def test_arrivals_sorted_and_shaped(monkeypatch):
         ais_proxy,
         "_vessel_cache",
         [
-            {"mmsi": "1", "name": "FAR SHIP", "lat": 18.0, "lon": 90.0, "sog": 12.0,
-             "destination": "HALDIA", "eta": None},
-            {"mmsi": "2", "name": "NEAR SHIP", "lat": 21.9, "lon": 88.0, "sog": 10.0,
-             "destination": "Haldia India", "eta": None},
-            {"mmsi": "3", "name": "WRONG PORT", "lat": 21.9, "lon": 88.0, "sog": 10.0,
-             "destination": "PARADIP", "eta": None},
-            {"mmsi": "4", "name": "NO DEST", "lat": 21.9, "lon": 88.0, "sog": 10.0,
-             "destination": None, "eta": None},
-            {"mmsi": "5", "name": "DEAD SHIP", "lat": 21.9, "lon": 88.0, "sog": 0.0,
-             "destination": "HALDIA", "eta": None},
+            {
+                "mmsi": "1",
+                "name": "FAR SHIP",
+                "lat": 18.0,
+                "lon": 90.0,
+                "sog": 12.0,
+                "destination": "HALDIA",
+                "eta": None,
+            },
+            {
+                "mmsi": "2",
+                "name": "NEAR SHIP",
+                "lat": 21.9,
+                "lon": 88.0,
+                "sog": 10.0,
+                "destination": "Haldia India",
+                "eta": None,
+            },
+            {
+                "mmsi": "3",
+                "name": "WRONG PORT",
+                "lat": 21.9,
+                "lon": 88.0,
+                "sog": 10.0,
+                "destination": "PARADIP",
+                "eta": None,
+            },
+            {
+                "mmsi": "4",
+                "name": "NO DEST",
+                "lat": 21.9,
+                "lon": 88.0,
+                "sog": 10.0,
+                "destination": None,
+                "eta": None,
+            },
+            {
+                "mmsi": "5",
+                "name": "DEAD SHIP",
+                "lat": 21.9,
+                "lon": 88.0,
+                "sog": 0.0,
+                "destination": "HALDIA",
+                "eta": None,
+            },
         ],
     )
     data = await get_expected_arrivals(_req(), port="Haldia")
     assert data["port"] == "Haldia"
     mmsis = [a["mmsi"] for a in data["arrivals"]]
-    assert mmsis == ["2", "1", "5"], f"expected ETA sort with dead ship last, got {mmsis}"
+    assert mmsis == [
+        "2",
+        "1",
+        "5",
+    ], f"expected ETA sort with dead ship last, got {mmsis}"
     assert data["arrivals"][0]["distanceNm"] is not None
     assert data["arrivals"][0]["etaHours"] is not None
     assert data["arrivals"][2]["etaHours"] is None
@@ -365,9 +453,17 @@ def test_mt_row_mapping():
     from app.services import marinetraffic_proxy as mt
 
     row = {
-        "MMSI": "419001234", "SHIPNAME": "MT TESTER", "LAT": 21.5, "LON": 88.2,
-        "SPEED": 9.5, "COURSE": 45, "STATUS": 0, "SHIPTYPE": 70,
-        "DRAUGHT": 12.5, "DESTINATION": "HALDIA", "ETA": "2026-12-01T08:00",
+        "MMSI": "419001234",
+        "SHIPNAME": "MT TESTER",
+        "LAT": 21.5,
+        "LON": 88.2,
+        "SPEED": 9.5,
+        "COURSE": 45,
+        "STATUS": 0,
+        "SHIPTYPE": 70,
+        "DRAUGHT": 12.5,
+        "DESTINATION": "HALDIA",
+        "ETA": "2026-12-01T08:00",
         "TIMESTAMP": "2026-09-13T12:00:00",
     }
     mapped = mt._map_mt_row(row)
@@ -402,8 +498,14 @@ async def test_mt_disabled_without_key():
 async def test_mt_envelope_shapes_and_budget(monkeypatch):
     from app.services import marinetraffic_proxy as mt
 
-    row = {"MMSI": "419001234", "SHIPNAME": "MT TESTER", "LAT": 21.5, "LON": 88.2,
-           "SPEED": 9.5, "TIMESTAMP": "2026-09-13T12:00:00"}
+    row = {
+        "MMSI": "419001234",
+        "SHIPNAME": "MT TESTER",
+        "LAT": 21.5,
+        "LON": 88.2,
+        "SPEED": 9.5,
+        "TIMESTAMP": "2026-09-13T12:00:00",
+    }
 
     class _Resp:
         def __init__(self, payload):
@@ -442,10 +544,21 @@ async def test_vessels_mt_fallback_when_aisstream_empty(monkeypatch):
     import app.services.ais_proxy as proxy
     from app.api.routers.vessels import VesselLiveResponse
 
-    mt_vessel = {"mmsi": "999000111", "name": "MT FALLBACK", "lat": 21.5, "lon": 88.2,
-                 "sog": 9.0, "cog": 40.0, "draught": None, "shipType": "Cargo",
-                 "destination": "HALDIA", "eta": None, "navStatus": 0,
-                 "timestamp": "2026-09-13T12:00:00Z", "demo": False}
+    mt_vessel = {
+        "mmsi": "999000111",
+        "name": "MT FALLBACK",
+        "lat": 21.5,
+        "lon": 88.2,
+        "sog": 9.0,
+        "cog": 40.0,
+        "draught": None,
+        "shipType": "Cargo",
+        "destination": "HALDIA",
+        "eta": None,
+        "navStatus": 0,
+        "timestamp": "2026-09-13T12:00:00Z",
+        "demo": False,
+    }
 
     async def _empty_collect(api_key, *args):
         return []
@@ -458,7 +571,9 @@ async def test_vessels_mt_fallback_when_aisstream_empty(monkeypatch):
     monkeypatch.setattr(proxy, "_vessel_cache", None)
     monkeypatch.setattr(proxy, "_vessel_cache_time", 0.0)
 
-    result = await proxy.get_vessels(api_key="AISKEY", minLon=0.0, minLat=0.0, maxLon=10.0, maxLat=10.0)
+    result = await proxy.get_vessels(
+        api_key="AISKEY", minLon=0.0, minLat=0.0, maxLon=10.0, maxLat=10.0
+    )
     parsed = VesselLiveResponse(**result)
     assert parsed.mode == "live"
     assert parsed.vessels[0].mmsi == "999000111"

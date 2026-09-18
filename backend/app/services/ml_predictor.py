@@ -38,6 +38,7 @@ OUTLOOK_DAYS = settings.ml_outlook_days
 
 _BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+
 class MLPredictor:
     def __init__(self):
         self.cached_model = None
@@ -77,7 +78,9 @@ class MLPredictor:
                 onnx_age = time_module.time() - os.path.getmtime(self.onnx_model_path)
 
             if onnx_age < 6 * 3600:
-                logger.info("onnx_model_reused_skipping_training", age_seconds=int(onnx_age))
+                logger.info(
+                    "onnx_model_reused_skipping_training", age_seconds=int(onnx_age)
+                )
                 data = await asyncio.to_thread(self._fetch_and_prepare_data)
                 if data is not None:
                     # _fetch_and_prepare_data updates self.latest_sequence as a side effect
@@ -85,10 +88,14 @@ class MLPredictor:
                 sess_options = ort.SessionOptions()
                 sess_options.intra_op_num_threads = 2
                 sess_options.inter_op_num_threads = 2
-                sess_options.graph_optimization_level = ort.GraphOptimizationLevel.ORT_ENABLE_ALL
+                sess_options.graph_optimization_level = (
+                    ort.GraphOptimizationLevel.ORT_ENABLE_ALL
+                )
                 with self._lock:
                     self.onnx_session = ort.InferenceSession(
-                        self.onnx_model_path, sess_options, providers=["CPUExecutionProvider"]
+                        self.onnx_model_path,
+                        sess_options,
+                        providers=["CPUExecutionProvider"],
                     )
                     self.is_warming_up = False
                 return
@@ -115,6 +122,7 @@ class MLPredictor:
         except Exception as e:
             logger.error("ml_init_failed", error=str(e))
             self.is_warming_up = False
+
     async def schedule_retraining(self, interval_hours: int = 6) -> None:
         """Periodically retrain the model with fresh data."""
         while True:
@@ -143,11 +151,13 @@ class MLPredictor:
     def _export_to_onnx(self, model):
         try:
             input_signature = [
-                tf.TensorSpec([None, LOOKBACK_DAYS, settings.ml_num_features], tf.float32, name="input")
+                tf.TensorSpec(
+                    [None, LOOKBACK_DAYS, settings.ml_num_features],
+                    tf.float32,
+                    name="input",
+                )
             ]
-            onnx_model, _ = tf2onnx.convert.from_keras(
-                model, input_signature, opset=13
-            )
+            onnx_model, _ = tf2onnx.convert.from_keras(model, input_signature, opset=13)
             with open(self.onnx_model_path, "wb") as f:
                 f.write(onnx_model.SerializeToString())
             logger.info("onnx_export_success")
@@ -155,7 +165,9 @@ class MLPredictor:
             sess_options = ort.SessionOptions()
             sess_options.intra_op_num_threads = 2
             sess_options.inter_op_num_threads = 2
-            sess_options.graph_optimization_level = ort.GraphOptimizationLevel.ORT_ENABLE_ALL
+            sess_options.graph_optimization_level = (
+                ort.GraphOptimizationLevel.ORT_ENABLE_ALL
+            )
             sess_options.enable_cpu_mem_arena = True
 
             self.onnx_session = ort.InferenceSession(
@@ -179,7 +191,10 @@ class MLPredictor:
 
     def _fetch_and_prepare_data(self):
         now = time_module.time()
-        if self._data_cache is not None and (now - self._data_cache_time) < self.DATA_CACHE_TTL:
+        if (
+            self._data_cache is not None
+            and (now - self._data_cache_time) < self.DATA_CACHE_TTL
+        ):
             df = self._data_cache.copy()
         else:
             end_date = datetime.now()
@@ -187,29 +202,65 @@ class MLPredictor:
 
             try:
                 import concurrent.futures
-                with concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor:
-                    f_bdry = executor.submit(yf.download, "BDRY", start=start_date, end=end_date, progress=False, auto_adjust=False)
-                    f_sp500 = executor.submit(yf.download, "^GSPC", start=start_date, end=end_date, progress=False, auto_adjust=False)
-                    f_oil = executor.submit(yf.download, "CL=F", start=start_date, end=end_date, progress=False, auto_adjust=False)
 
-                    data_bdry = f_bdry.result()
-                    data_sp500 = f_sp500.result()
-                    data_oil = f_oil.result()
+                with concurrent.futures.ThreadPoolExecutor(max_workers=3) as executor:
+                    f_bdry = executor.submit(
+                        yf.download,
+                        "BDRY",
+                        start=start_date,
+                        end=end_date,
+                        progress=False,
+                        auto_adjust=False,
+                    )
+                    f_sp500 = executor.submit(
+                        yf.download,
+                        "^GSPC",
+                        start=start_date,
+                        end=end_date,
+                        progress=False,
+                        auto_adjust=False,
+                    )
+                    f_oil = executor.submit(
+                        yf.download,
+                        "CL=F",
+                        start=start_date,
+                        end=end_date,
+                        progress=False,
+                        auto_adjust=False,
+                    )
+
+                    data_bdry = f_bdry.result(timeout=15)
+                    data_sp500 = f_sp500.result(timeout=15)
+                    data_oil = f_oil.result(timeout=15)
 
                 df_bdry = self._safe_close(data_bdry, "bdry")
                 df_sp500 = self._safe_close(data_sp500, "sp500")
                 df_oil = self._safe_close(data_oil, "oil")
 
-                df = pd.DataFrame(df_bdry).join(df_sp500, how="inner").join(df_oil, how="inner")
+                self._data_cache_is_live = True
+                df = (
+                    pd.DataFrame(df_bdry)
+                    .join(df_sp500, how="inner")
+                    .join(df_oil, how="inner")
+                )
 
             except Exception as e:
-                logger.warning("yfinance_api_failed", error=str(e), fallback="synthetic_data")
+                logger.warning(
+                    "yfinance_api_failed", error=str(e), fallback="synthetic_data"
+                )
                 dates = pd.date_range(start=start_date, periods=1250, freq="B")
+                self._data_cache_is_live = False
                 df = pd.DataFrame(
                     {
-                        "bdry": np.maximum(5, 15 + np.cumsum(np.random.randn(1250) * 1.5)),
-                        "sp500": np.maximum(1000, 4000 + np.cumsum(np.random.randn(1250) * 10)),
-                        "oil": np.maximum(20, 70 + np.cumsum(np.random.randn(1250) * 2)),
+                        "bdry": np.maximum(
+                            5, 15 + np.cumsum(np.random.randn(1250) * 1.5)
+                        ),
+                        "sp500": np.maximum(
+                            1000, 4000 + np.cumsum(np.random.randn(1250) * 10)
+                        ),
+                        "oil": np.maximum(
+                            20, 70 + np.cumsum(np.random.randn(1250) * 2)
+                        ),
                     },
                     index=dates,
                 )
@@ -223,11 +274,17 @@ class MLPredictor:
 
         # Data Validation
         if len(df) < LOOKBACK_DAYS + OUTLOOK_DAYS + 50:
-            logger.warning("insufficient_data", rows=len(df), minimum=LOOKBACK_DAYS + OUTLOOK_DAYS + 50)
+            logger.warning(
+                "insufficient_data",
+                rows=len(df),
+                minimum=LOOKBACK_DAYS + OUTLOOK_DAYS + 50,
+            )
             return None
 
         if (df["bdry"] <= 0).any():
-            logger.warning("negative_bdry_values_detected", count=int((df["bdry"] <= 0).sum()))
+            logger.warning(
+                "negative_bdry_values_detected", count=int((df["bdry"] <= 0).sum())
+            )
             df = df[df["bdry"] > 0]
 
         for col in ["bdry", "sp500", "oil"]:
@@ -235,7 +292,11 @@ class MLPredictor:
             std_val = df[col].std()
             outlier_mask = (df[col] - mean_val).abs() > 10 * std_val
             if outlier_mask.any():
-                logger.warning("extreme_outlier_detected", column=col, count=int(outlier_mask.sum()))
+                logger.warning(
+                    "extreme_outlier_detected",
+                    column=col,
+                    count=int(outlier_mask.sum()),
+                )
                 df.loc[outlier_mask, col] = df[col].clip(
                     lower=mean_val - 10 * std_val,
                     upper=mean_val + 10 * std_val,
@@ -294,26 +355,33 @@ class MLPredictor:
         return train_x, train_y, val_x, val_y
 
     def _train_model(self, train_x, train_y, val_x, val_y):
-        model = Sequential([
-            tf.keras.layers.Input(shape=(LOOKBACK_DAYS, settings.ml_num_features)),
-            Conv1D(
-                filters=64,
-                kernel_size=3,
-                activation="relu",
-            ),
-            BatchNormalization(),
-            LSTM(64, return_sequences=False, recurrent_dropout=0.1),
-            Dropout(0.3),
-            Dense(128, activation="relu", kernel_regularizer=l2(0.001)),
-            BatchNormalization(),
-            Dropout(0.2),
-            Dense(OUTLOOK_DAYS, activation="linear"),
-        ])
+        model = Sequential(
+            [
+                tf.keras.layers.Input(shape=(LOOKBACK_DAYS, settings.ml_num_features)),
+                Conv1D(
+                    filters=64,
+                    kernel_size=3,
+                    activation="relu",
+                ),
+                BatchNormalization(),
+                LSTM(64, return_sequences=False, recurrent_dropout=0.1),
+                Dropout(0.3),
+                Dense(128, activation="relu", kernel_regularizer=l2(0.001)),
+                BatchNormalization(),
+                Dropout(0.2),
+                Dense(OUTLOOK_DAYS, activation="linear"),
+            ]
+        )
 
-        model.compile(optimizer=Adam(learning_rate=settings.ml_learning_rate), loss=Huber(delta=settings.ml_huber_delta))
+        model.compile(
+            optimizer=Adam(learning_rate=settings.ml_learning_rate),
+            loss=Huber(delta=settings.ml_huber_delta),
+        )
 
         early_stopping = EarlyStopping(
-            monitor="val_loss", patience=settings.ml_early_stopping_patience, restore_best_weights=True
+            monitor="val_loss",
+            patience=settings.ml_early_stopping_patience,
+            restore_best_weights=True,
         )
 
         lr_scheduler = ReduceLROnPlateau(
@@ -373,29 +441,54 @@ class MLPredictor:
         except Exception:
             pass
         vol = self.historical_volatility or 0.02
-        # Deterministic route scaling bounded in [0.70, 1.30].
-        # Uses Python's built-in hash (stable within a process, seeded differently per
-        # run on CPython 3.3+ with PYTHONHASHSEED). Use abs to handle negative hashes.
-        route_hash = abs(hash(f"{origin.lower().strip()}|{destination.lower().strip()}")) % 1000
-        route_multiplier = 0.70 + (route_hash / 1000.0) * 0.60
-        p50 = round(base * route_multiplier, 2)
+        p50 = round(base, 2)
         result = []
         for i in range(OUTLOOK_DAYS):
+            target_date = today + timedelta(days=int(i) + 1)
+            # Simple seasonal baseline factor using a sine wave over the year
+            day_of_year = target_date.timetuple().tm_yday
+            seasonal_factor = 1.0 + 0.05 * np.sin(2 * np.pi * day_of_year / 365.25)
+
+            p50_seasonal = round(p50 * seasonal_factor, 2)
             variance_pct = vol * float(np.sqrt(i + 1)) * shock_multiplier
-            p10 = round(max(0.0, p50 * (1 - variance_pct * 1.28)), 2)
-            p90 = round(p50 * (1 + variance_pct * 1.28), 2)
+            p10 = round(max(0.0, p50_seasonal * (1 - variance_pct * 1.28)), 2)
+            p90 = round(p50_seasonal * (1 + variance_pct * 1.28), 2)
             result.append(
                 {
-                    "date": (today + timedelta(days=int(i) + 1)).strftime("%Y-%m-%d"),
+                    "date": target_date.strftime("%Y-%m-%d"),
                     "p10": p10,
-                    "p50": p50,
+                    "p50": p50_seasonal,
                     "p90": p90,
                 }
             )
-        self._forecast_cache[cache_key] = (result, now)
-        return result
+        forecast_payload = {
+            "forecast": result,
+            "provenance": {
+                "mode": (
+                    "live" if getattr(self, "_data_cache_is_live", False) else "demo"
+                ),
+                "provider": "KargoSetu heuristic baseline",
+                "retrieved_at": datetime.fromtimestamp(
+                    self._data_cache_time if self._data_cache_time else now
+                ).isoformat()
+                + "Z",
+                "data_age_seconds": now
+                - (self._data_cache_time if self._data_cache_time else now),
+                "is_synthetic": not getattr(self, "_data_cache_is_live", False),
+            },
+            "uncertainty": float(self.historical_volatility),
+            "units": "USD/MT",
+            "model_version": "v0.1.0-heuristic",
+        }
+        self._forecast_cache[cache_key] = (forecast_payload, now)
+        return forecast_payload
 
-    def predict_sync(self, shock_multiplier: float, origin: str = "Newcastle, Australia", destination: str = "Haldia"):
+    def predict_sync(
+        self,
+        shock_multiplier: float,
+        origin: str = "Newcastle, Australia",
+        destination: str = "Haldia",
+    ):
         shock_multiplier = max(0.1, min(5.0, shock_multiplier))
         cache_key = f"{round(shock_multiplier, 1)}_{origin}_{destination}"
         now = time_module.time()
@@ -421,7 +514,9 @@ class MLPredictor:
                         None, {input_name: input_tensor}
                     )[0][0]
                 except Exception as e:
-                    logger.warning("onnx_inference_failed", error=str(e), fallback="tensorflow")
+                    logger.warning(
+                        "onnx_inference_failed", error=str(e), fallback="tensorflow"
+                    )
                     prediction = self.cached_model(
                         input_tensor, training=False
                     ).numpy()[0]
@@ -434,13 +529,7 @@ class MLPredictor:
                 .flatten()
             )
 
-            # Apply a route-specific multiplier based on a deterministic hash of the origin and destination
-            # Deterministic route scaling bounded in [0.70, 1.30].
-            import hashlib
-            route_str = f"{origin.lower().strip()}|{destination.lower().strip()}".encode()
-            route_hash = int(hashlib.md5(route_str).hexdigest()[:8], 16) % 1000
-            route_multiplier = 0.70 + (route_hash / 1000.0) * 0.60
-            p50_arr = p50_arr * route_multiplier
+            # Removed fake deterministic data scaling
 
             # Volatility is computed on raw log-returns.
             i_arr = np.arange(OUTLOOK_DAYS)
@@ -458,7 +547,11 @@ class MLPredictor:
             p50_list = p50_arr.tolist()
             p90_list = p90_arr.tolist()
 
-            dates = pd.date_range(start=today + timedelta(days=1), periods=OUTLOOK_DAYS).strftime("%Y-%m-%d").tolist()
+            dates = (
+                pd.date_range(start=today + timedelta(days=1), periods=OUTLOOK_DAYS)
+                .strftime("%Y-%m-%d")
+                .tolist()
+            )
 
             result = [
                 {
@@ -469,15 +562,44 @@ class MLPredictor:
                 }
                 for i in range(OUTLOOK_DAYS)
             ]
-            self._forecast_cache[cache_key] = (result, now)
-            return result
+            forecast_payload = {
+                "forecast": result,
+                "provenance": {
+                    "mode": (
+                        "live"
+                        if getattr(self, "_data_cache_is_live", False)
+                        else "demo"
+                    ),
+                    "provider": "KargoSetu heuristic baseline",
+                    "retrieved_at": datetime.fromtimestamp(
+                        self._data_cache_time if self._data_cache_time else now
+                    ).isoformat()
+                    + "Z",
+                    "data_age_seconds": now
+                    - (self._data_cache_time if self._data_cache_time else now),
+                    "is_synthetic": not getattr(self, "_data_cache_is_live", False),
+                },
+                "uncertainty": float(self.historical_volatility),
+                "units": "USD/MT",
+                "model_version": "v0.2.0-ml",
+            }
+        self._forecast_cache[cache_key] = (forecast_payload, now)
+        return forecast_payload
+
 
 predictor_instance = MLPredictor()
 
-async def get_freight_forecast(shockMultiplier: float = 1.0, origin: str = "Newcastle, Australia", destination: str = "Haldia") -> list[dict]:
+
+async def get_freight_forecast(
+    shockMultiplier: float = 1.0,
+    origin: str = "Newcastle, Australia",
+    destination: str = "Haldia",
+) -> dict:
     """Wait for model warmup without blocking the event loop, then run inference."""
     waited = 0
     while predictor_instance.is_warming_up and waited < 120:
         await asyncio.sleep(1.0)
         waited += 1
-    return await asyncio.to_thread(predictor_instance.predict_sync, shockMultiplier, origin, destination)
+    return await asyncio.to_thread(
+        predictor_instance.predict_sync, shockMultiplier, origin, destination
+    )

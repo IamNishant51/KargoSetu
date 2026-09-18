@@ -20,7 +20,10 @@ export function loadJSON<T>(key: string, fallback: T): T {
       typeof parsed === "object" &&
       !Array.isArray(parsed)
     ) {
-      return { ...(fallback as Record<string, unknown>), ...(parsed as Record<string, unknown>) } as T;
+      return {
+        ...(fallback as Record<string, unknown>),
+        ...(parsed as Record<string, unknown>),
+      } as T;
     }
     return parsed ?? fallback;
   } catch {

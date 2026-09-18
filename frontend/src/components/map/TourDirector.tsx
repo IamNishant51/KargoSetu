@@ -8,11 +8,18 @@ import type { CesiumViewer } from "./KargoGlobe";
 
 interface TourDirectorProps {
   viewer: CesiumViewer | null;
-  onPreset: (preset: CameraPresetId, patch?: Partial<GlobePersistedState>) => void;
+  onPreset: (
+    preset: CameraPresetId,
+    patch?: Partial<GlobePersistedState>,
+  ) => void;
   autoStart?: boolean;
 }
 
-export default function TourDirector({ viewer, onPreset, autoStart }: TourDirectorProps) {
+export default function TourDirector({
+  viewer,
+  onPreset,
+  autoStart,
+}: TourDirectorProps) {
   const { t } = useLanguage();
   const [playing, setPlaying] = React.useState(() => Boolean(autoStart));
   const [step, setStep] = React.useState(0);

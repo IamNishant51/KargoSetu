@@ -16,19 +16,22 @@ interface VesselSheetProps {
   onClose: () => void;
 }
 
-export default function VesselSheet({ vessel, mode, corridor, onClose }: VesselSheetProps) {
+export default function VesselSheet({
+  vessel,
+  mode,
+  corridor,
+  onClose,
+}: VesselSheetProps) {
   const { t } = useLanguage();
   const [result, setResult] = React.useState<string | null>(null);
 
   const evaluate = useMutation({
-    mutationFn: async () => {      const saved = loadJSON<{
+    mutationFn: async () => {
+      const saved = loadJSON<{
         volume?: string | number;
         port?: string | { name?: string } | null;
         commodity?: string;
-      }>(
-        "kargosetu_eval_v1",
-        {},
-      );
+      }>("kargosetu_eval_v1", {});
       // The solver desk persists `port` as a { name, subtext } object while
       // landing widgets persist it as a string. Accept both so a stale or
       // desk-written value can never produce a 422 here.
@@ -36,7 +39,9 @@ export default function VesselSheet({ vessel, mode, corridor, onClose }: VesselS
       const volumeRaw = String(saved.volume ?? "145,000").replace(/,/g, "");
       const parsedVolume = Number(volumeRaw);
       const volume_mt =
-        Number.isFinite(parsedVolume) && parsedVolume > 0 ? parsedVolume : 145000;
+        Number.isFinite(parsedVolume) && parsedVolume > 0
+          ? parsedVolume
+          : 145000;
       const commodity =
         typeof saved.commodity === "string" && saved.commodity.trim()
           ? saved.commodity
@@ -55,7 +60,10 @@ export default function VesselSheet({ vessel, mode, corridor, onClose }: VesselS
           // non-JSON error body; fall through to status text
         }
         throw new Error(
-          (detail ? `${res.status} ${detail}` : `HTTP ${res.status}`).slice(0, 200),
+          (detail ? `${res.status} ${detail}` : `HTTP ${res.status}`).slice(
+            0,
+            200,
+          ),
         );
       }
       const data = await res.json();
@@ -88,12 +96,24 @@ export default function VesselSheet({ vessel, mode, corridor, onClose }: VesselS
   const eta = etaToRoads(vessel.sog, nearest?.nm ?? null);
   const badge =
     mode === "live"
-      ? { text: t("globe.status.live"), cls: "bg-[#E9F5EE] text-[#0E7A3D] border-[#BFE3CD]" }
+      ? {
+          text: t("globe.status.live"),
+          cls: "bg-[#E9F5EE] text-[#0E7A3D] border-[#BFE3CD]",
+        }
       : mode === "demo"
-        ? { text: t("globe.status.demo"), cls: "bg-[#FDF1E7] text-[#B45309] border-[#F0D3B8]" }
+        ? {
+            text: t("globe.status.demo"),
+            cls: "bg-[#FDF1E7] text-[#B45309] border-[#F0D3B8]",
+          }
         : mode === "stale"
-          ? { text: t("globe.status.stale"), cls: "bg-[#F3F5F7] text-[#3D4F68] border-[#E2E6EB]" }
-          : { text: t("globe.status.unavailable"), cls: "bg-[#FDECEC] text-[#B42318] border-[#F5C6C6]" };
+          ? {
+              text: t("globe.status.stale"),
+              cls: "bg-[#F3F5F7] text-[#3D4F68] border-[#E2E6EB]",
+            }
+          : {
+              text: t("globe.status.unavailable"),
+              cls: "bg-[#FDECEC] text-[#B42318] border-[#F5C6C6]",
+            };
 
   return (
     <div className="absolute left-3 right-3 bottom-12 sm:left-4 sm:right-auto sm:bottom-12 sm:w-[370px] z-30 rounded-2xl bg-white/98 border border-[#E2E6EB] shadow-2xl backdrop-blur p-4 animate-in fade-in slide-in-from-bottom-2 duration-200">
@@ -108,7 +128,9 @@ export default function VesselSheet({ vessel, mode, corridor, onClose }: VesselS
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <span className={`font-mono text-[10px] uppercase tracking-[0.12em] px-2 py-1 rounded border ${badge.cls}`}>
+          <span
+            className={`font-mono text-[10px] uppercase tracking-[0.12em] px-2 py-1 rounded border ${badge.cls}`}
+          >
             {badge.text}
           </span>
           <button
@@ -124,27 +146,45 @@ export default function VesselSheet({ vessel, mode, corridor, onClose }: VesselS
 
       <dl className="mt-3 grid grid-cols-3 gap-2 font-mono text-[12px]">
         <div className="rounded-lg bg-[#FAF7F1] border border-[#E2E6EB] px-2.5 py-2">
-          <dt className="text-[10px] uppercase tracking-[0.12em] text-[#6B7D99]">SOG</dt>
+          <dt className="text-[10px] uppercase tracking-[0.12em] text-[#6B7D99]">
+            SOG
+          </dt>
           <dd className="font-bold text-[#0A2342]">{vessel.sog ?? "—"} kn</dd>
         </div>
         <div className="rounded-lg bg-[#FAF7F1] border border-[#E2E6EB] px-2.5 py-2">
-          <dt className="text-[10px] uppercase tracking-[0.12em] text-[#6B7D99]">COG</dt>
+          <dt className="text-[10px] uppercase tracking-[0.12em] text-[#6B7D99]">
+            COG
+          </dt>
           <dd className="font-bold text-[#0A2342]">{vessel.cog ?? "—"}°</dd>
         </div>
         <div className="rounded-lg bg-[#FAF7F1] border border-[#E2E6EB] px-2.5 py-2">
-          <dt className="text-[10px] uppercase tracking-[0.12em] text-[#6B7D99]">Draught</dt>
-          <dd className="font-bold text-[#0A2342]">{vessel.draught ?? "—"} m</dd>
+          <dt className="text-[10px] uppercase tracking-[0.12em] text-[#6B7D99]">
+            Draught
+          </dt>
+          <dd className="font-bold text-[#0A2342]">
+            {vessel.draught ?? "—"} m
+          </dd>
         </div>
       </dl>
 
-      <p className="mt-2.5 text-[12.5px] text-[#3D4F68]">
-        {t("globe.sheet.distance").replace("{n}", nearest ? `${nearest.nm.toFixed(1)} NM to ${nearest.name}` : "—")}
+      <p className="mt-2 text-[12.5px] font-semibold text-[#0A2342]">
+        Voyage: To {vessel.destination ?? "Unknown destination"}
+      </p>
+      <p className="mt-1 text-[12.5px] text-[#3D4F68]">
+        {t("globe.sheet.distance").replace(
+          "{n}",
+          nearest ? `${nearest.nm.toFixed(1)} NM to ${nearest.name}` : "—",
+        )}
       </p>
       <p className="mt-1 text-[12.5px] text-[#3D4F68]">
         {eta
-          ? t("globe.sheet.eta").replace("{h}", eta.hours).replace("{t}", eta.clock)
+          ? t("globe.sheet.eta")
+              .replace("{h}", eta.hours)
+              .replace("{t}", eta.clock)
           : t("globe.sheet.etaUnknown")}
-        {locality.data?.label ? ` · ${t("globe.sheet.locality").replace("{label}", locality.data.label)}` : ""}
+        {locality.data?.label
+          ? ` · ${t("globe.sheet.locality").replace("{label}", locality.data.label)}`
+          : ""}
       </p>
 
       <div className="mt-3 flex gap-2">
@@ -163,7 +203,11 @@ export default function VesselSheet({ vessel, mode, corridor, onClose }: VesselS
           {t("globe.sheet.openSolver")}
         </Link>
       </div>
-      {result && <p className="mt-2 text-[12.5px] font-semibold text-[#0E7A3D]">{result}</p>}
+      {result && (
+        <p className="mt-2 text-[12.5px] font-semibold text-[#0E7A3D]">
+          {result}
+        </p>
+      )}
     </div>
   );
 }
@@ -185,10 +229,12 @@ function formatDetail(detail: unknown): string {
       .map((d) =>
         typeof d === "string"
           ? d
-          : d && typeof d === "object" && typeof (d as { msg?: unknown }).msg === "string"
-            ? ((d as { loc?: unknown; msg: string }).loc
-                ? `${JSON.stringify((d as { loc: unknown }).loc)}: ${(d as { msg: string }).msg}`
-                : (d as { msg: string }).msg)
+          : d &&
+              typeof d === "object" &&
+              typeof (d as { msg?: unknown }).msg === "string"
+            ? (d as { loc?: unknown; msg: string }).loc
+              ? `${JSON.stringify((d as { loc: unknown }).loc)}: ${(d as { msg: string }).msg}`
+              : (d as { msg: string }).msg
             : JSON.stringify(d),
       )
       .join("; ");
@@ -196,7 +242,8 @@ function formatDetail(detail: unknown): string {
   return "";
 }
 
-function nearestPort(lat: number, lon: number, corridor: CorridorPort[]) {  let best: { name: string; nm: number } | null = null;
+function nearestPort(lat: number, lon: number, corridor: CorridorPort[]) {
+  let best: { name: string; nm: number } | null = null;
   for (const p of corridor) {
     if (typeof p.lat !== "number" || typeof p.lon !== "number") continue;
     const nm = haversineNm(lat, lon, p.lat, p.lon);
@@ -205,10 +252,17 @@ function nearestPort(lat: number, lon: number, corridor: CorridorPort[]) {  let 
   return best;
 }
 
-function etaToRoads(sog: number | null, nm: number | null): { hours: string; clock: string } | null {
-  if (typeof sog !== "number" || !(sog > 0.5) || typeof nm !== "number") return null;
+function etaToRoads(
+  sog: number | null,
+  nm: number | null,
+): { hours: string; clock: string } | null {
+  if (typeof sog !== "number" || !(sog > 0.5) || typeof nm !== "number")
+    return null;
   const hours = nm / sog;
   if (!Number.isFinite(hours) || hours > 720) return null;
   const arrival = new Date(Date.now() + hours * 3600 * 1000);
-  return { hours: hours.toFixed(1), clock: arrival.toISOString().slice(11, 16) };
+  return {
+    hours: hours.toFixed(1),
+    clock: arrival.toISOString().slice(11, 16),
+  };
 }

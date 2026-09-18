@@ -14,17 +14,23 @@ export default function HeroSection() {
   const { data: corridorData } = useQuery({
     queryKey: ["portCorridor"],
     queryFn: async () => {
-      const base = (String(process.env.NODE_ENV) === "production" ? "" : ((String(process.env.NODE_ENV) === "production" ? "" : (process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"))));
+      const base =
+        String(process.env.NODE_ENV) === "production"
+          ? ""
+          : String(process.env.NODE_ENV) === "production"
+            ? ""
+            : process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
       const res = await fetch(`${base}/api/v1/ports/corridor`);
       if (!res.ok) throw new Error("fetch failed");
       return res.json();
     },
   });
 
-  const haldiaInfo = Array.isArray(corridorData) ? corridorData.find(p => p.name === "Haldia") : null;
+  const haldiaInfo = Array.isArray(corridorData)
+    ? corridorData.find((p) => p.name === "Haldia")
+    : null;
   const haldiaDraft = haldiaInfo?.draft || "7.5 m";
   const haldiaTide = haldiaInfo?.tide?.split("–")[1]?.trim() || "+4.2 m";
-
 
   return (
     <section className="relative bg-white overflow-hidden">
@@ -36,7 +42,8 @@ export default function HeroSection() {
             "linear-gradient(to right, #EDF0F4 1px, transparent 1px), linear-gradient(to bottom, #EDF0F4 1px, transparent 1px)",
           backgroundSize: "54px 54px",
           maskImage: "linear-gradient(to bottom, black 60%, transparent 100%)",
-          WebkitMaskImage: "linear-gradient(to bottom, black 60%, transparent 100%)",
+          WebkitMaskImage:
+            "linear-gradient(to bottom, black 60%, transparent 100%)",
         }}
       />
       {/* Tall editorial hero — fills first viewport without crowding CTAs */}
@@ -56,8 +63,11 @@ export default function HeroSection() {
 
             <p className="mt-5 max-w-lg text-[15.5px] sm:text-[18px] leading-relaxed text-[#3D4F68]">
               Live tide + draft check for SAIL desks —{" "}
-              <strong className="text-[#0A2342]">berth direct or split 3× Supramax</strong>,
-              with rupees saved on the slip, plus a live coastal vessel picture.
+              <strong className="text-[#0A2342]">
+                berth direct or split 3× Supramax
+              </strong>
+              , with rupees saved on the slip, plus a live coastal vessel
+              picture.
             </p>
 
             <dl className="mt-7 grid grid-cols-3 max-w-lg divide-x divide-[#E2E6EB] border-y border-[#E2E6EB] bg-white/80">
@@ -67,8 +77,12 @@ export default function HeroSection() {
                 ["Capesize", "18.2 m"],
               ].map(([k, v]) => (
                 <div key={k} className="px-4 py-3.5">
-                  <dt className="font-mono text-[9.5px] sm:text-[10.5px] uppercase tracking-[0.14em] text-[#6B7D99]">{k}</dt>
-                  <dd className="font-mono font-semibold text-[17px] sm:text-[22px] text-[#0A2342] mt-0.5">{v}</dd>
+                  <dt className="font-mono text-[9.5px] sm:text-[10.5px] uppercase tracking-[0.14em] text-[#6B7D99]">
+                    {k}
+                  </dt>
+                  <dd className="font-mono font-semibold text-[17px] sm:text-[22px] text-[#0A2342] mt-0.5">
+                    {v}
+                  </dd>
                 </div>
               ))}
             </dl>
@@ -78,14 +92,22 @@ export default function HeroSection() {
                 href="/dashboard"
                 className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl bg-[#D95D0F] px-6 py-4 text-[15px] font-bold text-white hover:bg-[#B45309] transition-colors shadow-[0_3px_0_#0A2342] ring-1 ring-[#0A2342]/10"
               >
-                Check my requisition <ArrowUpRight size={17} strokeWidth={2.5} />
+                Check my requisition{" "}
+                <ArrowUpRight size={17} strokeWidth={2.5} />
               </Link>
               <button
                 type="button"
-                onClick={() => router.push(`${pathname}?demo=true`, { scroll: false })}
+                onClick={() =>
+                  router.push(`${pathname}?demo=true`, { scroll: false })
+                }
                 className="inline-flex flex-1 items-center justify-center gap-2 rounded-xl bg-[#0A2342] px-6 py-4 text-[15px] font-bold text-white hover:bg-[#14315C] transition-colors"
               >
-                <Play size={16} className="text-[#F5B98A]" fill="currentColor" /> 2-min demo
+                <Play
+                  size={16}
+                  className="text-[#F5B98A]"
+                  fill="currentColor"
+                />{" "}
+                2-min demo
               </button>
             </div>
             <Link
@@ -124,8 +146,14 @@ export default function HeroSection() {
                   ["Saved", "₹2.1 Cr", "text-[#0A2342]"],
                 ].map(([k, v, c]) => (
                   <div key={k} className="px-4 py-3.5">
-                    <p className="font-mono text-[9.5px] uppercase tracking-[0.14em] text-[#6B7D99]">{k}</p>
-                    <p className={`mt-1 font-mono text-[13px] sm:text-[15px] font-semibold ${c}`}>{v}</p>
+                    <p className="font-mono text-[9.5px] uppercase tracking-[0.14em] text-[#6B7D99]">
+                      {k}
+                    </p>
+                    <p
+                      className={`mt-1 font-mono text-[13px] sm:text-[15px] font-semibold ${c}`}
+                    >
+                      {v}
+                    </p>
                   </div>
                 ))}
               </figcaption>

@@ -20,6 +20,7 @@ import {
   Info,
   ClipboardCheck,
 } from "lucide-react";
+import { CopilotWidget } from "@/components/CopilotWidget";
 
 const EVAL_KEY = "kargosetu_eval_v1";
 
@@ -49,8 +50,12 @@ interface PersistedEval {
 export default function DashboardPage() {
   const { t } = useLanguage();
   // The last evaluated answer is rehydrated here — reloads never lose it.
-  const [savedEval] = useState(() => loadJSON<PersistedEval | null>(EVAL_KEY, null));
-  const [unit, setUnit] = useState<"Meters" | "Feet">(savedEval?.unit ?? "Meters");
+  const [savedEval] = useState(() =>
+    loadJSON<PersistedEval | null>(EVAL_KEY, null),
+  );
+  const [unit, setUnit] = useState<"Meters" | "Feet">(
+    savedEval?.unit ?? "Meters",
+  );
   const [portDropdownOpen, setPortDropdownOpen] = useState(false);
   const [portSearch, setPortSearch] = useState("");
   const [selectedPort, setSelectedPort] = useState<{
@@ -58,15 +63,21 @@ export default function DashboardPage() {
     subtext: string;
   } | null>(savedEval?.port ?? { name: "Haldia", subtext: "India" });
   const [volume, setVolume] = useState(savedEval?.volume ?? "145,000");
-  const [evaluatedAt, setEvaluatedAt] = useState<string | null>(savedEval?.evaluatedAt ?? null);
+  const [evaluatedAt, setEvaluatedAt] = useState<string | null>(
+    savedEval?.evaluatedAt ?? null,
+  );
   const portRef = useRef<HTMLDivElement>(null);
 
   const [commodityOpen, setCommodityOpen] = useState(false);
-  const [selectedCommodity, setSelectedCommodity] = useState(savedEval?.commodity ?? "Iron Ore");
+  const [selectedCommodity, setSelectedCommodity] = useState(
+    savedEval?.commodity ?? "Iron Ore",
+  );
   const commodityRef = useRef<HTMLDivElement>(null);
 
   const [vesselOpen, setVesselOpen] = useState(false);
-  const [selectedVessel, setSelectedVessel] = useState(savedEval?.vessel ?? "Supramax");
+  const [selectedVessel, setSelectedVessel] = useState(
+    savedEval?.vessel ?? "Supramax",
+  );
   const vesselRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -92,7 +103,11 @@ export default function DashboardPage() {
     queryKey: ["ports"],
     queryFn: async () => {
       const baseUrl =
-        (String(process.env.NODE_ENV) === "production" ? "" : ((String(process.env.NODE_ENV) === "production" ? "" : (process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"))));
+        String(process.env.NODE_ENV) === "production"
+          ? ""
+          : String(process.env.NODE_ENV) === "production"
+            ? ""
+            : process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
       const res = await fetch(`${baseUrl}/api/v1/ports`);
       if (!res.ok) return [];
       const data = await res.json();
@@ -111,7 +126,11 @@ export default function DashboardPage() {
     queryKey: ["commodities"],
     queryFn: async () => {
       const baseUrl =
-        (String(process.env.NODE_ENV) === "production" ? "" : ((String(process.env.NODE_ENV) === "production" ? "" : (process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"))));
+        String(process.env.NODE_ENV) === "production"
+          ? ""
+          : String(process.env.NODE_ENV) === "production"
+            ? ""
+            : process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
       const res = await fetch(`${baseUrl}/api/v1/commodities`);
       if (!res.ok) return [];
       const data = await res.json();
@@ -136,7 +155,11 @@ export default function DashboardPage() {
       const parsedVolume = Number(volume.replace(/,/g, ""));
       const portName = selectedPort?.name || "Haldia";
       const baseUrl =
-        (String(process.env.NODE_ENV) === "production" ? "" : ((String(process.env.NODE_ENV) === "production" ? "" : (process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"))));
+        String(process.env.NODE_ENV) === "production"
+          ? ""
+          : String(process.env.NODE_ENV) === "production"
+            ? ""
+            : process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
       const res = await fetch(`${baseUrl}/api/v1/requisitions/evaluate`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -177,7 +200,9 @@ export default function DashboardPage() {
   }, [unit]);
 
   const filteredPorts = ports.filter((p: { name?: string; subtext?: string }) =>
-    `${p?.name ?? ""} ${p?.subtext ?? ""}`.toLowerCase().includes(portSearch.toLowerCase()),
+    `${p?.name ?? ""} ${p?.subtext ?? ""}`
+      .toLowerCase()
+      .includes(portSearch.toLowerCase()),
   );
   return (
     <div className="max-w-7xl mx-auto space-y-6">
@@ -188,9 +213,7 @@ export default function DashboardPage() {
           <h1 className="mt-1.5 font-display text-2xl md:text-3xl font-black tracking-[-0.02em] text-[#0A2342]">
             {t("req_eval")}
           </h1>
-          <p className="text-[#6B7D99] mt-1">
-            {t("req_eval_sub")}
-          </p>
+          <p className="text-[#6B7D99] mt-1">{t("req_eval_sub")}</p>
         </div>
         <button
           type="button"
@@ -198,7 +221,9 @@ export default function DashboardPage() {
           className="inline-flex items-center justify-center rounded-lg text-sm font-medium transition-colors border border-[#E2E6EB] bg-white hover:bg-[#FAF7F1] text-[#3D4F68] h-10 px-4 py-2 shrink-0 shadow-sm"
           aria-label="Export Dashboard Report"
         >
-          <Download className="w-4 h-4 mr-2" />{t("export_report")}</button>
+          <Download className="w-4 h-4 mr-2" />
+          {t("export_report")}
+        </button>
       </div>
 
       {/* Main Grid */}
@@ -216,7 +241,9 @@ export default function DashboardPage() {
               <div className="p-6 pb-2 border-b-0 flex flex-col space-y-1">
                 <div className="flex items-center space-x-2">
                   <FileText className="w-5 h-5 text-[#0A2342]" />
-                  <h2 className="font-display text-xl font-bold text-[#0A2342]">{t("req_inputs")}</h2>
+                  <h2 className="font-display text-xl font-bold text-[#0A2342]">
+                    {t("req_inputs")}
+                  </h2>
                 </div>
                 <p className="text-sm text-[#6B7D99] pl-7">
                   {t("req_inputs_sub")}
@@ -228,7 +255,8 @@ export default function DashboardPage() {
                 {/* Volume */}
                 <div className="space-y-2">
                   <label className="text-sm font-semibold text-[#0A2342] flex items-center">
-                    {t("volume_mt")} <span className="text-[#B42318] ml-1">*</span>
+                    {t("volume_mt")}{" "}
+                    <span className="text-[#B42318] ml-1">*</span>
                   </label>
                   <div className="relative">
                     <input
@@ -335,7 +363,8 @@ export default function DashboardPage() {
                 {/* Commodity Type */}
                 <div className="space-y-2 relative" ref={commodityRef}>
                   <label className="text-sm font-semibold text-[#0A2342] flex items-center">
-                    {t("commodity_type")} <span className="text-[#B42318] ml-1">*</span>
+                    {t("commodity_type")}{" "}
+                    <span className="text-[#B42318] ml-1">*</span>
                   </label>
                   <div className="relative">
                     <button
@@ -468,9 +497,7 @@ export default function DashboardPage() {
                 </button>
                 {error && (
                   <div className="text-[#B42318] text-sm mt-2">
-                    {error instanceof Error
-                      ? error.message
-                      : t("eval_error")}
+                    {error instanceof Error ? error.message : t("eval_error")}
                   </div>
                 )}
               </div>
@@ -524,65 +551,74 @@ export default function DashboardPage() {
 
                 {result && (
                   <>
-                  <div className="flex flex-col gap-4">
-                    {/* Recommended Strategy Box */}
-                    <div className="bg-white border border-[#E2E6EB] rounded-lg p-5 flex flex-col sm:flex-row sm:items-center justify-between shadow-sm gap-4">
-                      <div>
-                        <p className="text-xs font-bold text-[#6B7D99] uppercase tracking-wider mb-2">
-                          {t("strategy_kicker")}
-                        </p>
-                        <h3 className="text-2xl font-semibold text-[#0A2342]">
-                          {result.strategy.includes("into") ? (
-                            <>
-                              {t("split_into")}{" "}
-                              <span className="text-[#D95D0F] font-bold">
-                                {result.strategy.split("into")[1]}
+                    <div className="flex flex-col gap-4">
+                      {/* Recommended Strategy Box */}
+                      <div className="bg-white border border-[#E2E6EB] rounded-lg p-5 flex flex-col sm:flex-row sm:items-center justify-between shadow-sm gap-4">
+                        <div>
+                          <p className="text-xs font-bold text-[#6B7D99] uppercase tracking-wider mb-2">
+                            {t("strategy_kicker")}
+                          </p>
+                          <h3 className="text-2xl font-semibold text-[#0A2342]">
+                            {result.strategy.includes("into") ? (
+                              <>
+                                {t("split_into")}{" "}
+                                <span className="text-[#D95D0F] font-bold">
+                                  {result.strategy.split("into")[1]}
+                                </span>
+                              </>
+                            ) : (
+                              result.strategy
+                            )}
+                          </h3>
+                        </div>
+                        {result.feasible && (
+                          <div className="flex items-center justify-center bg-gray-50/50 border border-[#E2E6EB] rounded-lg p-3 shadow-sm flex-col space-y-1 min-w-[140px]">
+                            <div className="flex items-center text-[#0A2342] font-semibold space-x-2">
+                              <Ship className="w-5 h-5 text-[#0A2342]" />
+                              <span>
+                                {t("vessels_FMT").replace(
+                                  "{n}",
+                                  String(result.total_vessels),
+                                )}
                               </span>
-                            </>
-                          ) : (
-                            result.strategy
-                          )}
-                        </h3>
-                      </div>
-                      {result.feasible && (
-                        <div className="flex items-center justify-center bg-gray-50/50 border border-[#E2E6EB] rounded-lg p-3 shadow-sm flex-col space-y-1 min-w-[140px]">
-                          <div className="flex items-center text-[#0A2342] font-semibold space-x-2">
-                            <Ship className="w-5 h-5 text-[#0A2342]" />
-                            <span>{t("vessels_FMT").replace("{n}", String(result.total_vessels))}</span>
+                            </div>
+                            <span className="text-sm text-[#6B7D99]">
+                              {result.vessel_class}
+                            </span>
                           </div>
-                          <span className="text-sm text-[#6B7D99]">
-                            {result.vessel_class}
-                          </span>
+                        )}
+                      </div>
+
+                      {/* AI Insight Box */}
+                      {result.ai_insight && (
+                        <div className="bg-gradient-to-r from-[#FDF1E7] to-[#FAF7F1] border border-[#D95D0F]/20 rounded-lg p-5 flex flex-col shadow-sm">
+                          <div className="flex items-center space-x-2 mb-2">
+                            <Info className="w-4 h-4 text-[#D95D0F]" />
+                            <p className="text-xs font-bold text-[#D95D0F] uppercase tracking-wider">
+                              {t("ai_insight")}
+                            </p>
+                          </div>
+                          <p className="text-[15px] text-[#0A2342] leading-relaxed font-medium">
+                            {result.ai_insight}
+                          </p>
                         </div>
                       )}
                     </div>
 
-                    {/* AI Insight Box */}
-                    {result.ai_insight && (
-                      <div className="bg-gradient-to-r from-[#FDF1E7] to-[#FAF7F1] border border-[#D95D0F]/20 rounded-lg p-5 flex flex-col shadow-sm">
-                        <div className="flex items-center space-x-2 mb-2">
-                          <Info className="w-4 h-4 text-[#D95D0F]" />
-                          <p className="text-xs font-bold text-[#D95D0F] uppercase tracking-wider">
-                            {t("ai_insight")}
-                          </p>
-                        </div>
-                        <p className="text-[15px] text-[#0A2342] leading-relaxed font-medium">
-                          {result.ai_insight}
-                        </p>
-                      </div>
-                    )}
-                  </div>
-
                     {/* Stats Row */}
                     <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-5 gap-4">
                       <div className="flex flex-col">
-                        <p className="text-sm text-[#6B7D99] mb-1 font-medium">{t("stat_volume")}</p>
+                        <p className="text-sm text-[#6B7D99] mb-1 font-medium">
+                          {t("stat_volume")}
+                        </p>
                         <p className="text-lg font-semibold text-[#0A2342]">
                           {t("vol_mt_FMT").replace("{n}", volume)}
                         </p>
                       </div>
                       <div className="flex flex-col sm:border-l border-[#E2E6EB] sm:pl-4">
-                        <p className="text-sm text-[#6B7D99] mb-1 font-medium">{t("stat_vessels")}</p>
+                        <p className="text-sm text-[#6B7D99] mb-1 font-medium">
+                          {t("stat_vessels")}
+                        </p>
                         <p
                           className={`text-lg font-semibold ${result.feasible ? "text-[#0E7A3D]" : "text-[#6B7D99]"}`}
                         >
@@ -590,15 +626,25 @@ export default function DashboardPage() {
                         </p>
                       </div>
                       <div className="flex flex-col sm:border-l border-[#E2E6EB] sm:pl-4">
-                        <p className="text-sm text-[#6B7D99] mb-1 font-medium">{t("stat_per_vessel")}</p>
+                        <p className="text-sm text-[#6B7D99] mb-1 font-medium">
+                          {t("stat_per_vessel")}
+                        </p>
                         <p className="text-lg font-semibold text-[#0A2342]">
                           {result.feasible
-                            ? t("approx_mt_FMT").replace("{n}", Math.round(Number(volume.replace(/,/g, "")) / result.total_vessels).toLocaleString())
+                            ? t("approx_mt_FMT").replace(
+                                "{n}",
+                                Math.round(
+                                  Number(volume.replace(/,/g, "")) /
+                                    result.total_vessels,
+                                ).toLocaleString(),
+                              )
                             : "-"}
                         </p>
                       </div>
                       <div className="flex flex-col sm:border-l border-[#E2E6EB] sm:pl-4">
-                        <p className="text-sm text-[#6B7D99] mb-1 font-medium">{t("stat_util")}</p>
+                        <p className="text-sm text-[#6B7D99] mb-1 font-medium">
+                          {t("stat_util")}
+                        </p>
                         <p className="text-lg font-semibold text-[#0E7A3D]">
                           {result.feasible
                             ? `${((result.requestedVolume / (result.vesselCapacity * result.total_vessels)) * 100).toFixed(1)}%`
@@ -606,7 +652,9 @@ export default function DashboardPage() {
                         </p>
                       </div>
                       <div className="flex flex-col sm:border-l border-[#E2E6EB] sm:pl-4">
-                        <p className="text-sm text-[#6B7D99] mb-1 font-medium">{t("stat_status")}</p>
+                        <p className="text-sm text-[#6B7D99] mb-1 font-medium">
+                          {t("stat_status")}
+                        </p>
                         <p
                           className={`text-lg font-semibold ${result.feasible ? "text-[#0E7A3D]" : "text-[#B42318]"}`}
                         >
@@ -643,14 +691,18 @@ export default function DashboardPage() {
                               aria-pressed={unit === "Meters"}
                               onClick={() => setUnit("Meters")}
                               className={`px-4 py-1 text-sm font-medium rounded-sm transition-colors ${unit === "Meters" ? "bg-[#D95D0F] text-white shadow-sm" : "text-[#6B7D99] hover:text-[#0A2342] bg-transparent"}`}
-                            >{t("unit_meters")}</button>
+                            >
+                              {t("unit_meters")}
+                            </button>
                             <button
                               type="button"
                               aria-label="Set unit to Feet"
                               aria-pressed={unit === "Feet"}
                               onClick={() => setUnit("Feet")}
                               className={`px-4 py-1 text-sm font-medium rounded-sm transition-colors ${unit === "Feet" ? "bg-[#D95D0F] text-white shadow-sm" : "text-[#6B7D99] hover:text-[#0A2342] bg-transparent"}`}
-                            >{t("unit_feet")}</button>
+                            >
+                              {t("unit_feet")}
+                            </button>
                           </div>
                         </div>
 
@@ -713,7 +765,9 @@ export default function DashboardPage() {
                                   ? `${result.clearance_margin} m`
                                   : `${(result.clearance_margin * 3.28084).toFixed(1)} ft`}
                               </span>
-                              <span className="text-[#0E7A3D] text-sm font-medium">{t("ukc_label")}</span>
+                              <span className="text-[#0E7A3D] text-sm font-medium">
+                                {t("ukc_label")}
+                              </span>
                             </div>
                           </div>
                         </div>
@@ -721,13 +775,22 @@ export default function DashboardPage() {
                         {/* Bottom Details Row */}
                         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 pt-4 border-t border-[#E2E6EB]">
                           <div className="flex flex-col">
-                            <p className="text-sm text-[#6B7D99] mb-1">{t("det_port")}</p>
+                            <p className="text-sm text-[#6B7D99] mb-1">
+                              {t("det_port")}
+                            </p>
                             <p className="text-sm font-semibold text-[#0A2342]">
                               {selectedPort?.name}
                             </p>
                             {(() => {
-                              const p = (selectedPort?.name || "Haldia").toLowerCase();
-                              const preset = ["haldia", "paradip", "dhamra", "sandheads"].includes(p)
+                              const p = (
+                                selectedPort?.name || "Haldia"
+                              ).toLowerCase();
+                              const preset = [
+                                "haldia",
+                                "paradip",
+                                "dhamra",
+                                "sandheads",
+                              ].includes(p)
                                 ? p
                                 : "corridor";
                               return (
@@ -791,6 +854,7 @@ export default function DashboardPage() {
           </div>
         </div>
       )}
+      <CopilotWidget />
     </div>
   );
 }

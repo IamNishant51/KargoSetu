@@ -28,13 +28,20 @@ const ForecastPriceChart = React.memo(function ForecastPriceChart() {
     queryKey: ["forecast", shockMultiplier],
     queryFn: async () => {
       const baseUrl =
-        (String(process.env.NODE_ENV) === "production" ? "" : ((String(process.env.NODE_ENV) === "production" ? "" : (process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"))));
+        String(process.env.NODE_ENV) === "production"
+          ? ""
+          : String(process.env.NODE_ENV) === "production"
+            ? ""
+            : process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
       const res = await fetch(
         `${baseUrl}/api/v1/forecast/rates?shockMultiplier=${shockMultiplier}`,
       );
       if (!res.ok) throw new Error("Failed to fetch forecast");
-      const payload = (await res.json()) as ForecastResult;
-      return Array.isArray(payload) ? payload : [];
+      const payload = await res.json();
+      if (payload && payload.forecast && Array.isArray(payload.forecast)) {
+        return payload.forecast as ForecastResult;
+      }
+      return Array.isArray(payload) ? (payload as ForecastResult) : [];
     },
   });
 
@@ -49,7 +56,8 @@ const ForecastPriceChart = React.memo(function ForecastPriceChart() {
           ML Freight Forecast (90-Day)
         </h2>
         <p className="font-mono text-[11px] text-[#6B7D99]">
-          Shock {shockMultiplier.toFixed(1)}x · P10–P90 band · {series.length} days
+          Shock {shockMultiplier.toFixed(1)}x · P10–P90 band · {series.length}{" "}
+          days
         </p>
       </div>
 
@@ -86,7 +94,9 @@ const ForecastPriceChart = React.memo(function ForecastPriceChart() {
 
       {isError && series.length === 0 && (
         <div className="rounded-xl border border-[#E2E6EB] bg-[#FAF7F1] p-5 text-center">
-          <p className="font-bold text-[#0A2342] text-sm">Outlook unavailable.</p>
+          <p className="font-bold text-[#0A2342] text-sm">
+            Outlook unavailable.
+          </p>
           <p className="mt-1 text-[12.5px] text-[#6B7D99]">
             The forecast desk did not answer. Check the backend and retry.
           </p>
@@ -102,7 +112,9 @@ const ForecastPriceChart = React.memo(function ForecastPriceChart() {
 
       {!isLoading && !isError && series.length === 0 && (
         <div className="rounded-xl border border-[#E2E6EB] bg-[#FAF7F1] p-5 text-center">
-          <p className="font-bold text-[#0A2342] text-sm">No forecast points yet.</p>
+          <p className="font-bold text-[#0A2342] text-sm">
+            No forecast points yet.
+          </p>
           <p className="mt-1 text-[12.5px] text-[#6B7D99]">
             Enter requisition details and evaluate constraints.
           </p>
@@ -112,25 +124,42 @@ const ForecastPriceChart = React.memo(function ForecastPriceChart() {
       {series.length > 0 && (
         <div className="h-[280px] w-full">
           <ResponsiveContainer width="100%" height="100%">
-            <ComposedChart data={series} margin={{ top: 8, right: 8, bottom: 0, left: 0 }}>
+            <ComposedChart
+              data={series}
+              margin={{ top: 8, right: 8, bottom: 0, left: 0 }}
+            >
               <CartesianGrid stroke="#EDF0F4" vertical={false} />
               <XAxis
                 dataKey="date"
-                tick={{ fontSize: 10, fill: "#6B7D99", fontFamily: "monospace" }}
+                tick={{
+                  fontSize: 10,
+                  fill: "#6B7D99",
+                  fontFamily: "monospace",
+                }}
                 tickLine={false}
                 axisLine={{ stroke: "#E2E6EB" }}
                 interval={13}
                 tickFormatter={(v: string) => v.slice(5)}
               />
               <YAxis
-                tick={{ fontSize: 10, fill: "#6B7D99", fontFamily: "monospace" }}
+                tick={{
+                  fontSize: 10,
+                  fill: "#6B7D99",
+                  fontFamily: "monospace",
+                }}
                 tickLine={false}
                 axisLine={false}
                 width={64}
-                tickFormatter={(v: number) => `$${Math.round(v).toLocaleString("en-US")}`}
+                tickFormatter={(v: number) =>
+                  `$${Math.round(v).toLocaleString("en-US")}`
+                }
               />
               <Tooltip
-                contentStyle={{ borderRadius: 12, borderColor: "#E2E6EB", fontSize: 12 }}
+                contentStyle={{
+                  borderRadius: 12,
+                  borderColor: "#E2E6EB",
+                  fontSize: 12,
+                }}
                 labelFormatter={(v) => `Date ${String(v)}`}
                 formatter={(value, name) => [
                   `$${Number(value).toLocaleString("en-US")}`,
@@ -153,9 +182,30 @@ const ForecastPriceChart = React.memo(function ForecastPriceChart() {
                 fillOpacity={1}
                 name="p10"
               />
-              <Line type="monotone" dataKey="p90" stroke="#B42318" strokeWidth={1.5} dot={false} name="p90" />
-              <Line type="monotone" dataKey="p50" stroke="#D95D0F" strokeWidth={2.5} dot={false} name="p50" />
-              <Line type="monotone" dataKey="p10" stroke="#0E7A3D" strokeWidth={1.5} dot={false} name="p10" />
+              <Line
+                type="monotone"
+                dataKey="p90"
+                stroke="#B42318"
+                strokeWidth={1.5}
+                dot={false}
+                name="p90"
+              />
+              <Line
+                type="monotone"
+                dataKey="p50"
+                stroke="#D95D0F"
+                strokeWidth={2.5}
+                dot={false}
+                name="p50"
+              />
+              <Line
+                type="monotone"
+                dataKey="p10"
+                stroke="#0E7A3D"
+                strokeWidth={1.5}
+                dot={false}
+                name="p10"
+              />
             </ComposedChart>
           </ResponsiveContainer>
         </div>
@@ -172,9 +222,7 @@ const ForecastPriceChart = React.memo(function ForecastPriceChart() {
             </div>
           </div>
           <div className="bg-[#FAF7F1] border border-[#E2E6EB] p-5 rounded-xl flex flex-col justify-center">
-            <div className="mono-label text-[#6B7D99] mb-2">
-              P50 (Median)
-            </div>
+            <div className="mono-label text-[#6B7D99] mb-2">P50 (Median)</div>
             <div className="font-mono text-3xl font-bold text-[#0A2342]">
               ${latest.p50.toLocaleString("en-US")}
             </div>

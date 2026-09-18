@@ -37,17 +37,24 @@ VESSEL_CLASS_ORDER = {
     "Capesize": 5,
 }
 
+
 async def get_fleet():
     """Fetch vessel fleet from database with in-memory caching."""
     global _fleet_cache, _fleet_cache_time
     now = time.time()
 
-    if _fleet_cache is not None and (now - _fleet_cache_time) < settings.fleet_cache_ttl_seconds:
+    if (
+        _fleet_cache is not None
+        and (now - _fleet_cache_time) < settings.fleet_cache_ttl_seconds
+    ):
         return _fleet_cache
 
     async with _fleet_lock:
         now = time.time()
-        if _fleet_cache is not None and (now - _fleet_cache_time) < settings.fleet_cache_ttl_seconds:
+        if (
+            _fleet_cache is not None
+            and (now - _fleet_cache_time) < settings.fleet_cache_ttl_seconds
+        ):
             return _fleet_cache
 
         _fleet_cache = await prisma.vessel.find_many()
@@ -55,13 +62,16 @@ async def get_fleet():
 
     return _fleet_cache
 
+
 def calculate_brackish_sinkage(draft_laden: float, port_density: float) -> float:
     """Calculate the additional sinkage when moving from standard seawater (1.025) to brackish water."""
     return draft_laden * ((1.025 - port_density) / port_density)
 
+
 def calculate_hydrodynamic_squat(block_coeff: float, speed_knots: float) -> float:
     """Calculate the squat effect based on Barrass formula."""
     return (2 * block_coeff * math.pow(speed_knots, 2)) / 100
+
 
 def calculate_dynamic_ukc(
     charted_depth: float,
@@ -73,6 +83,7 @@ def calculate_dynamic_ukc(
     """Calculate the dynamic Under Keel Clearance."""
     return (charted_depth + tidal_height) - (draft_laden + delta_draft + squat)
 
+
 def _haversine(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
     """Calculate the great circle distance in nautical miles between two points on the earth."""
     # Convert decimal degrees to radians
@@ -80,10 +91,14 @@ def _haversine(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
     # Haversine formula
     dlon = lon2 - lon1
     dlat = lat2 - lat1
-    a = math.sin(dlat/2)**2 + math.cos(lat1) * math.cos(lat2) * math.sin(dlon/2)**2
+    a = (
+        math.sin(dlat / 2) ** 2
+        + math.cos(lat1) * math.cos(lat2) * math.sin(dlon / 2) ** 2
+    )
     c = 2 * math.asin(math.sqrt(a))
-    r = 3440.065 # Radius of earth in nautical miles.
+    r = 3440.065  # Radius of earth in nautical miles.
     return c * r
+
 
 async def evaluate_requisition(req_data: RequisitionEvaluateRequest) -> dict[str, Any]:
     """
@@ -99,7 +114,7 @@ async def evaluate_requisition(req_data: RequisitionEvaluateRequest) -> dict[str
         port_names = [p.name for p in available_ports]
         raise HTTPException(
             status_code=404,
-            detail=f"Port '{req_data.dest_port_name}' not found. Available ports: {', '.join(port_names)}"
+            detail=f"Port '{req_data.dest_port_name}' not found. Available ports: {', '.join(port_names)}",
         )
 
     fleet = await get_fleet()
@@ -122,7 +137,7 @@ async def evaluate_requisition(req_data: RequisitionEvaluateRequest) -> dict[str
 
         res = await client.get(
             f"https://marine-api.open-meteo.com/v1/marine?latitude={lat}&longitude={lon}&hourly=ocean_tide",
-            timeout=2.0
+            timeout=2.0,
         )
 
         if res.status_code == 200:
@@ -175,7 +190,7 @@ async def evaluate_requisition(req_data: RequisitionEvaluateRequest) -> dict[str
         # Find alternative port
         alternative_port_suggestion = None
         all_ports = await prisma.port.find_many()
-        best_alt_dist = float('inf')
+        best_alt_dist = float("inf")
 
         for alt_port in all_ports:
             if alt_port.id == port.id:
@@ -183,14 +198,29 @@ async def evaluate_requisition(req_data: RequisitionEvaluateRequest) -> dict[str
 
             alt_valid = False
             for vessel in fleet:
-                if (req_data.commodity in CARGO_RESTRICTIONS and vessel.name not in CARGO_RESTRICTIONS[req_data.commodity]):
+                if (
+                    req_data.commodity in CARGO_RESTRICTIONS
+                    and vessel.name not in CARGO_RESTRICTIONS[req_data.commodity]
+                ):
                     continue
-                if alt_port.maxVesselClass and VESSEL_CLASS_ORDER.get(vessel.name, 99) > VESSEL_CLASS_ORDER.get(alt_port.maxVesselClass, 99):
+                if alt_port.maxVesselClass and VESSEL_CLASS_ORDER.get(
+                    vessel.name, 99
+                ) > VESSEL_CLASS_ORDER.get(alt_port.maxVesselClass, 99):
                     continue
 
-                alt_delta = calculate_brackish_sinkage(vessel.laden_draft, alt_port.brackishDensity)
-                alt_squat = calculate_hydrodynamic_squat(vessel.block_coeff, vessel.speed_knots)
-                alt_ukc = calculate_dynamic_ukc(alt_port.chartedDepth, alt_port.typicalTidalRange, vessel.laden_draft, alt_delta, alt_squat)
+                alt_delta = calculate_brackish_sinkage(
+                    vessel.laden_draft, alt_port.brackishDensity
+                )
+                alt_squat = calculate_hydrodynamic_squat(
+                    vessel.block_coeff, vessel.speed_knots
+                )
+                alt_ukc = calculate_dynamic_ukc(
+                    alt_port.chartedDepth,
+                    alt_port.typicalTidalRange,
+                    vessel.laden_draft,
+                    alt_delta,
+                    alt_squat,
+                )
 
                 if alt_ukc >= ukc_margin:
                     alt_valid = True
@@ -200,7 +230,9 @@ async def evaluate_requisition(req_data: RequisitionEvaluateRequest) -> dict[str
                 dist = _haversine(lat, lon, alt_port.lat, alt_port.lon)
                 if dist < best_alt_dist:
                     best_alt_dist = dist
-                    alternative_port_suggestion = f"{alt_port.name} ({int(dist)} NM away)"
+                    alternative_port_suggestion = (
+                        f"{alt_port.name} ({int(dist)} NM away)"
+                    )
 
         response = {
             "feasible": False,
@@ -230,7 +262,11 @@ async def evaluate_requisition(req_data: RequisitionEvaluateRequest) -> dict[str
         strategy = f"Split Cargo into {vessel_count}x {best_vessel.name}s"
 
     clearance = round(best["clearance_margin"], 2)
-    draft_pct = round((best["calculatedDraft"] / dest_port_draft) * 100, 1) if dest_port_draft else 0
+    draft_pct = (
+        round((best["calculatedDraft"] / dest_port_draft) * 100, 1)
+        if dest_port_draft
+        else 0
+    )
 
     if vessel_count == 1:
         vessel_class = best_vessel.name

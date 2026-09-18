@@ -25,7 +25,8 @@ const PRESET_BUTTONS: Array<{ id: CameraPresetId; label: string }> = [
 
 export default function CorridorMiniGlobe() {
   const [viewer, setViewer] = React.useState<CesiumViewer | null>(null);
-  const [activePreset, setActivePreset] = React.useState<CameraPresetId>("corridor");
+  const [activePreset, setActivePreset] =
+    React.useState<CameraPresetId>("corridor");
   const [selectedMmsi, setSelectedMmsi] = React.useState<string | null>(null);
   const [notice, setNotice] = React.useState<string | null>(null);
   const [globeKey, setGlobeKey] = React.useState(0);
@@ -35,10 +36,18 @@ export default function CorridorMiniGlobe() {
   const hazardsQuery = useHazards(bbox);
   const corridorQuery = useCorridor();
 
-  const vessels = React.useMemo(() => vesselsQuery.data?.vessels ?? [], [vesselsQuery.data?.vessels]);
-  const mode = vesselsQuery.data?.mode ?? (vesselsQuery.isLoading ? "connecting" : "unavailable");
+  const vessels = React.useMemo(
+    () => vesselsQuery.data?.vessels ?? [],
+    [vesselsQuery.data?.vessels],
+  );
+  const mode =
+    vesselsQuery.data?.mode ??
+    (vesselsQuery.isLoading ? "connecting" : "unavailable");
   const hazards = hazardsQuery.data;
-  const corridor = React.useMemo(() => corridorQuery.data ?? [], [corridorQuery.data]);
+  const corridor = React.useMemo(
+    () => corridorQuery.data ?? [],
+    [corridorQuery.data],
+  );
 
   const retryFeed = React.useCallback(() => {
     setNotice(null);
@@ -69,7 +78,12 @@ export default function CorridorMiniGlobe() {
     let best: { name: string; nm: number } | null = null;
     for (const p of corridor) {
       if (typeof p.lat !== "number" || typeof p.lon !== "number") continue;
-      const nm = haversineNm(selectedVessel.lat, selectedVessel.lon, p.lat, p.lon);
+      const nm = haversineNm(
+        selectedVessel.lat,
+        selectedVessel.lon,
+        p.lat,
+        p.lon,
+      );
       if (!best || nm < best.nm) best = { name: p.name, nm };
     }
     return best;
@@ -88,7 +102,13 @@ export default function CorridorMiniGlobe() {
     <div className="relative h-[480px] sm:h-[540px] w-full rounded-2xl overflow-hidden bg-[#0A2342] border border-[#E2E6EB] shadow-lg">
       {/* 3D WebGL Canvas */}
       <div className="absolute inset-0">
-        <KargoGlobe key={globeKey} preset={activePreset} onViewer={setViewer} onNotice={setNotice} interactive={true} />
+        <KargoGlobe
+          key={globeKey}
+          preset={activePreset}
+          onViewer={setViewer}
+          onNotice={setNotice}
+          interactive={true}
+        />
         <VesselLayer
           viewer={viewer}
           vessels={vessels}
@@ -193,7 +213,8 @@ export default function CorridorMiniGlobe() {
                 {selectedVessel.name || selectedVessel.mmsi}
               </h3>
               <p className="font-mono text-[10.5px] text-[#6B7D99] mt-0.5">
-                MMSI {selectedVessel.mmsi} · {selectedVessel.shipType || "Vessel"}
+                MMSI {selectedVessel.mmsi} ·{" "}
+                {selectedVessel.shipType || "Vessel"}
               </p>
             </div>
             <button
@@ -208,23 +229,36 @@ export default function CorridorMiniGlobe() {
 
           <div className="mt-2.5 grid grid-cols-3 gap-1.5 font-mono text-[11px] text-center">
             <div className="rounded-lg bg-[#FAF7F1] border border-[#E2E6EB] p-1.5">
-              <span className="block text-[9px] uppercase tracking-wider text-[#6B7D99]">Speed</span>
-              <span className="font-bold text-[#0A2342]">{selectedVessel.sog ?? "—"} kn</span>
+              <span className="block text-[9px] uppercase tracking-wider text-[#6B7D99]">
+                Speed
+              </span>
+              <span className="font-bold text-[#0A2342]">
+                {selectedVessel.sog ?? "—"} kn
+              </span>
             </div>
             <div className="rounded-lg bg-[#FAF7F1] border border-[#E2E6EB] p-1.5">
-              <span className="block text-[9px] uppercase tracking-wider text-[#6B7D99]">Heading</span>
-              <span className="font-bold text-[#0A2342]">{selectedVessel.cog ?? "—"}°</span>
+              <span className="block text-[9px] uppercase tracking-wider text-[#6B7D99]">
+                Heading
+              </span>
+              <span className="font-bold text-[#0A2342]">
+                {selectedVessel.cog ?? "—"}°
+              </span>
             </div>
             <div className="rounded-lg bg-[#FAF7F1] border border-[#E2E6EB] p-1.5">
-              <span className="block text-[9px] uppercase tracking-wider text-[#6B7D99]">Draft</span>
-              <span className="font-bold text-[#0A2342]">{selectedVessel.draught ?? "—"} m</span>
+              <span className="block text-[9px] uppercase tracking-wider text-[#6B7D99]">
+                Draft
+              </span>
+              <span className="font-bold text-[#0A2342]">
+                {selectedVessel.draught ?? "—"} m
+              </span>
             </div>
           </div>
 
           {nearestPortToSelected && (
             <p className="mt-2 text-[11px] text-[#3D4F68]">
               <span className="font-semibold text-[#0A2342]">Proximity:</span>{" "}
-              {nearestPortToSelected.nm.toFixed(1)} NM from {nearestPortToSelected.name}
+              {nearestPortToSelected.nm.toFixed(1)} NM from{" "}
+              {nearestPortToSelected.name}
             </p>
           )}
 
@@ -259,7 +293,8 @@ export default function CorridorMiniGlobe() {
         <div className="pointer-events-auto rounded-full border border-[#E2E6EB] bg-white/95 px-3.5 py-1 shadow backdrop-blur">
           <p className="font-mono text-[10.5px] font-semibold text-[#0A2342]">
             Soundings: <span className="text-[#B45309]">Haldia 7.5m</span> ·{" "}
-            <span className="text-[#0E7A3D]">Sandheads 22m+</span> · Paradip 14.5m · Dhamra 16.0m
+            <span className="text-[#0E7A3D]">Sandheads 22m+</span> · Paradip
+            14.5m · Dhamra 16.0m
           </p>
         </div>
 

@@ -58,7 +58,12 @@ def _client() -> httpx.AsyncClient | None:
         return None
 
 
-async def _get_json(url: str, params: dict | None = None, headers: dict | None = None, timeout: float = 6.0):
+async def _get_json(
+    url: str,
+    params: dict | None = None,
+    headers: dict | None = None,
+    timeout: float = 6.0,
+):
     client = _client()
     if client is None:
         async with httpx.AsyncClient(timeout=httpx.Timeout(10.0, connect=5.0)) as tmp:
@@ -128,7 +133,14 @@ def _geo_label(data: dict) -> str | None:
     if not isinstance(data, dict):
         return None
     addr = data.get("address") or {}
-    parts = [addr.get("city") or addr.get("town") or addr.get("village") or addr.get("county"), addr.get("state"), addr.get("country")]
+    parts = [
+        addr.get("city")
+        or addr.get("town")
+        or addr.get("village")
+        or addr.get("county"),
+        addr.get("state"),
+        addr.get("country"),
+    ]
     label = ", ".join(p for p in parts if isinstance(p, str) and p)
     if label:
         return label[:160]
@@ -148,12 +160,22 @@ async def get_port_news(
     cached = _news_cache.get(query)
     if cached and (now - cached[1]) < NEWS_TTL:
         items, _ = cached
-        return {"query": query, "items": items, "source": "gdelt", "updatedAt": utcnow_iso()}
+        return {
+            "query": query,
+            "items": items,
+            "source": "gdelt",
+            "updatedAt": utcnow_iso(),
+        }
     try:
         # Allow-listed host only; user input travels as query params.
         data = await _get_json(
             f"{GDELT_HOST}/api/v2/doc/doc",
-            params={"query": query, "mode": "artlist", "maxrecords": maxRecords, "format": "json"},
+            params={
+                "query": query,
+                "mode": "artlist",
+                "maxrecords": maxRecords,
+                "format": "json",
+            },
             timeout=6.0,
         )
         arts = data.get("articles") if isinstance(data, dict) else None
@@ -166,14 +188,29 @@ async def get_port_news(
                 break
         async with _lock:
             _news_cache[query] = (items, now)
-        return {"query": query, "items": items, "source": "gdelt", "updatedAt": utcnow_iso()}
+        return {
+            "query": query,
+            "items": items,
+            "source": "gdelt",
+            "updatedAt": utcnow_iso(),
+        }
     except Exception as exc:
         logger.warning("context_news_failed", error=str(exc))
         async with _lock:
             if cached:
                 items, _ = cached
-                return {"query": query, "items": items, "source": "gdelt", "updatedAt": utcnow_iso()}
-        return {"query": query, "items": [], "source": "gdelt", "updatedAt": utcnow_iso()}
+                return {
+                    "query": query,
+                    "items": items,
+                    "source": "gdelt",
+                    "updatedAt": utcnow_iso(),
+                }
+        return {
+            "query": query,
+            "items": [],
+            "source": "gdelt",
+            "updatedAt": utcnow_iso(),
+        }
 
 
 @router.get("/geo/reverse", response_model=GeoResponse)
@@ -203,7 +240,12 @@ async def get_reverse_geocode(
                 timeout=6.0,
             )
             _nominatim_last = time_module.time()
-        payload = {"label": _geo_label(data), "lat": lat, "lon": lon, "source": "nominatim"}
+        payload = {
+            "label": _geo_label(data),
+            "lat": lat,
+            "lon": lon,
+            "source": "nominatim",
+        }
         async with _lock:
             _geo_cache[key] = (payload, now)
         return payload
@@ -220,8 +262,12 @@ async def _fetch_route_point(wp: dict) -> dict:
     lat, lon = wp["lat"], wp["lon"]
     try:
         marine, wind = await asyncio.gather(
-            _get_json(f"{METEO_MARINE_HOST}/v1/marine?latitude={lat}&longitude={lon}&hourly=wave_height,time&timezone=UTC"),
-            _get_json(f"{METEO_HOST}/v1/forecast?latitude={lat}&longitude={lon}&hourly=wind_speed_10m,time&timezone=UTC"),
+            _get_json(
+                f"{METEO_MARINE_HOST}/v1/marine?latitude={lat}&longitude={lon}&hourly=wave_height,time&timezone=UTC"
+            ),
+            _get_json(
+                f"{METEO_HOST}/v1/forecast?latitude={lat}&longitude={lon}&hourly=wind_speed_10m,time&timezone=UTC"
+            ),
         )
         wave = wind_v = None
         try:
@@ -235,13 +281,27 @@ async def _fetch_route_point(wp: dict) -> dict:
             hourly_w = (wind.get("hourly") or {}) if isinstance(wind, dict) else {}
             ws = hourly_w.get("wind_speed_10m") or []
             idx_w = current_hour_index(hourly_w.get("time") or [])
-            wind_v = float(ws[idx_w]) if idx_w < len(ws) and ws[idx_w] is not None else None
+            wind_v = (
+                float(ws[idx_w]) if idx_w < len(ws) and ws[idx_w] is not None else None
+            )
         except (TypeError, ValueError, IndexError):
             pass
-        return {"id": wp["id"], "lat": lat, "lon": lon, "waveHeightM": wave, "windSpeedKmh": wind_v}
+        return {
+            "id": wp["id"],
+            "lat": lat,
+            "lon": lon,
+            "waveHeightM": wave,
+            "windSpeedKmh": wind_v,
+        }
     except Exception as exc:
         logger.warning("context_route_wx_point_failed", point=wp["id"], error=str(exc))
-        return {"id": wp["id"], "lat": lat, "lon": lon, "waveHeightM": None, "windSpeedKmh": None}
+        return {
+            "id": wp["id"],
+            "lat": lat,
+            "lon": lon,
+            "waveHeightM": None,
+            "windSpeedKmh": None,
+        }
 
 
 @router.get("/route/weather", response_model=RouteWxResponse)
@@ -250,7 +310,11 @@ async def get_route_weather(request: Request):
     global _route_wx_cache, _route_wx_time
     now = time_module.time()
     if _route_wx_cache is not None and (now - _route_wx_time) < ROUTE_WX_TTL:
-        return {"points": _route_wx_cache, "source": "open-meteo", "updatedAt": utcnow_iso()}
+        return {
+            "points": _route_wx_cache,
+            "source": "open-meteo",
+            "updatedAt": utcnow_iso(),
+        }
     points = await asyncio.gather(*[_fetch_route_point(wp) for wp in ROUTE_WAYPOINTS])
     async with _lock:
         _route_wx_cache = list(points)

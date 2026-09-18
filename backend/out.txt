@@ -1,0 +1,94 @@
+﻿============================= test session starts =============================
+platform win32 -- Python 3.12.10, pytest-9.1.1, pluggy-1.6.0 -- C:\Users\nisha\AppData\Local\Programs\Python\Python312\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Users\nisha\Desktop\KargoSetu\backend
+configfile: pyproject.toml
+plugins: anyio-3.7.1, asyncio-1.4.0
+asyncio: mode=Mode.AUTO, debug=False, asyncio_default_fixture_loop_scope=None, asyncio_default_test_loop_scope=function
+collecting ... collected 29 items / 28 deselected / 1 selected
+
+tests/test_globe_contracts.py::test_hazards_bbox_span_raises_value_error FAILED [100%]
+
+================================== FAILURES ===================================
+__________________ test_hazards_bbox_span_raises_value_error __________________
+
+    @pytest.mark.asyncio
+    async def test_hazards_bbox_span_raises_value_error():
+>       with pytest.raises(HTTPException) as exc_info:
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       Failed: DID NOT RAISE HTTPException
+
+tests\test_globe_contracts.py:154: Failed
+============================== warnings summary ===============================
+app\schemas\requisition.py:10
+  C:\Users\nisha\Desktop\KargoSetu\backend\app\schemas\requisition.py:10: PydanticDeprecatedSince20: Using extra keyword arguments on `Field` is deprecated and will be removed. Use `json_schema_extra` instead. (Extra keys: 'example'). Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    volume_mt: float = Field(..., description="Volume of the cargo in metric tonnes", example=50000.0)
+
+app\schemas\requisition.py:11
+  C:\Users\nisha\Desktop\KargoSetu\backend\app\schemas\requisition.py:11: PydanticDeprecatedSince20: Using extra keyword arguments on `Field` is deprecated and will be removed. Use `json_schema_extra` instead. (Extra keys: 'example'). Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    dest_port_name: str = Field(..., description="Name of the destination port", example="Port of Rotterdam")
+
+app\schemas\requisition.py:12
+  C:\Users\nisha\Desktop\KargoSetu\backend\app\schemas\requisition.py:12: PydanticDeprecatedSince20: Using extra keyword arguments on `Field` is deprecated and will be removed. Use `json_schema_extra` instead. (Extra keys: 'example'). Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    commodity: str = Field(..., description="Type of commodity to be transported", example="Iron Ore")
+
+app\schemas\requisition.py:21
+  C:\Users\nisha\Desktop\KargoSetu\backend\app\schemas\requisition.py:21: PydanticDeprecatedSince20: Using extra keyword arguments on `Field` is deprecated and will be removed. Use `json_schema_extra` instead. (Extra keys: 'example'). Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    volume_mt: float = Field(..., description="Volume of the cargo in metric tonnes", example=75000.0)
+
+app\schemas\requisition.py:22
+  C:\Users\nisha\Desktop\KargoSetu\backend\app\schemas\requisition.py:22: PydanticDeprecatedSince20: Using extra keyword arguments on `Field` is deprecated and will be removed. Use `json_schema_extra` instead. (Extra keys: 'example'). Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    dest_port: str = Field(..., description="Name or UN/LOCODE of the destination port", example="Shanghai")
+
+app\schemas\requisition.py:23
+  C:\Users\nisha\Desktop\KargoSetu\backend\app\schemas\requisition.py:23: PydanticDeprecatedSince20: Using extra keyword arguments on `Field` is deprecated and will be removed. Use `json_schema_extra` instead. (Extra keys: 'example'). Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    commodity: str = Field(..., description="Type of commodity", example="Coal")
+
+app\schemas\requisition.py:24
+  C:\Users\nisha\Desktop\KargoSetu\backend\app\schemas\requisition.py:24: PydanticDeprecatedSince20: Using extra keyword arguments on `Field` is deprecated and will be removed. Use `json_schema_extra` instead. (Extra keys: 'example'). Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    origin: str = Field(..., description="Name or UN/LOCODE of the origin port", example="Newcastle")
+
+app\schemas\requisition.py:33
+  C:\Users\nisha\Desktop\KargoSetu\backend\app\schemas\requisition.py:33: PydanticDeprecatedSince20: Using extra keyword arguments on `Field` is deprecated and will be removed. Use `json_schema_extra` instead. (Extra keys: 'example'). Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    volume_mt: float | None = Field(None, description="Volume of the cargo in metric tonnes", example=75000.0)
+
+app\schemas\requisition.py:34
+  C:\Users\nisha\Desktop\KargoSetu\backend\app\schemas\requisition.py:34: PydanticDeprecatedSince20: Using extra keyword arguments on `Field` is deprecated and will be removed. Use `json_schema_extra` instead. (Extra keys: 'example'). Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    dest_port: str | None = Field(None, description="Name or UN/LOCODE of the destination port", example="Shanghai")
+
+app\schemas\requisition.py:35
+  C:\Users\nisha\Desktop\KargoSetu\backend\app\schemas\requisition.py:35: PydanticDeprecatedSince20: Using extra keyword arguments on `Field` is deprecated and will be removed. Use `json_schema_extra` instead. (Extra keys: 'example'). Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    commodity: str | None = Field(None, description="Type of commodity", example="Coal")
+
+app\schemas\requisition.py:36
+  C:\Users\nisha\Desktop\KargoSetu\backend\app\schemas\requisition.py:36: PydanticDeprecatedSince20: Using extra keyword arguments on `Field` is deprecated and will be removed. Use `json_schema_extra` instead. (Extra keys: 'example'). Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    origin: str | None = Field(None, description="Name or UN/LOCODE of the origin port", example="Newcastle")
+
+app\schemas\requisition.py:37
+  C:\Users\nisha\Desktop\KargoSetu\backend\app\schemas\requisition.py:37: PydanticDeprecatedSince20: Using extra keyword arguments on `Field` is deprecated and will be removed. Use `json_schema_extra` instead. (Extra keys: 'example'). Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    status: str | None = Field(None, description="Requisition status", example="Approved")
+
+app\schemas\user.py:20
+  C:\Users\nisha\Desktop\KargoSetu\backend\app\schemas\user.py:20: PydanticDeprecatedSince20: Support for class-based `config` is deprecated, use ConfigDict instead. Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    class UserResponse(UserBase):
+
+app\schemas\forecast.py:10
+  C:\Users\nisha\Desktop\KargoSetu\backend\app\schemas\forecast.py:10: PydanticDeprecatedSince20: Using extra keyword arguments on `Field` is deprecated and will be removed. Use `json_schema_extra` instead. (Extra keys: 'example'). Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    date: str = Field(..., description="Date of the forecast in YYYY-MM-DD format", example="2024-09-06")
+
+app\schemas\forecast.py:11
+  C:\Users\nisha\Desktop\KargoSetu\backend\app\schemas\forecast.py:11: PydanticDeprecatedSince20: Using extra keyword arguments on `Field` is deprecated and will be removed. Use `json_schema_extra` instead. (Extra keys: 'example'). Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    p10: float = Field(..., description="10th percentile freight rate prediction (lower bound)", example=1450.25)
+
+app\schemas\forecast.py:12
+  C:\Users\nisha\Desktop\KargoSetu\backend\app\schemas\forecast.py:12: PydanticDeprecatedSince20: Using extra keyword arguments on `Field` is deprecated and will be removed. Use `json_schema_extra` instead. (Extra keys: 'example'). Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    p50: float = Field(..., description="50th percentile freight rate prediction (median)", example=1500.0)
+
+app\schemas\forecast.py:13
+  C:\Users\nisha\Desktop\KargoSetu\backend\app\schemas\forecast.py:13: PydanticDeprecatedSince20: Using extra keyword arguments on `Field` is deprecated and will be removed. Use `json_schema_extra` instead. (Extra keys: 'example'). Deprecated in Pydantic V2.0 to be removed in V3.0. See Pydantic V2 Migration Guide at https://errors.pydantic.dev/2.12/migration/
+    p90: float = Field(..., description="90th percentile freight rate prediction (upper bound)", example=1550.75)
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+FAILED tests/test_globe_contracts.py::test_hazards_bbox_span_raises_value_error
+================ 1 failed, 28 deselected, 17 warnings in 2.65s ================

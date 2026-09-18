@@ -14,7 +14,8 @@ export interface User {
 export function useUser() {
   // Read once per render so the query key tracks the active session —
   // a different token after re-login can never reuse the old user's cache.
-  const token = typeof window !== "undefined" ? Cookies.get("auth_token") : undefined;
+  const token =
+    typeof window !== "undefined" ? Cookies.get("auth_token") : undefined;
   return useQuery<User>({
     queryKey: ["user", token ?? null],
     queryFn: async () => {
@@ -22,8 +23,13 @@ export function useUser() {
       if (!token) {
         throw new Error("No token found");
       }
-      
-      const apiUrl = (String(process.env.NODE_ENV) === "production" ? "" : ((String(process.env.NODE_ENV) === "production" ? "" : (process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"))));
+
+      const apiUrl =
+        String(process.env.NODE_ENV) === "production"
+          ? ""
+          : String(process.env.NODE_ENV) === "production"
+            ? ""
+            : process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
       const res = await fetch(`${apiUrl}/api/v1/auth/me`, {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -33,7 +39,7 @@ export function useUser() {
       if (!res.ok) {
         throw new Error("Failed to fetch user");
       }
-      
+
       return res.json();
     },
     // Don't retry if it fails (e.g., due to invalid token)

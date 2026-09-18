@@ -33,12 +33,12 @@ class Settings(BaseSettings):
         if len(v) < 32:
             raise ValueError(
                 "JWT_SECRET_KEY must be at least 32 characters for security. "
-                "Generate one with: python -c \"import secrets; print(secrets.token_hex(32))\""
+                'Generate one with: python -c "import secrets; print(secrets.token_hex(32))"'
             )
         return v
 
     # --- CORS ---
-    frontend_url: str = "http://localhost:3000"
+    frontend_url: str = "https://kargosetu.vercel.app"
 
     # --- External APIs ---
     google_client_id: str = ""

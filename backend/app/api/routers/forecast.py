@@ -5,7 +5,7 @@ from fastapi import APIRouter, Query, Request
 from slowapi import Limiter
 from slowapi.util import get_remote_address
 
-from app.schemas.forecast import ForecastRateResponse
+from app.schemas.forecast import ForecastResponse
 from app.services import ml_predictor
 
 router = APIRouter(prefix="/api/v1/forecast", tags=["forecast"])
@@ -13,7 +13,7 @@ logger = structlog.get_logger(__name__)
 limiter = Limiter(key_func=get_remote_address)
 
 
-@router.get("/rates", response_model=list[ForecastRateResponse])
+@router.get("/rates", response_model=ForecastResponse)
 @limiter.limit("30/minute")
 async def get_forecast_rates(
     request: Request,
@@ -33,5 +33,7 @@ async def get_forecast_rates(
     scaled by the shockMultiplier parameter to simulate market stress.
     Route specific scaling is applied based on the origin and destination.
     """
-    result = await ml_predictor.get_freight_forecast(shockMultiplier, origin, destination)
+    result = await ml_predictor.get_freight_forecast(
+        shockMultiplier, origin, destination
+    )
     return result

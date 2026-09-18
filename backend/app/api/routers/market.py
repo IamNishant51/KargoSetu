@@ -28,12 +28,17 @@ _market_cache: list | None = None
 _market_cache_time: float = 0
 MARKET_CACHE_TTL = 60  # seconds
 
+
 def _quote(symbol: str) -> dict:
     try:
         ticker = yf.Ticker(symbol)
         hist = ticker.history(period="5d")
         if hist.empty:
-            return {"symbol": SYMBOLS.get(symbol, symbol), "value": "N/A", "delta": "0.0%"}
+            return {
+                "symbol": SYMBOLS.get(symbol, symbol),
+                "value": "N/A",
+                "delta": "0.0%",
+            }
 
         closes = hist["Close"].tolist()
         if len(closes) >= 2:
@@ -53,15 +58,13 @@ def _quote(symbol: str) -> dict:
         logger.warning("market_quote_failed", symbol=symbol, error=str(e))
         return {"symbol": SYMBOLS.get(symbol, symbol), "value": "N/A", "delta": "0.0%"}
 
+
 @router.get("/ticker")
 @limiter.limit("10/minute")
 async def get_market_ticker(request: Request):
     global _market_cache, _market_cache_time
     now = time_module.time()
-    if (
-        _market_cache is not None
-        and (now - _market_cache_time) < MARKET_CACHE_TTL
-    ):
+    if _market_cache is not None and (now - _market_cache_time) < MARKET_CACHE_TTL:
         return _market_cache
 
     result = await asyncio.gather(

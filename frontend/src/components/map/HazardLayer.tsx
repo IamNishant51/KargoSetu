@@ -12,7 +12,12 @@ interface HazardLayerProps {
   showWeather: boolean;
 }
 
-export default function HazardLayer({ viewer, hazards, showHazards, showWeather }: HazardLayerProps) {
+export default function HazardLayer({
+  viewer,
+  hazards,
+  showHazards,
+  showWeather,
+}: HazardLayerProps) {
   const dsRef = React.useRef<{ removeAll: () => void } | null>(null);
 
   React.useEffect(() => {
@@ -58,7 +63,9 @@ export default function HazardLayer({ viewer, hazards, showHazards, showWeather 
                 outlineWidth: 2,
                 style: Cesium.LabelStyle.FILL_AND_OUTLINE,
                 showBackground: true,
-                backgroundColor: Cesium.Color.fromCssColorString("rgba(180, 35, 24, 0.92)"),
+                backgroundColor: Cesium.Color.fromCssColorString(
+                  "rgba(180, 35, 24, 0.92)",
+                ),
                 backgroundPadding: new Cesium.Cartesian2(6, 3),
                 disableDepthTestDistance: Number.POSITIVE_INFINITY,
                 eyeOffset: new Cesium.Cartesian3(0, 0, -20),
@@ -89,8 +96,7 @@ export default function HazardLayer({ viewer, hazards, showHazards, showWeather 
       if (showWeather && hazards.weather) {
         try {
           const w = hazards.weather;
-          const label =
-            ` Waves ${w.waveHeightM ?? "?"} m · Wind ${w.windSpeedKmh ?? "?"} km/h (${w.source}) `;
+          const label = ` Waves ${w.waveHeightM ?? "?"} m · Wind ${w.windSpeedKmh ?? "?"} km/h (${w.source}) `;
           ds.entities.add({
             position: Cesium.Cartesian3.fromDegrees(87.5, 19.0),
             label: {
@@ -101,7 +107,9 @@ export default function HazardLayer({ viewer, hazards, showHazards, showWeather 
               outlineWidth: 2,
               style: Cesium.LabelStyle.FILL_AND_OUTLINE,
               showBackground: true,
-              backgroundColor: Cesium.Color.fromCssColorString("rgba(10, 35, 66, 0.94)"),
+              backgroundColor: Cesium.Color.fromCssColorString(
+                "rgba(10, 35, 66, 0.94)",
+              ),
               backgroundPadding: new Cesium.Cartesian2(12, 6),
               disableDepthTestDistance: Number.POSITIVE_INFINITY,
               eyeOffset: new Cesium.Cartesian3(0, 0, -25),

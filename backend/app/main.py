@@ -24,13 +24,16 @@ from app.api.routers import (
     auth,
     commodities,
     context,
+    copilot,
     forecast,
     hazards,
     health,
+    idle_scenarios,
     market,
     notifications,
     ports,
     requisitions,
+    risk,
     vessels,
 )
 from app.api.routers import (
@@ -69,9 +72,11 @@ async def lifespan(app: FastAPI):
             structlog.contextvars.merge_contextvars,
             structlog.processors.add_log_level,
             structlog.processors.TimeStamper(fmt="iso"),
-            structlog.dev.ConsoleRenderer()
-            if app_settings.debug
-            else structlog.processors.JSONRenderer(),
+            (
+                structlog.dev.ConsoleRenderer()
+                if app_settings.debug
+                else structlog.processors.JSONRenderer()
+            ),
         ],
         wrapper_class=structlog.make_filtering_bound_logger(
             logging.DEBUG if app_settings.debug else logging.INFO
@@ -98,20 +103,25 @@ async def lifespan(app: FastAPI):
         logger.error("database_connection_failed_serving_degraded", error=str(exc))
 
     # Start ML model initialization in the background
+    import sys
+
     from app.services.ml_predictor import predictor_instance
 
-    try:
-        # Held module-wide so the tasks are never garbage-collected mid-flight.
-        _background_tasks.add(asyncio.create_task(predictor_instance.init_model()))
-        logger.info("ml_model_warmup_started")
+    if "pytest" not in sys.modules:
+        try:
+            # Held module-wide so the tasks are never garbage-collected mid-flight.
+            _background_tasks.add(asyncio.create_task(predictor_instance.init_model()))
+            logger.info("ml_model_warmup_started")
 
-        _background_tasks.add(
-            asyncio.create_task(
-                predictor_instance.schedule_retraining(interval_hours=6)
+            _background_tasks.add(
+                asyncio.create_task(
+                    predictor_instance.schedule_retraining(interval_hours=6)
+                )
             )
-        )
-    except Exception as exc:
-        logger.error("ml_model_warmup_failed", error=str(exc))
+        except Exception as exc:
+            logger.error("ml_model_warmup_failed", error=str(exc))
+    else:
+        logger.info("ml_model_warmup_skipped_for_testing")
 
     yield
 
@@ -167,3 +177,12 @@ app.include_router(notifications.router)
 app.include_router(vessels.router)
 app.include_router(hazards.router)
 app.include_router(context.router)
+app.include_router(risk.router)
+app.include_router(
+    idle_scenarios.router, prefix="/api/v1/idle-scenarios", tags=["idle-scenarios"]
+)
+app.include_router(copilot.router, prefix="/api/v1/copilot", tags=["copilot"])
+
+from app.api.routers import simulator
+
+app.include_router(simulator.router)

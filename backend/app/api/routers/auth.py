@@ -42,6 +42,7 @@ async def get_current_user(token: str = Depends(oauth2_scheme)) -> UserResponse:
         raise credentials_exception
     return user
 
+
 @router.post("/register", response_model=Token)
 @limiter.limit("5/minute")
 async def register(request: Request, user_in: UserCreate):
@@ -60,6 +61,7 @@ async def register(request: Request, user_in: UserCreate):
     access_token = create_access_token(data={"sub": user.email})
     return {"access_token": access_token, "token_type": "bearer"}
 
+
 @router.post("/login", response_model=Token)
 @limiter.limit("10/minute")
 async def login(request: Request, user_in: UserLogin):
@@ -73,12 +75,15 @@ async def login(request: Request, user_in: UserLogin):
     access_token = create_access_token(data={"sub": user.email})
     return {"access_token": access_token, "token_type": "bearer"}
 
+
 @router.post("/google", response_model=Token)
 @limiter.limit("10/minute")
 async def google_login(request: Request, google_in: GoogleLogin):
     try:
         # Validate Google token
-        idinfo = id_token.verify_oauth2_token(google_in.token, requests.Request(), GOOGLE_CLIENT_ID)
+        idinfo = id_token.verify_oauth2_token(
+            google_in.token, requests.Request(), GOOGLE_CLIENT_ID
+        )
         email = idinfo.get("email")
         name = idinfo.get("name")
         google_id = idinfo.get("sub")
@@ -94,14 +99,14 @@ async def google_login(request: Request, google_in: GoogleLogin):
                     "email": email,
                     "name": name,
                     "googleId": google_id,
-                    "avatarUrl": avatar_url
+                    "avatarUrl": avatar_url,
                 }
             )
         elif not user.googleId:
             # Link existing account to google
             user = await prisma.user.update(
                 where={"email": email},
-                data={"googleId": google_id, "avatarUrl": avatar_url}
+                data={"googleId": google_id, "avatarUrl": avatar_url},
             )
 
         access_token = create_access_token(data={"sub": user.email})
@@ -109,6 +114,7 @@ async def google_login(request: Request, google_in: GoogleLogin):
     except ValueError as err:
         raise HTTPException(status_code=400, detail="Invalid Google token") from err
 
+
 @router.get("/me", response_model=UserResponse)
-async def read_users_me(current_user = Depends(get_current_user)):
+async def read_users_me(current_user=Depends(get_current_user)):
     return current_user

@@ -18,7 +18,13 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { loadJSON, saveJSON } from "@/lib/storage";
 
 const FC_VIEW_KEY = "kargosetu_fc_view_v1";
-const DEFAULT_FC_VIEW = { shock: 2.0, days: 30, currentPage: 1, origin: "Newcastle, Australia", destination: "Haldia" };
+const DEFAULT_FC_VIEW = {
+  shock: 2.0,
+  days: 30,
+  currentPage: 1,
+  origin: "Newcastle, Australia",
+  destination: "Haldia",
+};
 
 export default function ForecastsPage() {
   const { t } = useLanguage();
@@ -26,8 +32,12 @@ export default function ForecastsPage() {
   const [shock, setShock] = useState(savedFcView.shock);
   const [debouncedShock, setDebouncedShock] = useState(savedFcView.shock);
   const [days, setDays] = useState(savedFcView.days);
-  const [origin, setOrigin] = useState(savedFcView.origin ?? "Newcastle, Australia");
-  const [destination, setDestination] = useState(savedFcView.destination ?? "Haldia");
+  const [origin, setOrigin] = useState(
+    savedFcView.origin ?? "Newcastle, Australia",
+  );
+  const [destination, setDestination] = useState(
+    savedFcView.destination ?? "Haldia",
+  );
   const [currentPage, setCurrentPage] = useState(
     Number.isInteger(savedFcView.currentPage) && savedFcView.currentPage >= 1
       ? savedFcView.currentPage
@@ -49,12 +59,19 @@ export default function ForecastsPage() {
   const { data: portsData } = useQuery({
     queryKey: ["port-names"],
     queryFn: async () => {
-      const baseUrl = (String(process.env.NODE_ENV) === "production" ? "" : ((String(process.env.NODE_ENV) === "production" ? "" : (process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"))));
+      const baseUrl =
+        String(process.env.NODE_ENV) === "production"
+          ? ""
+          : String(process.env.NODE_ENV) === "production"
+            ? ""
+            : process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
       const res = await fetch(`${baseUrl}/api/v1/ports`);
       if (!res.ok) return [];
       const data = await res.json();
       const list = data.ports || data;
-      return (Array.isArray(list) ? list : []).map((p: Record<string, unknown>) => String(p?.name ?? ""));
+      return (Array.isArray(list) ? list : []).map(
+        (p: Record<string, unknown>) => String(p?.name ?? ""),
+      );
     },
   });
   const ports = portsData || ["Haldia", "Paradip", "Dhamra"];
@@ -63,7 +80,11 @@ export default function ForecastsPage() {
     queryKey: ["forecast", debouncedShock, origin, destination],
     queryFn: async () => {
       const baseUrl =
-        (String(process.env.NODE_ENV) === "production" ? "" : ((String(process.env.NODE_ENV) === "production" ? "" : (process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"))));
+        String(process.env.NODE_ENV) === "production"
+          ? ""
+          : String(process.env.NODE_ENV) === "production"
+            ? ""
+            : process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
       const res = await fetch(
         `${baseUrl}/api/v1/forecast/rates?shockMultiplier=${debouncedShock}&origin=${encodeURIComponent(origin)}&destination=${encodeURIComponent(destination)}`,
       );
@@ -93,9 +114,9 @@ export default function ForecastsPage() {
 
   const chartData = apiChartData ? apiChartData.slice(0, days) : [];
 
-// Reset page when days change
+  // Reset page when days change
   useEffect(() => {
-// eslint-disable-next-line react-hooks/set-state-in-effect
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setCurrentPage(1);
   }, [days]);
 
@@ -129,36 +150,44 @@ export default function ForecastsPage() {
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <p className="mono-label text-[#B45309]">{t("pg_forecasts")}</p>
-            <h1 className="mt-1.5 font-display text-2xl font-black text-[#0A2342] tracking-[-0.02em]">{t("fc_title")}</h1>
-            <p className="text-[#6B7D99] mt-1">
-              {t("fc_sub")}
-            </p>
+            <h1 className="mt-1.5 font-display text-2xl font-black text-[#0A2342] tracking-[-0.02em]">
+              {t("fc_title")}
+            </h1>
+            <p className="text-[#6B7D99] mt-1">{t("fc_sub")}</p>
           </div>
 
           <div className="flex items-center gap-2 flex-wrap">
             <div className="flex items-center gap-2">
               <div className="flex items-center bg-white border border-[#E2E6EB] rounded-lg px-3 py-2 shadow-sm">
                 <ArrowRightLeft className="w-4 h-4 text-[#6B7D99] mr-2" />
-                <select 
+                <select
                   className="bg-transparent text-sm font-medium focus:outline-none text-[#3D4F68]"
                   value={origin}
                   onChange={(e) => setOrigin(e.target.value)}
                 >
-                  <option value="Newcastle, Australia">Newcastle, Australia</option>
-                  <option value="Port Hedland, Australia">Port Hedland, Australia</option>
+                  <option value="Newcastle, Australia">
+                    Newcastle, Australia
+                  </option>
+                  <option value="Port Hedland, Australia">
+                    Port Hedland, Australia
+                  </option>
                   <option value="Tubarão, Brazil">Tubarão, Brazil</option>
                   <option value="Richards Bay, SA">Richards Bay, SA</option>
                 </select>
               </div>
-              <span className="text-[#6B7D99] font-medium hidden sm:inline">→</span>
+              <span className="text-[#6B7D99] font-medium hidden sm:inline">
+                →
+              </span>
               <div className="flex items-center bg-white border border-[#E2E6EB] rounded-lg px-3 py-2 shadow-sm">
-                <select 
+                <select
                   className="bg-transparent text-sm font-medium focus:outline-none text-[#3D4F68]"
                   value={destination}
                   onChange={(e) => setDestination(e.target.value)}
                 >
                   {ports.map((p: string) => (
-                    <option key={p} value={p}>{p}</option>
+                    <option key={p} value={p}>
+                      {p}
+                    </option>
                   ))}
                 </select>
               </div>
@@ -173,7 +202,9 @@ export default function ForecastsPage() {
               >
                 <option value={30}>{t("days_FMT").replace("{n}", "30")}</option>
                 <option value={90}>{t("days_FMT").replace("{n}", "90")}</option>
-                <option value={180}>{t("days_FMT").replace("{n}", "180")}</option>
+                <option value={180}>
+                  {t("days_FMT").replace("{n}", "180")}
+                </option>
               </select>
             </div>
 
@@ -183,7 +214,9 @@ export default function ForecastsPage() {
               onClick={handleExport}
               className="flex items-center bg-[#D95D0F] hover:bg-[#B45309] text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
             >
-              <Download className="w-4 h-4 mr-2" />{t("export")}</button>
+              <Download className="w-4 h-4 mr-2" />
+              {t("export")}
+            </button>
           </div>
         </div>
 
@@ -448,7 +481,10 @@ export default function ForecastsPage() {
                       : Math.min(chartData.length, (currentPage - 1) * 10 + 1),
                   ),
                 )
-                .replace("{b}", String(Math.min(chartData.length, currentPage * 10)))
+                .replace(
+                  "{b}",
+                  String(Math.min(chartData.length, currentPage * 10)),
+                )
                 .replace("{c}", String(chartData.length))}
             </span>
             <div className="flex gap-1">

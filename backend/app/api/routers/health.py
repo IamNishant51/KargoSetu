@@ -54,3 +54,24 @@ async def health_check():
         "version": "2.0.0",
         "feeds": feeds,
     }
+
+
+@router.get("/ready")
+async def readiness_check():
+    """
+    Readiness check endpoint.
+    Returns 200 OK only if the system is fully ready to serve traffic.
+    """
+    try:
+        await prisma.execute_raw("SELECT 1")
+    except Exception as exc:
+        logger.error("readiness_check_db_failed", error=str(exc))
+        from fastapi import HTTPException
+        raise HTTPException(status_code=503, detail="Database not ready") from exc
+
+    if predictor_instance.is_warming_up:
+        from fastapi import HTTPException
+
+        raise HTTPException(status_code=503, detail="ML model not ready")
+
+    return {"status": "ok", "message": "Service is ready"}

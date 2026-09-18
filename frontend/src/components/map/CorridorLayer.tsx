@@ -36,12 +36,19 @@ function legColor(
     if (typeof w === "number") worst = worst === null ? w : Math.max(worst, w);
   }
   if (worst === null) return { color: Cesium.Color.ORANGE, width: 2 };
-  if (worst < 1.5) return { color: Cesium.Color.fromCssColorString("#0E7A3D"), width: 2 };
+  if (worst < 1.5)
+    return { color: Cesium.Color.fromCssColorString("#0E7A3D"), width: 2 };
   if (worst < 2.5) return { color: Cesium.Color.ORANGE, width: 2 };
   return { color: Cesium.Color.fromCssColorString("#B42318"), width: 3 };
 }
 
-export default function CorridorLayer({ viewer, corridor, visible, showBoundaries, routeWx }: CorridorLayerProps) {
+export default function CorridorLayer({
+  viewer,
+  corridor,
+  visible,
+  showBoundaries,
+  routeWx,
+}: CorridorLayerProps) {
   const dsRef = React.useRef<{ removeAll: () => void } | null>(null);
 
   React.useEffect(() => {
@@ -106,7 +113,12 @@ export default function CorridorLayer({ viewer, corridor, visible, showBoundarie
           const style = legColor(Cesium, a, b, wxById);
           ds.entities.add({
             polyline: {
-              positions: Cesium.Cartesian3.fromDegreesArray([pa.lon, pa.lat, pb.lon, pb.lat]),
+              positions: Cesium.Cartesian3.fromDegreesArray([
+                pa.lon,
+                pa.lat,
+                pb.lon,
+                pb.lat,
+              ]),
               width: style.width,
               material: style.color as never,
               clampToGround: true,
@@ -117,7 +129,10 @@ export default function CorridorLayer({ viewer, corridor, visible, showBoundarie
         }
       }
 
-      const PORT_LAYOUT: Record<string, { offset: [number, number]; hOrigin: "LEFT" | "RIGHT" | "CENTER" }> = {
+      const PORT_LAYOUT: Record<
+        string,
+        { offset: [number, number]; hOrigin: "LEFT" | "RIGHT" | "CENTER" }
+      > = {
         Haldia: { offset: [0, -22], hOrigin: "CENTER" },
         Sandheads: { offset: [78, 0], hOrigin: "LEFT" }, // offset eastward into open water away from 4 converging lines
         Dhamra: { offset: [-70, -2], hOrigin: "RIGHT" }, // offset westward onto land away from shipping lane
@@ -128,7 +143,10 @@ export default function CorridorLayer({ viewer, corridor, visible, showBoundarie
       for (const p of corridor) {
         const c = allCoords[p.name];
         if (!c) continue;
-        const layout = PORT_LAYOUT[p.name] ?? { offset: [0, -20], hOrigin: "CENTER" };
+        const layout = PORT_LAYOUT[p.name] ?? {
+          offset: [0, -20],
+          hOrigin: "CENTER",
+        };
         const hOrigin =
           layout.hOrigin === "LEFT"
             ? Cesium.HorizontalOrigin.LEFT
@@ -177,9 +195,14 @@ export default function CorridorLayer({ viewer, corridor, visible, showBoundarie
               outlineWidth: 2,
               style: Cesium.LabelStyle.FILL_AND_OUTLINE,
               showBackground: true,
-              backgroundColor: Cesium.Color.fromCssColorString("rgba(10, 35, 66, 0.94)"),
+              backgroundColor: Cesium.Color.fromCssColorString(
+                "rgba(10, 35, 66, 0.94)",
+              ),
               backgroundPadding: new Cesium.Cartesian2(8, 5),
-              pixelOffset: new Cesium.Cartesian2(layout.offset[0], layout.offset[1]),
+              pixelOffset: new Cesium.Cartesian2(
+                layout.offset[0],
+                layout.offset[1],
+              ),
               horizontalOrigin: hOrigin,
               verticalOrigin: Cesium.VerticalOrigin.CENTER,
               disableDepthTestDistance: Number.POSITIVE_INFINITY,
@@ -220,7 +243,8 @@ export default function CorridorLayer({ viewer, corridor, visible, showBoundarie
   React.useEffect(() => {
     return () => {
       try {
-        if (viewer && dsRef.current) viewer.dataSources.remove(dsRef.current as never, true);
+        if (viewer && dsRef.current)
+          viewer.dataSources.remove(dsRef.current as never, true);
       } catch {
         // cleanup best-effort
       }

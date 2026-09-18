@@ -30,11 +30,15 @@ export default function Error({
           aria-label="Try again"
           onClick={() => reset()}
           className="px-6 py-3 rounded-xl bg-[#D95D0F] text-white text-sm font-bold hover:bg-[#B45309] transition-colors shadow-[0_2px_0_#0A2342]"
-        >{t("try_again")}</button>
+        >
+          {t("try_again")}
+        </button>
         <a
           href="/dashboard"
           className="px-6 py-3 rounded-xl bg-white text-sm font-bold text-[#0A2342] border border-[#E2E6EB] hover:bg-[#FAF7F1] transition-colors"
-        >{t("globe.error.desk")}</a>
+        >
+          {t("globe.error.desk")}
+        </a>
       </div>
     </div>
   );

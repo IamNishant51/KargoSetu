@@ -50,15 +50,25 @@ export const metadata: Metadata = {
     siteName: "KargoSetu",
     locale: "en_IN",
     type: "website",
-    images: [{ url: "/hero.png", width: 1200, height: 630, alt: "KargoSetu live corridor globe" }],
+    images: [
+      {
+        url: "/hero.png",
+        width: 1200,
+        height: 630,
+        alt: "KargoSetu live corridor globe",
+      },
+    ],
   },
   twitter: {
     card: "summary_large_image",
     title: "KargoSetu — River-Sea Draft Optimization",
-    description: "Enterprise constraint solver and market forecasting for the Haldia-Paradip-Dhamra corridor.",
+    description:
+      "Enterprise constraint solver and market forecasting for the Haldia-Paradip-Dhamra corridor.",
     images: ["/hero.png"],
   },
-  icons: { icon: "https://ik.imagekit.io/iqlpfpvny/KargoSetu/KargoSetu-LOGO.png" },
+  icons: {
+    icon: "https://ik.imagekit.io/iqlpfpvny/KargoSetu/KargoSetu-LOGO.png",
+  },
   alternates: { canonical: "https://kargosetu.com" },
 };
 
@@ -85,11 +95,17 @@ export default function RootLayout({
       suppressHydrationWarning
       data-scroll-behavior="smooth"
     >
-      <body className="min-h-full flex flex-col bg-white text-[#0A2342]" suppressHydrationWarning>
+      <body
+        className="min-h-full flex flex-col bg-white text-[#0A2342]"
+        suppressHydrationWarning
+      >
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(ORG_JSONLD) }}
         />
+        <div className="bg-yellow-500 text-black text-center text-xs font-bold py-1 z-50 relative">
+          DEMO MODE — Synthetic data for SIH26006 evaluation
+        </div>
         <Providers>{children}</Providers>
       </body>
     </html>

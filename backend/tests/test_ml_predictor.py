@@ -7,24 +7,27 @@ def test_heuristic_forecast_during_warmup():
     # Warmup is True by default for tests since we don't call init_model()
     predictor_instance.is_warming_up = True
     result = predictor_instance.predict_sync(1.0)
-    assert len(result) == 90
-    assert "p50" in result[0]
+    assert len(result["forecast"]) == 90
+    assert "p50" in result["forecast"][0]
+
 
 def test_heuristic_forecast_correct_length():
     result = predictor_instance.predict_sync(1.0)
-    assert len(result) == 90
+    assert len(result["forecast"]) == 90
+
 
 def test_heuristic_forecast_date_sequence():
     result = predictor_instance.predict_sync(1.0)
-    dates = [r["date"] for r in result]
-    assert len(set(dates)) == 90 # all unique
+    dates = [r["date"] for r in result["forecast"]]
+    assert len(set(dates)) == 90  # all unique
     # check format YYYY-MM-DD
     assert len(dates[0].split("-")) == 3
 
+
 def test_shock_multiplier_clamping():
-    res_low = predictor_instance.predict_sync(0.01) # clamped to 0.1
-    res_high = predictor_instance.predict_sync(10.0) # clamped to 5.0
-    res_normal = predictor_instance.predict_sync(1.0)
+    res_low = predictor_instance.predict_sync(0.01)["forecast"]  # clamped to 0.1
+    res_high = predictor_instance.predict_sync(10.0)["forecast"]  # clamped to 5.0
+    res_normal = predictor_instance.predict_sync(1.0)["forecast"]
 
     # 5.0 multiplier should have wider bands than 1.0, 0.1 narrower
     spread_high = res_high[89]["p90"] - res_high[89]["p10"]
@@ -32,14 +35,17 @@ def test_shock_multiplier_clamping():
     spread_low = res_low[89]["p90"] - res_low[89]["p10"]
     assert spread_high > spread_normal > spread_low
 
+
 def test_p10_less_than_p50_less_than_p90():
     result = predictor_instance.predict_sync(1.0)
-    for r in result:
+    for r in result["forecast"]:
         assert r["p10"] <= r["p50"] <= r["p90"]
+
 
 def test_normalize_and_denormalize_roundtrip():
     # Set up dummy scaler
     from sklearn.preprocessing import RobustScaler
+
     scaler = RobustScaler()
     dummy_data = np.array([1000, 1500, 2000]).reshape(-1, 1)
     scaler.fit(dummy_data)
@@ -85,8 +91,10 @@ def test_predict_sync_returns_90_items_with_correct_keys(monkeypatch):
     predictor.scalers = {"bdry": scaler}
     predictor.historical_volatility = 0.05
     result = predictor.predict_sync(1.0)
-    assert len(result) == 90, f"Expected 90 items, got {len(result)}"
-    for item in result:
+    assert (
+        len(result["forecast"]) == 90
+    ), f"Expected 90 items, got {len(result['forecast'])}"
+    for item in result["forecast"]:
         assert {"date", "p10", "p50", "p90"} <= item.keys()
 
 
@@ -111,7 +119,7 @@ def test_p10_le_p50_le_p90(monkeypatch):
     predictor.scalers = {"bdry": scaler}
     predictor.historical_volatility = 0.05
     result = predictor.predict_sync(1.0)
-    for item in result:
+    for item in result["forecast"]:
         assert item["p10"] <= item["p50"], f"p10 > p50: {item}"
         assert item["p50"] <= item["p90"], f"p50 > p90: {item}"
 
