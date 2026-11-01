@@ -52,13 +52,29 @@ export default function RegisterPage() {
   };
 
   const handleGoogleSuccess = async (credentialResponse: CredentialResponse) => {
+    setLoading(true);
+    setError("");
     try {
-      const res = await fetch(`${(String(process.env.NODE_ENV) === "production" ? "" : ((String(process.env.NODE_ENV) === "production" ? "" : (process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"))))}/api/v1/auth/google`, {
+      const apiBase = String(process.env.NODE_ENV) === "production" ? "" : (process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000");
+      let res = await fetch(`${apiBase}/api/v1/auth/google`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ token: credentialResponse.credential }),
       });
-      if (!res.ok) throw new Error(t("err_google_reg"));
+
+      if (res.status === 429 || res.status === 503) {
+        await new Promise((r) => setTimeout(r, 3000));
+        res = await fetch(`${apiBase}/api/v1/auth/google`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ token: credentialResponse.credential }),
+        });
+      }
+
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => null);
+        throw new Error(errorData?.detail || t("err_google_reg"));
+      }
 
       const data = await res.json();
       persistSessionAndRedirect(data.access_token);
@@ -68,6 +84,8 @@ export default function RegisterPage() {
       } else {
         setError(t("err_unknown"));
       }
+    } finally {
+      setLoading(false);
     }
   };
 

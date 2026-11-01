@@ -4,13 +4,13 @@ from fastapi.security import OAuth2PasswordBearer
 from google.auth.transport import requests
 from google.oauth2 import id_token
 from slowapi import Limiter
-from slowapi.util import get_remote_address
 
 from app.api.dependencies import prisma
 from app.core.config import settings
 from app.core.security import (
     create_access_token,
     decode_access_token,
+    get_client_ip,
     get_password_hash,
     verify_password,
 )
@@ -20,7 +20,7 @@ router = APIRouter(prefix="/api/v1/auth", tags=["auth"])
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login")
 
 GOOGLE_CLIENT_ID = settings.google_client_id
-limiter = Limiter(key_func=get_remote_address)
+limiter = Limiter(key_func=get_client_ip)
 
 
 async def get_current_user(token: str = Depends(oauth2_scheme)) -> UserResponse:
@@ -61,7 +61,7 @@ async def register(request: Request, user_in: UserCreate):
     return {"access_token": access_token, "token_type": "bearer"}
 
 @router.post("/login", response_model=Token)
-@limiter.limit("10/minute")
+@limiter.limit("30/minute")
 async def login(request: Request, user_in: UserLogin):
     user = await prisma.user.find_unique(where={"email": user_in.email})
     if not user or not user.passwordHash:
@@ -74,7 +74,7 @@ async def login(request: Request, user_in: UserLogin):
     return {"access_token": access_token, "token_type": "bearer"}
 
 @router.post("/google", response_model=Token)
-@limiter.limit("10/minute")
+@limiter.limit("30/minute")
 async def google_login(request: Request, google_in: GoogleLogin):
     try:
         # Validate Google token

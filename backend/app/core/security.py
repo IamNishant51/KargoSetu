@@ -76,3 +76,16 @@ def decode_access_token(token: str) -> dict:
         settings.jwt_secret_key,
         algorithms=[settings.jwt_algorithm],
     )
+
+
+def get_client_ip(request) -> str:
+    """Extract real client IP behind reverse proxies (Vercel, Render, Cloudflare)."""
+    forwarded = request.headers.get("x-forwarded-for")
+    if forwarded:
+        return forwarded.split(",")[0].strip()
+    cf_ip = request.headers.get("cf-connecting-ip")
+    if cf_ip:
+        return cf_ip.strip()
+    if request.client and request.client.host:
+        return request.client.host
+    return "127.0.0.1"

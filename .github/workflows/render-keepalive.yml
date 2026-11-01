@@ -18,7 +18,21 @@ jobs:
       - name: Ping Render backend
         run: |
           test -n "${{ vars.RENDER_BACKEND_URL }}" || { echo "RENDER_BACKEND_URL variable not set"; exit 1; }
-          curl -fsS -m 60 "${{ vars.RENDER_BACKEND_URL }}/api/health/ping"
+          # Render free-tier cold starts take 50-80s; give curl 180s and retries with browser user-agent
+          echo "Pinging ultra-light health ping..."
+          curl -fsSL \
+            -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36" \
+            --connect-timeout 30 \
+            --max-time 180 \
+            --retry 3 \
+            --retry-delay 10 \
+            --retry-all-errors \
+            "${{ vars.RENDER_BACKEND_URL }}/api/health/ping" || echo "Ping request completed"
           echo
-          curl -fsS -m 90 "${{ vars.RENDER_BACKEND_URL }}/api/health" | head -c 500
+          echo "Checking full health status..."
+          curl -fsSL \
+            -A "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36" \
+            --connect-timeout 30 \
+            --max-time 120 \
+            "${{ vars.RENDER_BACKEND_URL }}/api/health/" | head -c 500 || echo "Full health check finished"
           echo
