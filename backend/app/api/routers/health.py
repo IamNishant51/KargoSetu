@@ -10,7 +10,7 @@ router = APIRouter(prefix="/api/health", tags=["health"])
 logger = structlog.get_logger(__name__)
 
 
-@router.get("/ping")
+@router.api_route("/ping", methods=["GET", "HEAD"])
 async def ping():
     """Ultra-light keepalive probe: no DB, no ML. Used by cron keepalives
     (GitHub Actions / UptimeRobot) to prevent free-tier sleep."""
