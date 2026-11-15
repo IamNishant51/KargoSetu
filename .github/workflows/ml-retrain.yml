@@ -37,15 +37,22 @@ jobs:
           JWT_SECRET_KEY: ci-retrain-dummy-secret-0000000000000000
         run: |
           python -c "
-          import asyncio
+          import asyncio, sys
           from app.services.ml_predictor import predictor_instance
           asyncio.run(predictor_instance.init_model())
           print('warming_up:', predictor_instance.is_warming_up)
           print('has_onnx:', predictor_instance.onnx_session is not None)
+          if predictor_instance.onnx_session is None:
+              print('ERROR: no ONNX session produced, failing loudly')
+              sys.exit(1)
           "
 
       - name: Commit fresh model
         run: |
+          if [ ! -f backend/models/model.onnx ]; then
+            echo "no fresh model produced"
+            exit 0
+          fi
           git config user.name "kargosetu-ml-bot"
           git config user.email "ml-bot@kargosetu.local"
           git add backend/models/model.onnx
