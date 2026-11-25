@@ -225,8 +225,12 @@ class MLPredictor:
             input_signature = [
                 tf.TensorSpec([None, LOOKBACK_DAYS, settings.ml_num_features], tf.float32, name="input")
             ]
-            onnx_model, _ = tf2onnx.convert.from_keras(
-                model, input_signature, opset=13
+            @tf.function(input_signature=input_signature)
+            def _serve(inputs):
+                return model(inputs, training=False)
+
+            onnx_model, _ = tf2onnx.convert.from_function(
+                _serve, input_signature=input_signature, opset=18
             )
             with open(self.onnx_model_path, "wb") as f:
                 f.write(onnx_model.SerializeToString())
