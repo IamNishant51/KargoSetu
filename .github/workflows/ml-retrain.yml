@@ -32,6 +32,12 @@ jobs:
           pip install --upgrade pip
           pip install -r requirements.txt
 
+      - name: Age out committed snapshot so training runs
+        run: |
+          if [ -f backend/models/model.onnx ]; then
+            touch -d "7 days ago" backend/models/model.onnx
+          fi
+
       - name: Train and export ONNX
         working-directory: backend
         env:
