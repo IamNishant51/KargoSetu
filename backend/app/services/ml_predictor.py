@@ -273,8 +273,9 @@ class MLPredictor:
                 def _chart_api(symbol):
                     # Direct Yahoo chart API: yfinance's curl_cffi impersonation
                     # is rejected by the CI build, so fetch closes directly.
-                    import requests
                     from urllib.parse import quote
+
+                    import requests
 
                     resp = requests.get(
                         "https://query1.finance.yahoo.com/v8/finance/chart/"
