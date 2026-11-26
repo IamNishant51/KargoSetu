@@ -270,10 +270,24 @@ class MLPredictor:
             start_date = end_date - timedelta(days=5 * 365)
 
             try:
+                # Yahoo via curl_cffi: pin a supported browser impersonation.
+                # The default (chrome152) is rejected by the curl_cffi build
+                # installed in CI, which made every download return empty.
+                _session = None
+                try:
+                    from curl_cffi import requests as _cffi_requests
+
+                    _session = _cffi_requests.Session(impersonate="chrome124")
+                except Exception:
+                    _session = None
+
                 def _download(symbol):
                     last_exc = None
                     for attempt in range(3):
                         try:
+                            kwargs = {}
+                            if _session is not None:
+                                kwargs["session"] = _session
                             frame = yf.download(
                                 symbol,
                                 start=start_date,
@@ -281,7 +295,14 @@ class MLPredictor:
                                 progress=False,
                                 auto_adjust=False,
                                 threads=False,
+                                **kwargs,
                             )
+                            if frame is None or frame.empty:
+                                frame = yf.Ticker(symbol, **kwargs).history(
+                                    start=start_date,
+                                    end=end_date,
+                                    auto_adjust=False,
+                                )
                             if frame is not None and not frame.empty:
                                 return frame
                             last_exc = ValueError(f"empty download for {symbol}")
