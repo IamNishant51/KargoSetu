@@ -270,39 +270,46 @@ class MLPredictor:
             start_date = end_date - timedelta(days=5 * 365)
 
             try:
-                # Yahoo via curl_cffi: pin a supported browser impersonation.
-                # The default (chrome152) is rejected by the curl_cffi build
-                # installed in CI, which made every download return empty.
-                _session = None
-                try:
-                    from curl_cffi import requests as _cffi_requests
+                def _chart_api(symbol):
+                    # Direct Yahoo chart API: yfinance's curl_cffi impersonation
+                    # is rejected by the CI build, so fetch closes directly.
+                    import requests
+                    from urllib.parse import quote
 
-                    _session = _cffi_requests.Session(impersonate="chrome124")
-                except Exception:
-                    _session = None
+                    resp = requests.get(
+                        "https://query1.finance.yahoo.com/v8/finance/chart/"
+                        + quote(symbol, safe=""),
+                        params={
+                            "period1": int(start_date.timestamp()),
+                            "period2": int(end_date.timestamp()),
+                            "interval": "1d",
+                            "includePrePost": "false",
+                        },
+                        headers={
+                            "User-Agent": (
+                                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                                "AppleWebKit/537.36 (KHTML, like Gecko) "
+                                "Chrome/124.0 Safari/537.36"
+                            )
+                        },
+                        timeout=30,
+                    )
+                    resp.raise_for_status()
+                    result = resp.json()["chart"]["result"][0]
+                    closes = result["indicators"]["quote"][0]["close"]
+                    frame = pd.DataFrame(
+                        {"Close": closes},
+                        index=pd.to_datetime(
+                            result["timestamp"], unit="s", utc=True
+                        ).tz_localize(None),
+                    )
+                    return frame.dropna()
 
                 def _download(symbol):
                     last_exc = None
                     for attempt in range(3):
                         try:
-                            kwargs = {}
-                            if _session is not None:
-                                kwargs["session"] = _session
-                            frame = yf.download(
-                                symbol,
-                                start=start_date,
-                                end=end_date,
-                                progress=False,
-                                auto_adjust=False,
-                                threads=False,
-                                **kwargs,
-                            )
-                            if frame is None or frame.empty:
-                                frame = yf.Ticker(symbol, **kwargs).history(
-                                    start=start_date,
-                                    end=end_date,
-                                    auto_adjust=False,
-                                )
+                            frame = _chart_api(symbol)
                             if frame is not None and not frame.empty:
                                 return frame
                             last_exc = ValueError(f"empty download for {symbol}")
