@@ -290,15 +290,37 @@ class MLPredictor:
                         time_module.sleep(2 * (attempt + 1))
                     raise last_exc
 
-                data_bdry = _download("BDRY")
-                data_sp500 = _download("^GSPC")
-                data_oil = _download("CL=F")
+                # Download each symbol independently so one failure (e.g. BDRY
+                # in CI) does not discard the other symbols' live data.
+                symbols = {"BDRY": "bdry", "^GSPC": "sp500", "CL=F": "oil"}
+                synth_params = {
+                    "bdry": (5, 15, 1.5),
+                    "sp500": (1000, 4000, 10),
+                    "oil": (20, 70, 2),
+                }
+                frames = {}
+                failed = []
+                for symbol, column in symbols.items():
+                    try:
+                        frames[column] = self._safe_close(_download(symbol), column)
+                        logger.info("symbol_download_ok", symbol=symbol)
+                    except Exception as exc:
+                        failed.append(column)
+                        logger.warning(
+                            "symbol_download_failed", symbol=symbol, error=str(exc)
+                        )
 
-                df_bdry = self._safe_close(data_bdry, "bdry")
-                df_sp500 = self._safe_close(data_sp500, "sp500")
-                df_oil = self._safe_close(data_oil, "oil")
+                if not frames:
+                    raise ValueError("all symbol downloads failed")
 
-                df = pd.DataFrame(df_bdry).join(df_sp500, how="inner").join(df_oil, how="inner")
+                df = pd.concat(frames.values(), axis=1, join="inner")
+                for column in failed:
+                    floor, base, step = synth_params[column]
+                    df[column] = np.maximum(
+                        floor, base + np.cumsum(np.random.randn(len(df)) * step)
+                    )
+                    logger.warning("symbol_synthetic_fill", column=column)
+                df = df[["bdry", "sp500", "oil"]]
 
             except Exception as e:
                 logger.warning("yfinance_api_failed", error=str(e), fallback="synthetic_data")
